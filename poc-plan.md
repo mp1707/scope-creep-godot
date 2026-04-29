@@ -75,7 +75,7 @@ Ziel: Ordner, Basisklassen und Enums so vorbereiten, dass alle weiteren Systeme 
 
 Codex:
 
-- [ ] Zielordner anlegen: `data/`, `src/`, `tests/` gemaess `architecture.md`.
+- [x] Zielordner anlegen: `data/`, `scripts/`, `scenes/`, `assets/`, `tests/` gemaess `architecture.md`.
 - [ ] Resource-Basisklassen fuer `CardDefinition`, `RecipeDefinition`, `EffectDefinition`, `BoosterDefinition`, `ShopDefinition`, `BalanceDefinition` erstellen.
 - [ ] Runtime-State-Klassen fuer `RunState`, `CardInstance`, `StackState`, `BoardState`, `ProcessingState` erstellen.
 - [ ] Enums/Konstanten fuer Card-Typen, Run-Phasen und Processing-States definieren.
@@ -368,4 +368,3 @@ Entscheidungen waehrend der Umsetzung hier festhalten:
 Bekannte technische Schulden hier festhalten:
 
 - [ ] 
-

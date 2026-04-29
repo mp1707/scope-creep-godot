@@ -94,14 +94,26 @@ res://data/boosters/
 res://data/shops/
 res://data/balance/
 
-res://src/application/
-res://src/simulation/
-res://src/presentation/
-res://src/save/
-res://src/validation/
+res://scenes/application/
+res://scenes/presentation/
+res://scenes/ui/
+
+res://scripts/application/
+res://scripts/simulation/
+res://scripts/presentation/
+res://scripts/save/
+res://scripts/validation/
+
+res://assets/fonts/
+res://assets/icons/
+res://assets/card_art/
+res://assets/audio/
+res://assets/themes/
 
 res://tests/
 ```
+
+`data/` enthaelt Godot `Resource`-Assets fuer spielbare Inhalte und Balancing. `scripts/` enthaelt GDScript-Code. `scenes/` enthaelt Godot-Scenes, die im Editor gepflegt und mit Scripts aus `scripts/` verbunden werden. `assets/` enthaelt Roh- und Import-Assets wie Fonts, Icons, Card-Art, Audio und Themes.
 
 IDs sind stabile `snake_case`-Strings mit Domain-Praefix:
 
@@ -591,4 +603,3 @@ Nicht Teil dieser Architektur:
 - eine Vertical-Slice-Roadmap
 
 Diese Punkte koennen spaeter bewusst ergaenzt werden, sollen aber die Initialarchitektur nicht komplizierter machen.
-
