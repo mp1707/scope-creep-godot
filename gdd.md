@@ -1,4 +1,4 @@
-# Scope Creep — Game Design Document v1.1
+# Scope Creep — Game Design Document v1.2
 
 ## 1. High Concept
 
@@ -172,22 +172,25 @@ Das Spiel ist in **Sprints** unterteilt. Ein Sprint ist eine kurze Arbeitsphase 
 
 ### 6.2 Zeitsteuerung
 
-- Karten brauchen Zeit, um verarbeitet zu werden.
-- Der Spieler kann pausieren und in Ruhe Karten organisieren.
-- Während der Pause laufen keine Timer.
-- Karten können in der Pause trotzdem bewegt und gestapelt werden.
+- Sprint-Dauer: **60 Sekunden Echtzeit**.
+- Pause: **Leertaste** friert alle Timer ein. Karten können in der Pause trotzdem bewegt und gestapelt werden (Stacklands-Style).
+- **Timer-Carryover**: Unfertige Bearbeitungen pausieren am Sprintende und laufen im nächsten Sprint weiter. Dadurch ist es sinnvoll, einen sonst unbeschäftigten Mitarbeiter auch auf eine ineffiziente Aufgabe zu setzen — Däumchen drehen ist die schlechtere Alternative.
+- Es gibt **kein Run-Ziel**. Das Spiel ist Endless: möglichst lange überleben und die Firma skalieren.
 
-### 6.3 Sprintende
+### 6.3 Sprintende und Bezahlphase
 
-Am Sprintende werden Gehaltskarten benötigt.
+Nach Ablauf der 60 Sekunden startet die **Bezahlphase**. Während dieser Phase sind nur **Geldkarten und Mitarbeiter** beweglich; alle anderen Karten und Stapel sind gesperrt.
 
-Beispiel:
+**Regeln:**
 
-```text
-Geld + Entwickler → Entwickler bleibt
-Kein Geld + Entwickler → Kündigungsgefahr
-Kündigungsgefahr + nächster unbezahlter Sprint → Mitarbeiter verlässt das Spiel
-```
+- Pro Mitarbeiter wird **1 Geldkarte** benötigt.
+- **Manuelles Bezahlen**: Geldkarte auf Mitarbeiter ziehen → Mitarbeiter ist als bezahlt markiert.
+- **Auto-Pay-Button**: Bezahlt alle Mitarbeiter automatisch. Nur verfügbar, wenn genug Geld für **alle** vorhanden ist. Bei zu wenig Geld ist der Button gesperrt — der Spieler muss manuell entscheiden, wen er opfert.
+- Mitarbeiter, die zu Beginn des nächsten Sprints nicht bezahlt sind, **kündigen sofort**.
+- Externer Dev braucht kein Gehalt (sein Einsatz war im Boosterpack-Preis enthalten).
+- Burnout blockiert die Bezahlung **nicht** — ein Mitarbeiter mit aktiver Burnout-Karte ist trotzdem bezahlbar.
+
+**Game Over:** Sobald der Spieler **0 Mitarbeiter** hat, endet der Run.
 
 Geld ist keine Zahl im UI, sondern eine oder mehrere Geldkarten mit Werten.
 
@@ -239,6 +242,19 @@ Technische Schulden + Software → erhöht Bug-Chance bei Releases
 
 Auch diese Effekte entstehen aus Karten, nicht aus unsichtbaren Zahlen.
 
+### 7.4 Falsche Kombinationen
+
+Jede Mitarbeiter-Aufgabe-Kombination ist gültig — es gibt keine Verbots-Logik. Falsche Paarungen haben aber deutlich höhere Bearbeitungszeiten, oft länger als ein Sprint dauert (60s).
+
+Beispiel:
+
+```text
+User Story + Entwickler → schnell, sauberer Output
+User Story + Product Owner-versucht-zu-coden → läuft viel länger als 60s
+```
+
+Da Timer per Carryover in den nächsten Sprint übertragen werden (siehe 6.2), kann ein „beschäftigter" PO über mehrere Sprints hinweg trotzdem Output liefern. Das ist ineffizient und produziert tendenziell mehr Bugs/Schulden, aber strategisch besser, als einen Mitarbeiter Däumchen drehen zu lassen.
+
 ---
 
 ## 8. Wichtige Kartenkategorien
@@ -269,10 +285,12 @@ Schwächen:
 Typische Outputs:
 
 ```text
-Idee + Solo-Entwickler → Prototyp + Technische Schulden
+Idee + Solo-Entwickler → Funktion (langsam, Risiko: Technische Schulden + Kundenproblem)
 Bug + Solo-Entwickler → Bugfix
 Kundenwunsch + Solo-Entwickler → Funktion, aber Risiko auf falsche Funktion
 ```
+
+Der „Schnellschuss"-Spielstil (Idee direkt vom Solo-Entwickler bauen lassen) ist nur eine Bezeichnung für diese Spielweise — es gibt keine eigene Schnellschuss-Karte. Sauberer wird es, wenn die Idee zuerst durch einen Product Owner zur User Story wird (siehe Kap. 8.2).
 
 ### Entwickler
 
@@ -480,14 +498,6 @@ Sehr hochwertige, aber übertriebene Funktion.
 Goldrandlösung + Software → viel Qualität, wenig Geld pro Zeit
 ```
 
-### Schnellschuss
-
-Schnelle, riskante Lösung.
-
-```text
-Schnellschuss + Software → schnelles Geld + Bug + Technische Schulden
-```
-
 ---
 
 ## 8.4 Problemkarten
@@ -496,7 +506,17 @@ Problemkarten sind zentrale negative Objekte. Sie bleiben liegen, bis sie behand
 
 ### Bug
 
-Ein Softwarefehler.
+Ein Softwarefehler. Bugs haben ein **Level** (Ganzzahl, Start: 1).
+
+**Bug-Level-Berechnung beim Entstehen:**
+
+```text
+Bug-Level = 1 + Anzahl Technische-Schulden-Karten an der Software
+```
+
+Beispiel: 0 Tech Debt → Level-1-Bug. 2 Tech Debt → Level-3-Bug.
+
+Höhere Bug-Level bedeuten **längere Bearbeitungszeit** beim Bugfixen (genaue Skalierung im Prototyp empirisch getuned).
 
 Effekt:
 
@@ -509,10 +529,13 @@ Behandlung:
 ```text
 Bug + Entwickler → Bugfix
 Bug + Externer Dev → Bugfix (schneller)
+Bug (Level 1) + Bugfix-Patch → Bug entfernt (siehe Kap. 8.6)
 Bug + Tester → Reproduzierbarer Bug
 Bug + Product Owner → Backlog-Eintrag
 Bug + Support → Bekanntes Problem
 ```
+
+**Bugfix-Patch** wirkt nur auf Level-1-Bugs. Höhere Levels brauchen Entwickler oder zukünftige Spezialkarten.
 
 ### Reproduzierbarer Bug
 
@@ -543,25 +566,29 @@ Technische Schulden + ignorieren → Altlast
 
 „Dieser Mensch braucht eine Pause. Oder zumindest weniger Dailys."
 
-Liegt auf einem Mitarbeiter.
+Liegt auf einem Mitarbeiter und blockiert ihn, bis das Burnout abgearbeitet ist.
 
-Effekt:
+**Mechanik — Burnout-Counter:**
 
-- Mitarbeiter arbeitet deutlich langsamer.
-- Bei zweitem Burnout am selben Mitarbeiter: Ausfall.
-- Ausfall + nächstes Sprintende ohne Erholung → Kündigung.
+- Jeder Mitarbeiter hat einen internen Wert **Burnout-Chance** (Start: `0.0`).
+- Jede produktive Tätigkeit erhöht den Wert um **+0.1** (10 Prozentpunkte). Beispiele für solche Tätigkeiten: Funktion bauen, Bug fixen, User Story schreiben, Funktion prüfen, Workshop-Teilnahme, durch Meeting-Flut beeinflusst sein.
+- Nach jeder Tätigkeit erfolgt ein Würfelwurf gegen den aktuellen Wert. Trigger → Burnout-Karte erscheint auf dem Mitarbeiter, der Counter resettet auf `0.0`.
+- Sichtbar als kleiner Marker an der Mitarbeiterkarte, der mit dem Counter-Wert sichtbar voller wird.
 
-Entstehung:
+**Workshop ist die Ausnahme:** erzeugt **garantiert** einen Burnout an einem **zufälligen** Workshop-Teilnehmer (nicht zwingend dem Leiter).
 
-- `Workshop + Mitarbeiter` → immer +1 Burnout am Workshop-leitenden Mitarbeiter.
-- Wiederholbare Tätigkeiten am selben Mitarbeiter (Funktion bauen, Bug fixen, User Story schreiben, Funktion prüfen) erhöhen mit jeder Wiederholung die Burnout-Chance. Sobald ein Burnout entsteht, resettet die Chance an diesem Mitarbeiter.
+**Bearbeitung des Burnouts:**
 
-Behandlung:
+- Sobald ein Burnout entsteht, läuft auf dem Mitarbeiter ein normaler **45-Sekunden-Fortschrittsbalken**. Der Mitarbeiter ist während dieser Zeit blockiert und erledigt keine anderen Aufgaben.
+- Nach 45 Sekunden ist die Burnout-Karte verbraucht und der Mitarbeiter wieder einsatzbereit.
+- **Pizza Party** beschleunigt das auf 5 Sekunden (siehe Kap. 8.6).
+- Burnout blockiert die Bezahlphase **nicht** — der Mitarbeiter ist trotzdem bezahlbar.
+
+Behandlung über Karten:
 
 ```text
-Burnout + Stressbewältigungskurs → Burnout entfernt
-Burnout + Teambuilding → Burnout am ganzen Team entfernt
-Burnout + Urlaub → Burnout entfernt (Mitarbeiter 1 Sprint nicht verfügbar)
+Mitarbeiter + Burnout (passiv, läuft 45s ab)
+Mitarbeiter + Burnout + Pizza Party → 5s statt 45s
 ```
 
 ### Kundenproblem
@@ -593,6 +620,8 @@ Schlechter Ruf + stabile Version → Schlechter Ruf entfernt
 ### Konflikt
 
 Liegt zwischen zwei Mitarbeitern.
+
+**Entstehung:** Nach jedem abgeschlossenen Workshop besteht eine **30%-Chance**, dass zwei **zufällige** Workshop-Teilnehmer einen Konflikt entwickeln. Weitere Quellen (Multi-Personen-Events) sind für spätere Erweiterungen vorgesehen, aktuell out-of-scope.
 
 Effekt:
 
@@ -767,6 +796,37 @@ Comedy-Regel:
 
 Postmortems lösen Probleme nicht direkt. Sie erzeugen Folgeaufgaben, die erst noch erledigt werden müssen.
 
+### Pizza Party
+
+Wertvolles Consumable. **Nur via Boosterpack beschaffbar** (Office-Invest).
+
+Effekt:
+
+- Beschleunigt die Bearbeitung einer Burnout-Karte an einem Mitarbeiter von 45 Sekunden auf **5 Sekunden**.
+- Wird bei Nutzung verbraucht.
+
+Anwendung:
+
+```text
+Mitarbeiter + Burnout + Pizza Party → Burnout-Bearbeitung in 5s statt 45s
+```
+
+### Bugfix-Patch
+
+Einfache Shop-Karte. Im Einzelkarten-Shop für **1 Geld** erhältlich.
+
+Effekt:
+
+- Entfernt einen **Level-1-Bug** sofort.
+- Wirkt nicht auf Bugs mit Level > 1 — höhere Levels brauchen Entwickler oder zukünftige Spezialkarten.
+- Wird bei Nutzung verbraucht.
+
+Anwendung:
+
+```text
+Bugfix-Patch + Bug (Level 1) → Bug entfernt
+```
+
 ### Stressbewältigungskurs
 
 Wertvolles Consumable. **Nur via Boosterpack beschaffbar** (Office-Invest).
@@ -831,15 +891,26 @@ Nicht gelieferter Auftrag bis Sprintende → Auftrag verfällt
 
 Die Software-Karte ist das Zentrum des Runs.
 
-### 9.1 Funktionen hinzufügen
+### 9.1 Funktionen hinzufügen — Level- und Geldsystem
 
-Funktionen werden auf die Software-Karte gelegt.
+Jede **Idee-** und **Funktions-Karte** trägt ein **Level** (Ganzzahl, Start: 1).
+
+- Bei Idee-Generierung gibt es eine Chance, Ideen mit Level > 1 zu erzeugen (konkrete Wahrscheinlichkeit wird im Prototyp empirisch getuned).
+- Funktions-Level wird vom Input geerbt: Level-2-Idee → Level-2-Funktion.
+- Ein Upgrade-System für Ideen (z.B. „Externer Berater") ist bewusst out-of-scope für v1.2 und wird später ergänzt.
+
+**Funktion auf Software:**
 
 ```text
-Funktion + Software → Geld + möglicher Nebeneffekt
+Funktion + Software → 2s Bearbeitung → Funktion verschwindet → N Geldkarten
 ```
 
-Bessere Funktionen erzeugen mehr Geld und weniger Probleme.
+Wobei N = Level der Funktion. Beispiele:
+
+- Level-1-Funktion → 1 Geldkarte
+- Level-3-Funktion → 3 Geldkarten
+
+Während der 2 Sekunden Bearbeitungszeit kann zusätzlich ein Bug entstehen (Wahrscheinlichkeit abhängig von Tech-Debt-Anzahl an der Software, siehe Bug-Mechanik in Kap. 8.4). Geprüfte Funktionen haben eine reduzierte Bug-Chance.
 
 ### 9.2 Problemkarten auf der Software
 
@@ -862,24 +933,24 @@ Es gibt keine abstrakten Software-Level („Erste Version", „Plattform" o.ä.)
 
 ## 10. Karteninteraktionen: Beispiele
 
-### 10.1 Idee direkt bauen
+### 10.1 Idee direkt bauen („Schnellschuss"-Spielstil)
 
 ```text
 Idee + Solo-Entwickler
-→ Timer
-→ Schnellschuss + Technische Schulden
+→ Timer (langsam)
+→ Funktion + Risiko (Technische Schulden, Kundenproblem)
 ```
 
 Nutzen:
 
-- Schnell
-- Frühes Geld möglich
+- Frühes Geld möglich, ohne PO/Tester-Pipeline aufzubauen
+- Direkte Verarbeitung, keine Zwischenkarten
 
 Risiko:
 
-- Bugs
-- Schulden
-- Burnout-Chance steigt
+- Tech Debt bleibt am Spielfeld liegen und erhöht Bug-Level
+- Kundenproblem-Chance, die mit sauberer User-Story-Pipeline vermeidbar wäre
+- Burnout-Counter am Solo-Entwickler steigt
 
 ### 10.2 Idee sauber vorbereiten
 
@@ -964,7 +1035,6 @@ Ziel:
 Neue Karten im Verlauf:
 
 - Bug
-- Schnellschuss
 - Technische Schulden
 - Kundenwunsch
 
@@ -1037,30 +1107,19 @@ Geldkarten können unterschiedliche Werte haben:
 
 ### 12.2 Mitarbeiter bezahlen
 
-Am Sprintende müssen Mitarbeiter bezahlt werden.
+Am Sprintende startet die Bezahlphase (siehe Kap. 6.3). Pro Mitarbeiter wird **1 Geldkarte** benötigt.
 
 ```text
 Geld + Mitarbeiter → Bezahlt
 ```
 
-Wenn ein Mitarbeiter nicht bezahlt wird:
-
-```text
-Unbezahlter Mitarbeiter → Kündigungsgefahr
-Kündigungsgefahr + weiteres Sprintende → Kündigung
-```
+Wenn ein Mitarbeiter nicht bezahlt wird, **kündigt er sofort** beim Start des nächsten Sprints. Es gibt keine Vorwarnstufe — die Entscheidung „wen opfere ich" muss in der Bezahlphase fallen.
 
 Externer Dev braucht kein Gehalt — sein Einsatz war im Boosterpack-Preis enthalten.
 
 ### 12.3 Kostenstruktur
 
-Bessere Mitarbeiter kosten mehr.
-
-Beispiel:
-
-- Praktikant: wenig Geld, langsam, erzeugt Bugs
-- Entwickler: normal
-- Senior Entwickler: teuer, schnell, weniger Bugs
+In v1.2 zahlen alle regulären Mitarbeiter **1 Geld pro Sprint**. Die Differenzierung Praktikant/Entwickler/Senior ist auf eine spätere Version verschoben — der Fokus liegt zunächst auf der Bezahl-Entscheidung selbst (manuell vs. auto), nicht auf Lohn-Tiers.
 
 ---
 
@@ -1083,7 +1142,7 @@ Spieler darf alle 3 behalten. Boosterpacks sind die zentrale Quelle für seltene
 | Pack | Inhalte (Pool) | Strategischer Sinn |
 |---|---|---|
 | **Gründerpaket** | Idee, Solo-Entwickler, Kaffee, kleines Geld | günstiger Early-Game-Restock |
-| **Office-Invest** | Stressbewältigungskurs, Kaffeemaschine, Kaffee, Teambuilding | Mitarbeiter gesund halten |
+| **Office-Invest** | Pizza Party, Stressbewältigungskurs, Kaffeemaschine, Kaffee, Teambuilding | Mitarbeiter gesund halten |
 | **Talent-Pool** | Entwickler, Product Owner, Tester, Support, Designer | gezieltes Hiring (mit Glücksfaktor) |
 | **Hot Fix Kit** | Externer Dev, Code aufräumen, Testlauf | Krisen-Pack für Bug-Stau |
 | **Kundenchaos** | Kunde, Auftrag, Kundenwunsch | Wertquelle: mehr Nachfrage = mehr Umsatz, wenn man liefern kann |
@@ -1092,7 +1151,7 @@ Spieler darf alle 3 behalten. Boosterpacks sind die zentrale Quelle für seltene
 
 ### 13.3 Einzelkarten-Shop
 
-Daneben gibt es weiterhin Einzelkarten zum Festpreis (Mitarbeiter-Hire, Idee-Karten, Geld-Boosts). Boosterpacks sind die Glücks-/Strategie-Wahl, Einzelkauf die deterministische.
+Daneben gibt es weiterhin Einzelkarten zum Festpreis (Mitarbeiter-Hire, Idee-Karten, Geld-Boosts, **Bugfix-Patch für 1 Geld**). Boosterpacks sind die Glücks-/Strategie-Wahl, Einzelkauf die deterministische.
 
 ### 13.4 Kaufinteraktion
 
@@ -1133,12 +1192,15 @@ Technische Schulden
 ### 14.3 Burnout-Kette
 
 ```text
-Burnout
-→ zweiter Burnout am selben Mitarbeiter
-→ Ausfall
-→ Sprintende ohne Erholung
-→ Kündigung
+viele Tätigkeiten am selben Mitarbeiter
+→ Burnout-Counter steigt
+→ Burnout triggert
+→ Mitarbeiter 45s blockiert
+→ andere Mitarbeiter müssen kompensieren
+→ deren Burnout-Counter steigt schneller
 ```
+
+Ohne Pizza Party oder Stressbewältigungskurs kann das in einem kleinen Team kaskadieren: Wer übernimmt die Arbeit, während ein Mitarbeiter blockiert ist?
 
 ### 14.4 Meeting-Kette
 
@@ -1280,7 +1342,6 @@ Aufgaben/Outputs:
 - Vielversprechende User Story
 - Funktion
 - Geprüfte Funktion
-- Schnellschuss
 
 Probleme:
 
@@ -1312,7 +1373,12 @@ Prozesse:
 Consumables (nur via Booster):
 
 - Stressbewältigungskurs
+- Pizza Party
 - Externer Dev
+
+Shop-Karten (Einzelkauf):
+
+- Bugfix-Patch (1 Geld, fixt Level-1-Bug)
 
 Produkt:
 
@@ -1321,26 +1387,29 @@ Produkt:
 ### 17.2 Enthaltene Interaktionen
 
 ```text
-Idee + Solo-Entwickler → Schnellschuss + Technische Schulden
+Idee + Solo-Entwickler → Funktion (langsam, Risiko: Tech Debt + Kundenproblem)
 Idee + Product Owner → User Story
 Kundenwunsch + Product Owner → Vielversprechende User Story
-User Story + Entwickler → Funktion (+ Burnout-Chance steigt)
+User Story + Entwickler → Funktion (+ Burnout-Counter +0.1)
 Vielversprechende User Story + Entwickler → bessere Funktion
 Funktion + Tester → Geprüfte Funktion oder Bug
-Funktion + Software → Geld + Bug-Chance
-Geprüfte Funktion + Software → mehr Geld + geringe Bug-Chance
-Bug + Entwickler → Bugfix
+Funktion + Software → 2s → N Geldkarten (N = Funktions-Level), Bug-Chance je Tech Debt
+Geprüfte Funktion + Software → 2s → N Geldkarten + reduzierte Bug-Chance
+Bug (Level 1) + Bugfix-Patch → Bug entfernt
+Bug + Entwickler → Bugfix (Dauer abhängig von Bug-Level)
 Bug + Externer Dev → Bugfix (schneller)
 Technische Schulden + Entwickler → Code aufräumen
-Workshop + 2+ Mitarbeiter → Ideen + Burnout (am Leiter)
-Burnout + Stressbewältigungskurs → Burnout entfernt
+Workshop + 2+ Mitarbeiter → Ideen + 1 garantierter Burnout (zufälliger Teilnehmer) + 30% Konflikt-Chance
+Mitarbeiter + Burnout → 45s passive Bearbeitung (blockiert)
+Mitarbeiter + Burnout + Pizza Party → 5s statt 45s
+Burnout + Stressbewältigungskurs → Burnout sofort entfernt
 Konflikt + beide Mitarbeiter (gestapelt) → Aussprache (bis Sprintende, min 30s)
 Kaffee + Mitarbeiter → schneller, Kaffee verbraucht
 Kaffeemaschine → 1× Kaffee pro Sprint
 Kunde → periodisch Kundenwunsch
 Auftrag + passende Funktion → großer Geldbonus
 Geld + Boosterpack → 3 Karten aus Pack-Pool
-Geld + Mitarbeiter am Sprintende → bezahlt
+Geld + Mitarbeiter (Bezahlphase) → bezahlt
 ```
 
 ### 17.3 Prototyp-Ziel
@@ -1349,11 +1418,13 @@ Der Prototyp ist erfolgreich, wenn folgende Entscheidungen interessant sind:
 
 1. Schnell direkt aus Ideen vs. sauber über User Stories?
 2. Tester für Qualität vs. Features schneller releasen?
-3. Bugs jetzt fixen vs. weiterbauen?
+3. Bugs jetzt fixen vs. weiterbauen (besonders bei Tech-Debt-erhöhten Bug-Leveln)?
 4. Boosterpack kaufen (Glück) vs. Einzelkarte (deterministisch)?
-5. Workshop trotz garantiertem Burnout starten?
+5. Workshop trotz garantiertem Burnout und 30% Konflikt-Risiko starten?
 6. Konflikt aussitzen (Aussprache blockiert Mitarbeiter) vs. Kurs verbrauchen?
 7. Lohnt es sich, Externen Dev zu holen statt Bugs in-house zu fixen?
+8. In der Bezahlphase: alle bezahlen, oder gezielt jemanden opfern, um in einen Boosterpack zu investieren?
+9. Ineffizienten Mitarbeiter (z.B. PO auf Funktions-Aufgabe) lieber arbeiten lassen als Däumchen drehen?
 
 ---
 
@@ -1370,14 +1441,7 @@ Mögliche Lösung:
 
 ### 18.2 Wie genau funktioniert Software-Wert?
 
-Wert wird über Karten dargestellt:
-
-- Kundenkarte
-- Geldkarte
-- Abo-Karte
-- Auftrag-Karte
-
-Kein abstrakter Vertrauens- oder Reputationsbalken.
+**In v1.2 geklärt:** Funktionen tragen ein Level. `Funktion + Software` produziert nach 2s genau N Geldkarten, wobei N = Funktions-Level (siehe Kap. 9.1). Wert bleibt komplett kartig — keine Vertrauens- oder Reputationsleisten. Kunden- und Auftragskarten sind weiterhin sekundäre Wert-Quellen.
 
 ### 18.3 Wie werden langfristige Upgrades dargestellt?
 
@@ -1397,7 +1461,17 @@ Falsche Kombinationen sollten nicht komplett unberechenbar sein. Der Spieler mus
 
 ### 18.5 Wie genau steigt die Burnout-Chance?
 
-Konkrete Kurve (linear, quadratisch?) wird im Prototyp empirisch getuned. Erste Annahme: lineare Steigerung pro Wiederholung am selben Mitarbeiter, sichtbar als Nebenmarker an der Mitarbeiterkarte (z. B. kleiner Punkt, der je Tätigkeit voller wird).
+**In v1.2 geklärt:** Linear `+0.1` pro Tätigkeit am selben Mitarbeiter. Reset auf `0.0` bei Burnout-Trigger. Sichtbar als Marker an der Mitarbeiterkarte (siehe Kap. 8.4).
+
+### 18.6 Konkrete Balancing-Werte
+
+Folgende Werte sind absichtlich offen und werden im Prototyp empirisch getuned:
+
+- Wahrscheinlichkeit für Idee-Level > 1 bei Generierung
+- Bearbeitungszeit-Skalierung pro Bug-Level
+- Bearbeitungszeit für „falsche Kombinationen" (Faustregel: > 60s)
+- Preise für Boosterpacks und Einzelkarten im Shop
+- Tech-Debt-Akkumulation: wie schnell sammeln sie sich, ohne den Spieler zu erdrücken
 
 ---
 
