@@ -1,12 +1,12 @@
-# Scope Creep — Game Design Document v1
+# Scope Creep — Game Design Document v1.1
 
 ## 1. High Concept
 
 **Scope Creep** ist ein satirisches Stacklike-Kartenspiel über den Aufbau einer chaotischen Softwarefirma. Der Spieler startet als einzelner Entwickler mit einer Idee und versucht, daraus ein wachsendes Softwareprodukt und später ein Team zu formen.
 
-Alles im Spiel ist eine Karte: Ideen, Mitarbeiter, Geld, Bugs, technische Schulden, Burnout, Workshops, Kundenprobleme, Releases, Konflikte und Verbesserungen. Es gibt keine abstrakten Statusleisten für Stress, Ruf, Tech Debt oder Qualität. Wenn etwas existiert, liegt es als Karte auf dem Tisch und kann gestapelt, verarbeitet, bezahlt, ignoriert oder eskaliert werden.
+Alles im Spiel ist eine Karte: Ideen, Mitarbeiter, Geld, Bugs, technische Schulden, Burnout, Workshops, Kundenprobleme, Releases, Konflikte und Verbesserungen. Es gibt keine abstrakten Statusleisten für Burnout, Ruf, Tech Debt oder Qualität. Wenn etwas existiert, liegt es als Karte auf dem Tisch und kann gestapelt, verarbeitet, bezahlt, ignoriert oder eskaliert werden.
 
-Der Kern des Spiels ist nicht, eine perfekte Softwarefirma zu simulieren, sondern den absurden Weg von „Ich baue das schnell selbst“ zu „Wir brauchen einen Workshop, um zu klären, warum der Workshop nichts gebracht hat“ spielerisch greifbar zu machen.
+Der Kern des Spiels ist nicht, eine perfekte Softwarefirma zu simulieren, sondern den absurden Weg von „Ich baue das schnell selbst" zu „Wir brauchen einen Workshop, um zu klären, warum der Workshop nichts gebracht hat" spielerisch greifbar zu machen.
 
 ---
 
@@ -66,17 +66,17 @@ Der Spieler darf jederzeit improvisieren. Genau daraus entsteht Comedy und takti
 
 Negative Effekte sind nicht abstrakt. Sie erscheinen als Karten.
 
-Ein Bug liegt auf dem Tisch. Technische Schulden liegen auf dem Tisch. Burnout liegt auf einem Mitarbeiter oder daneben. Ein Konflikt liegt zwischen zwei Mitarbeitern.
+Ein Bug liegt auf dem Tisch. Technische Schulden liegen auf dem Tisch. Burnout liegt auf einem Mitarbeiter. Ein Konflikt liegt zwischen zwei Mitarbeitern.
 
 Der Spieler kann diese Karten ignorieren, verschieben, behandeln, umbenennen, ins Backlog legen oder durch Prozesse entschärfen. Ignorierte Probleme verursachen aber laufend neue Probleme.
 
 ### 3.5 Wachstum erzeugt Overhead
 
-Mehr Mitarbeiter bedeuten nicht nur mehr Arbeitstempo. Sie erzeugen auch Gehälter, Abstimmungsbedarf, Konflikte, Workshops, Reviews, Meetings, Prozesskarten und Managementprobleme.
+Mehr Mitarbeiter bedeuten nicht nur mehr Arbeitstempo. Sie erzeugen auch Gehälter, Abstimmungsbedarf, Konflikte, Workshops, Reviews, Meetings und Burnout.
 
 Das Spiel soll sich anfühlen wie:
 
-> „Mit einem Entwickler war alles langsam. Mit fünf Leuten ist alles schneller, aber niemand weiß mehr, was eigentlich gebaut werden soll.“
+> „Mit einem Entwickler war alles langsam. Mit fünf Leuten ist alles schneller, aber niemand weiß mehr, was eigentlich gebaut werden soll."
 
 ---
 
@@ -100,7 +100,7 @@ Das Spiel soll sich anfühlen wie:
 4. Funktionen werden auf die Software-Karte gelegt, um Wert/Geld/Kunden zu erzeugen.
 5. Am Ende eines Sprints müssen Mitarbeiter bezahlt werden.
 6. Offene Probleme bleiben liegen und können in späteren Sprints eskalieren.
-7. Mit Geld kauft der Spieler neue Karten, Mitarbeiter, Prozesse oder Verbesserungen.
+7. Mit übrigem Geld kauft der Spieler im Shop neue Karten oder Boosterpacks.
 
 ### 5.2 Früher Loop
 
@@ -125,6 +125,7 @@ Sobald weitere Rollen erscheinen:
 
 ```text
 Idee + Product Owner → User Story
+Kundenwunsch + Product Owner → Vielversprechende User Story
 User Story + Entwickler → Funktion
 Funktion + Tester → Geprüfte Funktion
 Geprüfte Funktion + Software → mehr Wert, weniger Bugs
@@ -139,21 +140,14 @@ Der Spieler lernt:
 
 ### 5.4 Später Loop
 
-Im späteren Spiel entstehen Prozessketten:
+Im späteren Spiel entstehen Prozessketten und Organisationsprobleme:
 
 ```text
-Workshop + mehrere Mitarbeiter → mehrere Ideen
-Sprint-Planung + Ideen → priorisierte Aufgaben
+Workshop + mehrere Mitarbeiter → mehrere Ideen + Burnout
 Code-Prüfung + Funktion → weniger Bugs
 Testlauf + Funktion → geprüfte Funktion
 Release + geprüfte Funktionen → stabile Version
-```
-
-Zusätzlich entstehen Organisationsprobleme:
-
-```text
-Konflikt + Mitarbeiter → blockiert Zusammenarbeit
-Stressbewältigungskurs + betroffene Mitarbeiter → Konflikt entfernt
+Konflikt + zwei Mitarbeiter → blockiert Zusammenarbeit
 Postmortem + Störung → Folgeaufgaben / weniger zukünftige Störungen
 ```
 
@@ -173,7 +167,7 @@ Das Spiel ist in **Sprints** unterteilt. Ein Sprint ist eine kurze Arbeitsphase 
 6. Sprint endet.
 7. Gehälter werden fällig.
 8. Offene Sprintende-Effekte werden ausgeführt.
-9. Shop/Belohnungsphase.
+9. Shop- und Boosterpack-Phase.
 10. Nächster Sprint.
 
 ### 6.2 Zeitsteuerung
@@ -212,9 +206,9 @@ Es gibt mehrere funktionale Kartentypen:
 - Problemkarten
 - Ressourcenkarten
 - Prozesskarten
+- Wert-erzeugende Karten (Kunde, Auftrag etc.)
 - Ereigniskarten
 - Verbesserungs-/Upgradekarten
-- Organisationskarten
 
 ### 7.2 Stapelregel
 
@@ -237,7 +231,7 @@ Einige Karten blockieren Mitarbeiter oder Prozesse.
 Beispiele:
 
 ```text
-Burnout + Entwickler → Entwickler arbeitet langsamer
+Burnout + Entwickler → Entwickler arbeitet deutlich langsamer
 Konflikt + zwei Mitarbeiter → können nicht gemeinsam in Workshop
 Bug + Software → erzeugt Kundenproblem
 Technische Schulden + Software → erhöht Bug-Chance bei Releases
@@ -276,7 +270,7 @@ Typische Outputs:
 
 ```text
 Idee + Solo-Entwickler → Prototyp + Technische Schulden
-Bug + Solo-Entwickler → Bugfix + Stress
+Bug + Solo-Entwickler → Bugfix
 Kundenwunsch + Solo-Entwickler → Funktion, aber Risiko auf falsche Funktion
 ```
 
@@ -303,7 +297,7 @@ Macht aus Ideen und Kundenwünschen klare Anforderungen.
 Stärken:
 
 - Idee → User Story
-- Kundenwunsch → priorisierte Idee
+- Kundenwunsch → Vielversprechende User Story
 - Backlog → Sprint-Ziele
 
 Schwächen:
@@ -341,7 +335,7 @@ Stärken:
 
 - Kundenproblem → Beruhigter Kunde
 - Bug + Kunde → Bekanntes Problem
-- Störung → Schadensbegrenzung
+- Schlechter Ruf → Ruf reparieren
 
 Schwächen:
 
@@ -363,51 +357,18 @@ Schwächen:
 - Bugfixes
 - Releases
 
-### Manager
+### Externer Dev
 
-Erzeugt Prioritäten, Druck und manchmal Budget.
-
-Stärken:
-
-- Geld beschaffen
-- Prioritäten setzen
-- Eskalationen bearbeiten
-
-Schwächen:
-
-- Kann fast alles schlimmer machen, wenn falsch eingesetzt
-
-Typische Outputs:
-
-```text
-Manager + Idee → Strategische Initiative
-Manager + Bug → Eskalation
-Manager + Team → Meeting
-```
-
-### Berater
-
-Teuer, absurd, manchmal mächtig.
+Temporäre Mitarbeiterkarte. Kommt nur via Boosterpack (Hot Fix Kit). Verschwindet nach 1–2 Sprints.
 
 Stärken:
 
-- Erzeugt Prozesskarten
-- Kann Probleme umbenennen
-- Kann aus Chaos kurzfristig Wert machen
+- Bug → Bugfix (deutlich schneller als ein normaler Entwickler)
 
-Schwächen:
+Besonderheiten:
 
-- Erzeugt Folgeaufgaben
-- Kostet viel Geld
-- Vergrößert Scope
-
-Typische Outputs:
-
-```text
-Berater + Problem → Maßnahmenplan
-Berater + Idee → 40-seitige Präsentation
-Berater + Software → Transformationsprogramm
-```
+- Kein Gehalt — bezahlt durch das Boosterpack, das ihn enthielt.
+- Geht am Ende seiner Lebenszeit automatisch.
 
 ---
 
@@ -423,7 +384,6 @@ Kann direkt von Entwicklern umgesetzt werden oder zuerst durch Product Owner/Wor
 Idee + Entwickler → Prototyp / Funktion + Risiko
 Idee + Product Owner → User Story
 Idee + Designer → Konzept
-Idee + Berater → Präsentation
 ```
 
 ### Kundenwunsch
@@ -431,7 +391,7 @@ Idee + Berater → Präsentation
 Entsteht durch Kunden, veröffentlichte Funktionen oder Support-Probleme.
 
 ```text
-Kundenwunsch + Product Owner → priorisierte User Story
+Kundenwunsch + Product Owner → Vielversprechende User Story
 Kundenwunsch + Entwickler → Funktion, aber Risiko auf falsche Lösung
 Kundenwunsch + Support → Erwartung gemanagt
 ```
@@ -443,7 +403,18 @@ Eine klarere Anforderung.
 ```text
 User Story + Entwickler → Funktion
 User Story + Tester → Testfälle
-User Story + Product Owner → Scope Creep
+```
+
+### Vielversprechende User Story
+
+Bessere Variante einer User Story. Entsteht aus `Kundenwunsch + Product Owner`.
+
+Effekt:
+
+- Erzeugt eine Funktion mit höherer Geld-Ausbeute und niedrigerer Bug-Chance.
+
+```text
+Vielversprechende User Story + Entwickler → bessere Funktion
 ```
 
 ### Unklare Anforderung
@@ -471,7 +442,7 @@ Die Software selbst kann Problemkarten tragen:
 - Störung
 - Altlast
 
-Diese Problemkarten sind sichtbar und können bearbeitet werden.
+Diese Problemkarten sind sichtbar und können bearbeitet werden. Mehr Funktionen = mehr Geld pro Sprint. Mehr Probleme = weniger Geld + Kettenreaktionen.
 
 ### Prototyp
 
@@ -537,6 +508,7 @@ Behandlung:
 
 ```text
 Bug + Entwickler → Bugfix
+Bug + Externer Dev → Bugfix (schneller)
 Bug + Tester → Reproduzierbarer Bug
 Bug + Product Owner → Backlog-Eintrag
 Bug + Support → Bekanntes Problem
@@ -564,34 +536,32 @@ Behandlung:
 
 ```text
 Technische Schulden + Entwickler → Code aufräumen
-Technische Schulden + Refactoring-Prozess → weniger Schulden
 Technische Schulden + ignorieren → Altlast
 ```
 
 ### Burnout
 
-Liegt auf oder neben einem Mitarbeiter.
+„Dieser Mensch braucht eine Pause. Oder zumindest weniger Dailys."
+
+Liegt auf einem Mitarbeiter.
 
 Effekt:
 
-- Mitarbeiter arbeitet langsamer.
-- Bei zu viel Burnout entsteht Kündigungsgefahr oder Ausfall.
+- Mitarbeiter arbeitet deutlich langsamer.
+- Bei zweitem Burnout am selben Mitarbeiter: Ausfall.
+- Ausfall + nächstes Sprintende ohne Erholung → Kündigung.
+
+Entstehung:
+
+- `Workshop + Mitarbeiter` → immer +1 Burnout am Workshop-leitenden Mitarbeiter.
+- Wiederholbare Tätigkeiten am selben Mitarbeiter (Funktion bauen, Bug fixen, User Story schreiben, Funktion prüfen) erhöhen mit jeder Wiederholung die Burnout-Chance. Sobald ein Burnout entsteht, resettet die Chance an diesem Mitarbeiter.
 
 Behandlung:
 
 ```text
-Burnout + Urlaub → entfernt Burnout
-Burnout + Stressbewältigungskurs → reduziert Burnout
-Burnout + ignorieren → Ausfall / Kündigungsgefahr
-```
-
-### Stress
-
-Kleinere Vorstufe zu Burnout.
-
-```text
-Stress + weiterer Stress → Burnout
-Stress + Team-Event → entfernt Stress
+Burnout + Stressbewältigungskurs → Burnout entfernt
+Burnout + Teambuilding → Burnout am ganzen Team entfernt
+Burnout + Urlaub → Burnout entfernt (Mitarbeiter 1 Sprint nicht verfügbar)
 ```
 
 ### Kundenproblem
@@ -606,7 +576,7 @@ Kundenproblem + ignorieren → Schlechter Ruf
 
 ### Schlechter Ruf
 
-Kein UI-Wert, sondern Karte.
+Kein UI-Wert, sondern Karte am Produkt.
 
 Effekt:
 
@@ -616,24 +586,25 @@ Effekt:
 Behandlung:
 
 ```text
-Schlechter Ruf + Support → Ruf reparieren
-Schlechter Ruf + Stabile Version → Vertrauen zurück
+Schlechter Ruf + Support → Schlechter Ruf entfernt
+Schlechter Ruf + stabile Version → Schlechter Ruf entfernt
 ```
 
 ### Konflikt
 
-Verbindet zwei Mitarbeiter oder liegt zwischen ihnen.
+Liegt zwischen zwei Mitarbeitern.
 
 Effekt:
 
-- Betroffene Mitarbeiter können nicht gemeinsam in Workshops, Reviews oder Planungen.
-- Gemeinsame Stapel mit beiden Mitarbeitern erzeugen Verzögerung oder Blame Game.
+- Beide Mitarbeiter können nicht gemeinsam in Workshops.
+- Stapel mit beiden Mitarbeitern erzeugen Verzögerung.
 
 Behandlung:
 
+- **Aussprache (kostenlos, langsam):** beide Mitarbeiter stapeln → Timer läuft bis Sprintende, mindestens 30s. Beide Mitarbeiter sind währenddessen blockiert. Konflikt am Ende entfernt.
+- **Stressbewältigungskurs (Consumable, schnell):** `Stressbewältigungskurs + beide Mitarbeiter → Konflikt sofort entfernt` (Kurs verbraucht).
+
 ```text
-Konflikt + Stressbewältigungskurs + beide Mitarbeiter → Konflikt entfernt
-Konflikt + Manager → Eskalation
 Konflikt + ignorieren → Silodenken
 ```
 
@@ -653,23 +624,21 @@ Stärkeres Hindernis.
 
 ```text
 Blocker + passende Rolle → gelöst
-Blocker + Manager → Eskalation
 ```
 
 ### Meeting-Flut
 
-Entsteht durch zu viele Prozesskarten.
+Entsteht durch zu viele Daily-Karten in kurzer Folge.
 
 Effekt:
 
 - Mitarbeiter werden langsamer.
-- Neue Workshops/Dailys erzeugen Stress.
+- Zählt als wiederholbare Tätigkeit für die Burnout-Mechanik.
 
 Behandlung:
 
 ```text
 Meeting-Flut + Prozessoptimierung → reduziert Meeting-Flut
-Meeting-Flut + Berater → noch mehr Meeting-Flut
 ```
 
 ---
@@ -684,16 +653,15 @@ Nutzung:
 
 - Mitarbeiter bezahlen
 - Karten kaufen
+- Boosterpacks kaufen
 - Prozesse starten
-- Berater bezahlen
-- Kurse buchen
 
 Beispiele:
 
 ```text
 Geld + Entwickler → bezahlt
 Geld + Shop-Karte → neue Karte
-Geld + Stressbewältigungskurs → Kurs aktivieren
+Geld + Boosterpack → 3 Karten aus dem Pack-Pool
 ```
 
 ### Budget
@@ -702,7 +670,6 @@ Größere Geldkarte oder temporärer Finanzrahmen.
 
 ```text
 Budget + Hiring → neuer Mitarbeiter
-Budget + Berater → Transformationsprogramm
 ```
 
 ### Zeitgewinn
@@ -715,10 +682,19 @@ Zeitgewinn + Aufgabe → Aufgabe schneller erledigt
 
 ### Kaffee
 
-Kleine Soforthilfe.
+Verbrauchskarte. Einmalige Nutzung, keine Folgeeffekte.
 
 ```text
-Kaffee + Mitarbeiter → arbeitet schneller, erzeugt später Stress
+Kaffee + Mitarbeiter → Mitarbeiter arbeitet die nächste Aufgabe schneller
+                       → Kaffee verbraucht
+```
+
+### Kaffeemaschine
+
+Persistente Karte am Spielfeld. Kommt typischerweise via Boosterpack (Office-Invest).
+
+```text
+Kaffeemaschine → 1× Kaffee-Karte pro Sprint
 ```
 
 ---
@@ -729,37 +705,14 @@ Prozesskarten sind konsumierbare oder wiederverwendbare Karten, die mehrere ande
 
 ### Workshop
 
-Mehrere Mitarbeiter erzeugen mehrere Ideen.
+Mehrere Mitarbeiter erzeugen mehrere Ideen — und garantiert Burnout.
 
 ```text
-Workshop + 2–4 Mitarbeiter → Ideenflut
+Workshop + 2–4 Mitarbeiter → mehrere Ideen + 1 Burnout
+                              (am Workshop-leitenden Mitarbeiter)
 ```
 
-Mögliche Outputs:
-
-- Idee
-- Gute Idee
-- Unklare Idee
-- Abstimmungsbedarf
-- Meeting-Flut
-- Stress
-
-Workshop ist im Early Game schlecht, weil er Mitarbeiter blockiert und mehr Ideen erzeugt, als verarbeitet werden können. Im Midgame wird er stark, weil mehrere Mitarbeiter parallel arbeiten können.
-
-### Sprint-Planung
-
-Sortiert Ideen und Anforderungen.
-
-```text
-Sprint-Planung + Product Owner + Ideen → Priorisierte Aufgaben
-```
-
-Mögliche Outputs:
-
-- Priorisierte User Story
-- Zurückgestellte Idee
-- Scope Creep
-- Abstimmungsbedarf
+Im Early Game ist Workshop schlecht: blockiert Mitarbeiter und liefert garantiert Burnout. Im Midgame stark, weil mehrere Mitarbeiter parallel die Output-Ideen abarbeiten können.
 
 ### Daily / Morgenrunde
 
@@ -816,25 +769,26 @@ Postmortems lösen Probleme nicht direkt. Sie erzeugen Folgeaufgaben, die erst n
 
 ### Stressbewältigungskurs
 
-Entfernt Burnout oder Konflikte.
+Wertvolles Consumable. **Nur via Boosterpack beschaffbar** (Office-Invest).
+
+Entfernt:
+
+- Burnout an einem Mitarbeiter, ODER
+- Konflikt zwischen zwei Mitarbeitern.
+
+Karte wird bei Nutzung verbraucht.
 
 ```text
-Stressbewältigungskurs + Mitarbeiter + Burnout → Burnout reduziert
-Stressbewältigungskurs + zwei Mitarbeiter + Konflikt → Konflikt entfernt
+Stressbewältigungskurs + Mitarbeiter mit Burnout → Burnout entfernt
+Stressbewältigungskurs + zwei Mitarbeiter mit Konflikt → Konflikt entfernt
 ```
-
-Möglicher Output:
-
-- Temporäres Alignment
-- Corporate-Therapie-Vokabular
-- Team-Event
 
 ### Teambuilding
 
-Reduziert Stress, kann aber Arbeitszeit kosten.
+Entfernt Burnout an einem Team, kostet Arbeitszeit.
 
 ```text
-Teambuilding + Team → weniger Stress + verlorene Zeit
+Teambuilding + Team → Burnout am Team entfernt + verlorene Zeit
 ```
 
 ### Hiring
@@ -846,7 +800,30 @@ Hiring + Geld → Kandidat
 Kandidat + Gespräch → Mitarbeiter / Absage
 ```
 
-Im Early Game kann man einfache Mitarbeiter kaufen. Später braucht gutes Hiring mehr Prozess.
+Im Early Game kann man einfache Mitarbeiter über Einzelkauf im Shop holen. Boosterpacks (Talent-Pool) sind die Glücks-Variante mit höherer Vielfalt.
+
+---
+
+## 8.7 Wert-erzeugende Karten
+
+Diese Karten sind die positive Seite des Spiels: sie erzeugen Geld oder Nachfrage, statt Probleme.
+
+### Kunde
+
+Persistente Karte am Spielfeld. Kommt via Boosterpack (Kundenchaos).
+
+```text
+Kunde → spuckt periodisch Kundenwunsch aus
+```
+
+### Auftrag
+
+Einmalige Karte. Beschreibt eine konkrete gesuchte Funktion (z. B. „Suchfunktion").
+
+```text
+Auftrag + passende Funktion + Software → großer Geldoutput, Auftrag verbraucht
+Nicht gelieferter Auftrag bis Sprintende → Auftrag verfällt
+```
 
 ---
 
@@ -877,25 +854,9 @@ Problemkarten können an der Software haften:
 
 Diese Karten belegen Platz und wirken passiv, solange sie nicht bearbeitet werden.
 
-### 9.3 Software-Level
+### 9.3 Software wächst sichtbar, ohne Levelstufen
 
-Statt eines abstrakten Levels kann die Software sichtbare Karten tragen:
-
-- Erste Version
-- Wachsende App
-- Komplexes Produkt
-- Alt-System
-- Plattform
-
-Diese Entwicklungsstufen sind Karten, die durch Releases entstehen.
-
-Beispiel:
-
-```text
-Software + 3 Funktionen → Erste Version
-Erste Version + 5 weitere Funktionen → Wachsende App
-Wachsende App + viele technische Schulden → Alt-System
-```
+Es gibt keine abstrakten Software-Level („Erste Version", „Plattform" o.ä.). Die Software ist eine einzelne Karte, an der Funktionen und Probleme sichtbar haften. Mehr Funktionen = mehr Geld pro Sprint. Mehr Probleme = weniger Geld plus Kettenreaktionen. Wachstum ist sichtbar durch die anwachsende Kartenmenge am Produkt, nicht durch ein Stufen-Etikett.
 
 ---
 
@@ -918,22 +879,22 @@ Risiko:
 
 - Bugs
 - Schulden
-- Stress
+- Burnout-Chance steigt
 
 ### 10.2 Idee sauber vorbereiten
 
 ```text
-Idee + Product Owner
-→ User Story
+Kundenwunsch + Product Owner
+→ Vielversprechende User Story
 
-User Story + Entwickler
-→ Funktion
+Vielversprechende User Story + Entwickler
+→ bessere Funktion
 
 Funktion + Tester
 → Geprüfte Funktion
 
 Geprüfte Funktion + Software
-→ Geld + Kundenvertrauen
+→ mehr Geld
 ```
 
 Nutzen:
@@ -965,14 +926,14 @@ Funktion + Tester
 
 Tester erzeugt nicht nur Qualität, sondern macht versteckte Probleme sichtbar.
 
-### 10.5 Berater verschlimmbessert
+### 10.5 Externer Dev rettet Bug-Stau
 
 ```text
-Berater + Technische Schulden
-→ Transformationsprogramm + Maßnahmenplan
+Hot Fix Kit (Boosterpack) → Externer Dev
+Externer Dev + Bug → Bugfix (schneller als normaler Dev)
 ```
 
-Maßnahmenplan kann später nützlich sein, erzeugt aber erstmal weitere Arbeit.
+Nach 1–2 Sprints verschwindet der Externe Dev wieder.
 
 ---
 
@@ -986,6 +947,7 @@ Startkarten:
 - Idee
 - Software / Leeres Repository
 - kleines Geld
+- Kaffee
 
 Gameplay:
 
@@ -996,12 +958,11 @@ Gameplay:
 
 Ziel:
 
-- Erste Version veröffentlichen
-- genug Geld für weiteren Sprint verdienen
+- Erste Funktionen veröffentlichen
+- genug Geld für nächsten Sprint verdienen
 
-Neue Karten:
+Neue Karten im Verlauf:
 
-- Kaffee
 - Bug
 - Schnellschuss
 - Technische Schulden
@@ -1015,7 +976,9 @@ Neue Karten:
 - Tester
 - Support
 - User Story
+- Vielversprechende User Story
 - Testlauf
+- Code aufräumen
 - Backlog
 
 Gameplay:
@@ -1030,52 +993,32 @@ Ziel:
 - Funktionen stabil veröffentlichen
 - genug Geld für Team verdienen
 
-### 11.3 Phase 3: Teamprozesse
+### 11.3 Phase 3: Team & Prozesse
 
 Neue Karten:
 
 - Workshop
-- Sprint-Planung
 - Code-Prüfung
 - Daily
 - Release
 - Hiring
+- Konflikt (Burnout-Mechanik wird relevant)
+- Postmortem
+- Boosterpacks im Shop verfügbar
+- Designer (optional via Talent-Pool)
 
 Gameplay:
 
 - Mehrere Ideen werden gleichzeitig erzeugt
 - Parallelisierung wird nötig
-- Overhead entsteht
-- Abstimmungsbedarf und Meeting-Flut erscheinen
-
-Ziel:
-
-- Wachstum managen
-- Prozesse sinnvoll einsetzen
-
-### 11.4 Phase 4: Organisationschaos
-
-Neue Karten:
-
-- Konflikt
-- Burnout
-- Stressbewältigungskurs
-- Teambuilding
-- Postmortem
-- Manager
-- Berater
-- Alt-System
-
-Gameplay:
-
+- Overhead entsteht (Workshop = garantierter Burnout)
 - Mitarbeiterbeziehungen werden relevant
 - Probleme können Kettenreaktionen auslösen
-- Prozesse lösen Probleme, erzeugen aber neue Arbeit
 
 Ziel:
 
-- Firma stabil halten
-- trotz Chaos große Releases schaffen
+- Wachstum managen ohne dass Burnout-/Konflikt-Ketten das Team zerreißen
+- Trotz Chaos große Releases schaffen
 
 ---
 
@@ -1083,7 +1026,7 @@ Ziel:
 
 ### 12.1 Geld als Karte
 
-Geld entsteht durch Releases, Kunden, Investitionen oder bestimmte Events.
+Geld entsteht durch Releases, Kunden, Aufträge oder bestimmte Events.
 
 Geldkarten können unterschiedliche Werte haben:
 
@@ -1107,6 +1050,8 @@ Unbezahlter Mitarbeiter → Kündigungsgefahr
 Kündigungsgefahr + weiteres Sprintende → Kündigung
 ```
 
+Externer Dev braucht kein Gehalt — sein Einsatz war im Boosterpack-Preis enthalten.
+
 ### 12.3 Kostenstruktur
 
 Bessere Mitarbeiter kosten mehr.
@@ -1116,43 +1061,44 @@ Beispiel:
 - Praktikant: wenig Geld, langsam, erzeugt Bugs
 - Entwickler: normal
 - Senior Entwickler: teuer, schnell, weniger Bugs
-- Berater: sehr teuer, erzeugt starke Effekte und viel Overhead
 
 ---
 
-## 13. Shop und Kartenbeschaffung
+## 13. Shop und Boosterpacks
 
-Zwischen Sprints gibt es eine Shop-Phase.
+Zwischen Sprints gibt es eine Shop-Phase. Auch Shop-Angebote erscheinen als Karten.
 
-Auch Shop-Angebote erscheinen als Karten.
+### 13.1 Boosterpacks (Stacklands-Stil)
 
-### 13.1 Shop-Karten
+Übriges Geld am Sprintende → Boosterpack kaufen.
 
-Mögliche Käufe:
+```text
+Geld + Boosterpack → 3 zufällige Karten aus dem Pack-Pool
+```
 
-- Mitarbeiter
-- Prozesskarten
-- Verbrauchskarten
-- Verbesserungen
-- Kundenaufträge
-- Beratungsangebote
+Spieler darf alle 3 behalten. Boosterpacks sind die zentrale Quelle für seltene/situative Karten — vor allem für Consumables wie Stressbewältigungskurs.
 
-### 13.2 Booster/Packs
+### 13.2 Pack-Themen (Prototyp)
 
-Packs können thematisch sein:
+| Pack | Inhalte (Pool) | Strategischer Sinn |
+|---|---|---|
+| **Gründerpaket** | Idee, Solo-Entwickler, Kaffee, kleines Geld | günstiger Early-Game-Restock |
+| **Office-Invest** | Stressbewältigungskurs, Kaffeemaschine, Kaffee, Teambuilding | Mitarbeiter gesund halten |
+| **Talent-Pool** | Entwickler, Product Owner, Tester, Support, Designer | gezieltes Hiring (mit Glücksfaktor) |
+| **Hot Fix Kit** | Externer Dev, Code aufräumen, Testlauf | Krisen-Pack für Bug-Stau |
+| **Kundenchaos** | Kunde, Auftrag, Kundenwunsch | Wertquelle: mehr Nachfrage = mehr Umsatz, wenn man liefern kann |
 
-- Gründerpaket
-- Teamaufbau
-- Prozessoptimierung
-- Kundenchaos
-- Technische Altlasten
-- Corporate Bullshit
-- Beraterpaket
+(Lustigere Copy bei finaler Texthärtung — dies sind Arbeitstitel.)
 
-### 13.3 Kaufinteraktion
+### 13.3 Einzelkarten-Shop
+
+Daneben gibt es weiterhin Einzelkarten zum Festpreis (Mitarbeiter-Hire, Idee-Karten, Geld-Boosts). Boosterpacks sind die Glücks-/Strategie-Wahl, Einzelkauf die deterministische.
+
+### 13.4 Kaufinteraktion
 
 ```text
 Geld + Shop-Karte → gekaufte Karte
+Geld + Boosterpack → 3 Karten aus Pack-Pool
 ```
 
 Auch Kauf und Bezahlung bleiben kartig.
@@ -1187,10 +1133,10 @@ Technische Schulden
 ### 14.3 Burnout-Kette
 
 ```text
-Stress
-→ Burnout
+Burnout
+→ zweiter Burnout am selben Mitarbeiter
 → Ausfall
-→ Kündigungsgefahr
+→ Sprintende ohne Erholung
 → Kündigung
 ```
 
@@ -1200,17 +1146,17 @@ Stress
 Abstimmungsbedarf
 → Daily
 → Meeting-Flut
-→ Stress
 → Burnout
+   (Meeting-Flut zählt als wiederholbare Tätigkeit für die Burnout-Mechanik)
 ```
 
 ### 14.5 Konflikt-Kette
 
 ```text
 Konflikt
-→ Blame Game
+→ ignoriert
 → Silodenken
-→ Teamprozesse funktionieren schlechter
+→ gemeinsame Workshops/Reviews dauern länger
 ```
 
 ---
@@ -1231,25 +1177,34 @@ Der Humor entsteht aus bekannten Software- und Corporate-Situationen, aber die B
 ### 15.2 Beispieltexte
 
 **Technische Schulden**  
-„Schnell gelöst. Später teuer.“
+„Schnell gelöst. Später teuer."
 
 **User Story**  
-„Eine klare Beschreibung, was jemand eigentlich braucht.“
+„Eine klare Beschreibung, was jemand eigentlich braucht."
+
+**Vielversprechende User Story**  
+„Klingt nach echtem Bedarf. Sollte man nicht verschwenden."
 
 **Bug**  
-„Funktioniert nicht. Hat aber gestern noch funktioniert.“
+„Funktioniert nicht. Hat aber gestern noch funktioniert."
 
 **Workshop**  
-„Alle reden mit. Danach gibt es mehr Ideen als vorher.“
+„Alle reden mit. Danach gibt es mehr Ideen als vorher. Und einen Burnout."
 
 **Burnout**  
-„Dieser Mensch braucht eine Pause. Oder zumindest weniger Dailys.“
+„Dieser Mensch braucht eine Pause. Oder zumindest weniger Dailys."
 
-**Berater**  
-„Versteht das Problem sofort. Nennt es aber anders.“
+**Kaffeemaschine**  
+„Brummt vor sich hin. Belohnt Geduld."
+
+**Externer Dev**  
+„Erscheint, fixt, verschwindet. Stellt keine Fragen."
+
+**Auftrag**  
+„Jemand will etwas Bestimmtes — und zahlt dafür."
 
 **Abstimmungsbedarf**  
-„Niemand ist blockiert. Alle warten nur aufeinander.“
+„Niemand ist blockiert. Alle warten nur aufeinander."
 
 ---
 
@@ -1309,8 +1264,10 @@ Der erste spielbare Prototyp soll klein bleiben.
 Mitarbeiter:
 
 - Solo-Entwickler
+- Entwickler
 - Product Owner
 - Tester
+- (Support optional als Stretch)
 
 Input:
 
@@ -1320,6 +1277,7 @@ Input:
 Aufgaben/Outputs:
 
 - User Story
+- Vielversprechende User Story
 - Funktion
 - Geprüfte Funktion
 - Schnellschuss
@@ -1327,19 +1285,34 @@ Aufgaben/Outputs:
 Probleme:
 
 - Bug
+- Reproduzierbarer Bug
 - Technische Schulden
-- Stress
 - Burnout
 
 Ressourcen:
 
 - Geld
+- Kaffee
+
+Persistente Wert-Karten:
+
+- Kaffeemaschine
+- Kunde
+
+Einmalige Wert-Karten:
+
+- Auftrag
 
 Prozesse:
 
 - Workshop
 - Testlauf
 - Code aufräumen
+
+Consumables (nur via Booster):
+
+- Stressbewältigungskurs
+- Externer Dev
 
 Produkt:
 
@@ -1350,13 +1323,23 @@ Produkt:
 ```text
 Idee + Solo-Entwickler → Schnellschuss + Technische Schulden
 Idee + Product Owner → User Story
-User Story + Entwickler → Funktion
+Kundenwunsch + Product Owner → Vielversprechende User Story
+User Story + Entwickler → Funktion (+ Burnout-Chance steigt)
+Vielversprechende User Story + Entwickler → bessere Funktion
 Funktion + Tester → Geprüfte Funktion oder Bug
 Funktion + Software → Geld + Bug-Chance
 Geprüfte Funktion + Software → mehr Geld + geringe Bug-Chance
 Bug + Entwickler → Bugfix
+Bug + Externer Dev → Bugfix (schneller)
 Technische Schulden + Entwickler → Code aufräumen
-Stress + weiterer Stress → Burnout
+Workshop + 2+ Mitarbeiter → Ideen + Burnout (am Leiter)
+Burnout + Stressbewältigungskurs → Burnout entfernt
+Konflikt + beide Mitarbeiter (gestapelt) → Aussprache (bis Sprintende, min 30s)
+Kaffee + Mitarbeiter → schneller, Kaffee verbraucht
+Kaffeemaschine → 1× Kaffee pro Sprint
+Kunde → periodisch Kundenwunsch
+Auftrag + passende Funktion → großer Geldbonus
+Geld + Boosterpack → 3 Karten aus Pack-Pool
 Geld + Mitarbeiter am Sprintende → bezahlt
 ```
 
@@ -1364,11 +1347,13 @@ Geld + Mitarbeiter am Sprintende → bezahlt
 
 Der Prototyp ist erfolgreich, wenn folgende Entscheidungen interessant sind:
 
-1. Baue ich schnell direkt aus Ideen oder sauber über User Stories?
-2. Nutze ich Tester für Qualität oder lasse ich Features schneller releasen?
-3. Behebe ich Bugs jetzt oder baue ich weiter?
-4. Zahle ich für neue Mitarbeiter oder sichere ich Gehälter?
-5. Lohnt sich ein Workshop erst, wenn ich genug Mitarbeiter habe?
+1. Schnell direkt aus Ideen vs. sauber über User Stories?
+2. Tester für Qualität vs. Features schneller releasen?
+3. Bugs jetzt fixen vs. weiterbauen?
+4. Boosterpack kaufen (Glück) vs. Einzelkarte (deterministisch)?
+5. Workshop trotz garantiertem Burnout starten?
+6. Konflikt aussitzen (Aussprache blockiert Mitarbeiter) vs. Kurs verbrauchen?
+7. Lohnt es sich, Externen Dev zu holen statt Bugs in-house zu fixen?
 
 ---
 
@@ -1385,20 +1370,21 @@ Mögliche Lösung:
 
 ### 18.2 Wie genau funktioniert Software-Wert?
 
-Da es keinen abstrakten Wert geben soll, könnte Wert über Karten dargestellt werden:
+Wert wird über Karten dargestellt:
 
 - Kundenkarte
 - Geldkarte
-- Vertrauen-Karte
 - Abo-Karte
 - Auftrag-Karte
+
+Kein abstrakter Vertrauens- oder Reputationsbalken.
 
 ### 18.3 Wie werden langfristige Upgrades dargestellt?
 
 Mögliche Lösung:
 
 - Upgradekarten werden an Mitarbeiter oder Software angelegt.
-- Beispiel: „Automatisierte Tests“ liegt an Software und reduziert Bug-Chance.
+- Beispiel: „Automatisierte Tests" liegt an Software und reduziert Bug-Chance.
 
 ### 18.4 Wie viel Zufall ist gut?
 
@@ -1407,18 +1393,11 @@ Falsche Kombinationen sollten nicht komplett unberechenbar sein. Der Spieler mus
 - direkte Umsetzung = schnell, riskant
 - saubere Pipeline = langsam, stabil
 - Prozesse = mächtig, aber Overhead
+- Boosterpacks = Glücksfaktor mit klar geframten Pack-Pools
 
-### 18.5 Wie werden Beziehungen zwischen Mitarbeitern dargestellt?
+### 18.5 Wie genau steigt die Burnout-Chance?
 
-Konflikte könnten als Karten zwischen Mitarbeitern liegen oder an beiden Mitarbeitern haften.
-
-Beispiel:
-
-```text
-Konflikt: Dev vs QA
-```
-
-Diese Karte verhindert gemeinsame Prozesse, bis sie behandelt wird.
+Konkrete Kurve (linear, quadratisch?) wird im Prototyp empirisch getuned. Erste Annahme: lineare Steigerung pro Wiederholung am selben Mitarbeiter, sichtbar als Nebenmarker an der Mitarbeiterkarte (z. B. kleiner Punkt, der je Tätigkeit voller wird).
 
 ---
 
@@ -1479,9 +1458,9 @@ Der zentrale Reiz entsteht aus dem Spannungsfeld zwischen schneller Improvisatio
 
 - Am Anfang kann der Solo-Entwickler alles selbst machen, aber schlecht und riskant.
 - Später ermöglichen spezialisierte Rollen bessere Ergebnisse.
-- Noch später werden Prozesse mächtig, aber erzeugen Overhead.
+- Noch später werden Prozesse mächtig, aber erzeugen Overhead und garantierten Burnout.
 - Probleme sind keine Zahlen, sondern Karten, die Platz einnehmen und behandelt werden müssen.
+- Boosterpacks sind die zentrale Quelle für seltene, situative Karten und geben dem Spiel eine Stacklands-typische Glücks-Komponente.
 - Wachstum löst alte Probleme und erzeugt neue.
 
 Das Spiel sollte sich dadurch wie eine absurde, aber erkennbare Softwareorganisation anfühlen: Jede Karte ist eine Entscheidung, jedes Problem liegt sichtbar auf dem Tisch, und jeder Versuch, Ordnung zu schaffen, kann neuen Scope erzeugen.
-
