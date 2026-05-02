@@ -25,6 +25,7 @@ func validate_content() -> PackedStringArray:
 
 	for recipe_resource: Resource in recipes:
 		_validate_recipe(recipe_resource as RecipeDefinition)
+	_validate_ambiguous_recipes(recipes)
 
 	for booster_resource: Resource in boosters:
 		_validate_booster(booster_resource as BoosterDefinition)
@@ -114,6 +115,44 @@ func _validate_recipe(recipe: RecipeDefinition) -> void:
 	_validate_effects(path, recipe.id, recipe.effects_on_start)
 	_validate_effects(path, recipe.id, recipe.effects_on_complete)
 	_validate_effects(path, recipe.id, recipe.effects_on_cancel)
+
+func _validate_ambiguous_recipes(recipes: Array) -> void:
+	var seen_signatures: Dictionary = {}
+	for recipe_resource: Resource in recipes:
+		var recipe: RecipeDefinition = recipe_resource as RecipeDefinition
+		var signature: String = _get_recipe_ambiguity_signature(recipe)
+		if not seen_signatures.has(signature):
+			seen_signatures[signature] = recipe
+			continue
+
+		var other_recipe: RecipeDefinition = seen_signatures[signature] as RecipeDefinition
+		_errors.append(
+			"%s: Recipe '%s' is ambiguous with '%s'. Matching inputs, specificity, and priority must not tie."
+			% [recipe.resource_path, recipe.id, other_recipe.id]
+		)
+
+func _get_recipe_ambiguity_signature(recipe: RecipeDefinition) -> String:
+	var input_signatures: PackedStringArray = PackedStringArray()
+	for input: RecipeInputMatcher in recipe.inputs:
+		input_signatures.append(_get_input_signature(input))
+	input_signatures.sort()
+
+	var extra_signatures: PackedStringArray = PackedStringArray()
+	for input: RecipeInputMatcher in recipe.allowed_extra_inputs:
+		extra_signatures.append(_get_input_signature(input))
+	extra_signatures.sort()
+
+	return "%s|%s|inputs:%s|extra:%s" % [
+		recipe.specificity_score,
+		recipe.priority,
+		",".join(input_signatures),
+		",".join(extra_signatures),
+	]
+
+func _get_input_signature(input: RecipeInputMatcher) -> String:
+	var tags: PackedStringArray = input.required_tags.duplicate()
+	tags.sort()
+	return "%s:%s:%s" % [input.card_definition_id, input.count, "+".join(tags)]
 
 func _validate_recipe_input(path: String, recipe_id: String, input: RecipeInputMatcher) -> void:
 	if input == null:

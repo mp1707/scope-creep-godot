@@ -22,6 +22,24 @@ static func stack_changed(changed_stack_id: String) -> SimulationEvent:
 	event.stack_id = changed_stack_id
 	return event
 
+static func recipe_started(target_stack_id: String) -> SimulationEvent:
+	var event: SimulationEvent = SimulationEvent.new()
+	event.type = ScopeEnums.SimulationEventType.RECIPE_STARTED
+	event.stack_id = target_stack_id
+	return event
+
+static func recipe_cancelled(target_stack_id: String) -> SimulationEvent:
+	var event: SimulationEvent = SimulationEvent.new()
+	event.type = ScopeEnums.SimulationEventType.RECIPE_CANCELLED
+	event.stack_id = target_stack_id
+	return event
+
+static func recipe_completed(target_stack_id: String) -> SimulationEvent:
+	var event: SimulationEvent = SimulationEvent.new()
+	event.type = ScopeEnums.SimulationEventType.RECIPE_COMPLETED
+	event.stack_id = target_stack_id
+	return event
+
 static func phase_changed(new_phase: ScopeEnums.RunPhase) -> SimulationEvent:
 	var event: SimulationEvent = SimulationEvent.new()
 	event.type = ScopeEnums.SimulationEventType.PHASE_CHANGED

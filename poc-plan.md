@@ -10,7 +10,7 @@ Der Plan ist bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, was 
 - [x] Phase 1 - Zielstruktur und technische Grundtypen
 - [x] Phase 2 - Data-Resources und Content-Validator
 - [x] Phase 3 - Simulation-State und Commands
-- [ ] Phase 4 - Recipe Engine und Effect Pipeline
+- [x] Phase 4 - Recipe Engine und Effect Pipeline
 - [ ] Phase 5 - Board-, Stack- und Card-Presentation
 - [ ] Phase 6 - Erste spielbare Card-Pipeline
 - [ ] Phase 7 - Sprint, Pause und Bezahlphase
@@ -169,25 +169,31 @@ Ziel: Recipes und Effects funktionieren als wiederverwendbarer Kern, nicht als h
 
 Codex:
 
-- [ ] Recipe-Matching fuer reine Rezeptstapel implementieren.
-- [ ] Spezifitaet und `priority` beim Matchen umsetzen.
-- [ ] Ambige Matches fuer Validator/Test sichtbar machen.
-- [ ] Processing mit Dauer, Fortschritt, Pause und Abbruch implementieren.
-- [ ] Stack-Aenderung invalidiert aktives Recipe und bricht es bei Nicht-Match ab.
-- [ ] Basis-Effects implementieren: SpawnCard, RemoveCard, ConsumeInput, SpawnMoney, RollChance.
-- [ ] Headless Tests fuer Recipe-Matching, Pizza-/Kaffee-aehnliche Spezifitaet, Abbruch bei Stack-Aenderung.
+- [x] Recipe-Matching fuer reine Rezeptstapel implementieren.
+- [x] Spezifitaet und `priority` beim Matchen umsetzen.
+- [x] Ambige Matches fuer Validator/Test sichtbar machen.
+- [x] Processing mit Dauer, Fortschritt, Pause und Abbruch implementieren.
+- [x] Stack-Aenderung invalidiert aktives Recipe und bricht es bei Nicht-Match ab.
+- [x] Basis-Effects implementieren: SpawnCard, RemoveCard, ConsumeInput, SpawnMoney, RollChance.
+- [x] Headless Tests fuer Recipe-Matching, Pizza-/Kaffee-aehnliche Spezifitaet, Abbruch bei Stack-Aenderung.
 
 Marco:
 
-- [ ] Im Editor die Recipe-Resources pruefen und bei Bedarf Anzeigenamen/Aktionstexte anpassen.
-- [ ] Keine Recipe-Logik per Scene-Signal bauen; alle Regeln bleiben in Resources/Simulation.
+- [x] Im Editor die Recipe-Resources pruefen und bei Bedarf Anzeigenamen/Aktionstexte anpassen.
+- [x] Keine Recipe-Logik per Scene-Signal bauen; alle Regeln bleiben in Resources/Simulation.
 
 Definition of Done:
 
-- [ ] `Idee + Entwickler` kann headless zu `Funktion` verarbeiten.
-- [ ] `Funktion + Software` kann headless Geld spawnen.
-- [ ] Neutrale Zusatzkarte macht Stack neutral.
-- [ ] Aktives Processing bricht bei ungueltiger Stack-Aenderung ab.
+- [x] `Idee + Entwickler` kann headless zu `Funktion` verarbeiten.
+- [x] `Funktion + Software` kann headless Geld spawnen.
+- [x] Neutrale Zusatzkarte macht Stack neutral.
+- [x] Aktives Processing bricht bei ungueltiger Stack-Aenderung ab.
+
+Headless-Test:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_phase_4.gd
+```
 
 ## Phase 5 - Board-, Stack- und Card-Presentation
 
