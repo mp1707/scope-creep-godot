@@ -9,7 +9,7 @@ Der Plan ist bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, was 
 - [x] Phase 0 - Projektbasis und Arbeitsregeln
 - [x] Phase 1 - Zielstruktur und technische Grundtypen
 - [x] Phase 2 - Data-Resources und Content-Validator
-- [ ] Phase 3 - Simulation-State und Commands
+- [x] Phase 3 - Simulation-State und Commands
 - [ ] Phase 4 - Recipe Engine und Effect Pipeline
 - [ ] Phase 5 - Board-, Stack- und Card-Presentation
 - [ ] Phase 6 - Erste spielbare Card-Pipeline
@@ -138,24 +138,30 @@ Ziel: Der Run kann ohne UI erzeugt und ueber Commands veraendert werden.
 
 Codex:
 
-- [ ] `RunController` oder aequivalenten Simulation-Service erstellen.
-- [ ] Start-Run aus Resource-IDs erzeugen: Software, Entwickler, Idee, Kaffee, Startgeld.
-- [ ] Commands implementieren: Karte bewegen, Stack bilden, Stack splitten, Pause setzen.
-- [ ] Simulation-Events ausgeben: CardSpawned, StackChanged, PhaseChanged, TimerUpdated.
-- [ ] Deterministischen RNG im RunState vorbereiten.
-- [ ] Headless Tests fuer Startzustand, Stackbildung und neutrale Stacks schreiben.
+- [x] `RunController` oder aequivalenten Simulation-Service erstellen.
+- [x] Start-Run aus Resource-IDs erzeugen: Software, Entwickler, Idee, Kaffee, Startgeld.
+- [x] Commands implementieren: Karte bewegen, Stack bilden, Stack splitten, Pause setzen.
+- [x] Simulation-Events ausgeben: CardSpawned, StackChanged, PhaseChanged, TimerUpdated.
+- [x] Deterministischen RNG im RunState vorbereiten.
+- [x] Headless Tests fuer Startzustand, Stackbildung und neutrale Stacks schreiben.
 
 Marco:
 
-- [ ] Keine Editor-Aufgabe ausser Projektstart/Fehlerpruefung.
-- [ ] Falls gewuenscht Startkartenliste in Resources inhaltlich pruefen.
+- [x] Keine Editor-Aufgabe ausser Projektstart/Fehlerpruefung.
+- [x] Falls gewuenscht Startkartenliste in Resources inhaltlich pruefen.
 
 Definition of Done:
 
-- [ ] Start-Run kann headless erzeugt werden.
-- [ ] Karten koennen logisch gestapelt und getrennt werden.
-- [ ] Neutrale Stacks bleiben erlaubt und bewegbar.
-- [ ] Simulation braucht keine Card-Views.
+- [x] Start-Run kann headless erzeugt werden.
+- [x] Karten koennen logisch gestapelt und getrennt werden.
+- [x] Neutrale Stacks bleiben erlaubt und bewegbar.
+- [x] Simulation braucht keine Card-Views.
+
+Headless-Test:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_phase_3.gd
+```
 
 ## Phase 4 - Recipe Engine und Effect Pipeline
 

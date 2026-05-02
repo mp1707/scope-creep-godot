@@ -26,3 +26,12 @@ enum ProcessingStatus {
 	PAUSED,
 	BLOCKED,
 }
+
+enum SimulationEventType {
+	CARD_SPAWNED,
+	CARD_REMOVED,
+	STACK_CHANGED,
+	PHASE_CHANGED,
+	TIMER_UPDATED,
+	PAUSE_CHANGED,
+}
