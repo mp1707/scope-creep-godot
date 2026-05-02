@@ -99,6 +99,7 @@ res://scenes/presentation/
 res://scenes/ui/
 
 res://scripts/application/
+res://scripts/data/
 res://scripts/simulation/
 res://scripts/presentation/
 res://scripts/save/

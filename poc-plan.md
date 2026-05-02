@@ -6,8 +6,8 @@ Der Plan ist bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, was 
 
 ## Fortschritt
 
-- [ ] Phase 0 - Projektbasis und Arbeitsregeln
-- [ ] Phase 1 - Zielstruktur und technische Grundtypen
+- [x] Phase 0 - Projektbasis und Arbeitsregeln
+- [x] Phase 1 - Zielstruktur und technische Grundtypen
 - [ ] Phase 2 - Data-Resources und Content-Validator
 - [ ] Phase 3 - Simulation-State und Commands
 - [ ] Phase 4 - Recipe Engine und Effect Pipeline
@@ -59,23 +59,23 @@ Ziel: Klare technische Basis, damit die folgenden Phasen nicht gegen Godot-Edito
 
 Codex:
 
-- [ ] Bestehende Dateien pruefen: `project.godot`, `gdd.md`, `architecture.md`.
-- [ ] Keine bestehenden User-Aenderungen ueberschreiben.
-- [ ] Vor jeder groesseren Phase kurz `git status --short` pruefen.
-- [ ] Nur Dateien/Skripte/Resources anlegen oder aendern, die fuer die Phase benoetigt werden.
-- [ ] Keine Editor-spezifischen `.tscn`-Verknuepfungen per Text erzwingen, wenn sie im Editor sauberer gesetzt werden sollten.
+- [x] Bestehende Dateien pruefen: `project.godot`, `gdd.md`, `architecture.md`.
+- [x] Keine bestehenden User-Aenderungen ueberschreiben.
+- [x] Vor jeder groesseren Phase kurz `git status --short` pruefen.
+- [x] Nur Dateien/Skripte/Resources anlegen oder aendern, die fuer die Phase benoetigt werden.
+- [x] Keine Editor-spezifischen `.tscn`-Verknuepfungen per Text erzwingen, wenn sie im Editor sauberer gesetzt werden sollten.
 
 Marco:
 
-- [ ] Godot 4.6 Projekt einmal im Editor oeffnen und sicherstellen, dass es ohne Importfehler startet.
+- [x] Godot 4.6 Projekt einmal im Editor oeffnen und sicherstellen, dass es ohne Importfehler startet.
 - [x] Platzhalter-Visuals fuer den PoC bestaetigt: einfache Rechtecke/Formen, keine Card-Sprites/Icons.
-- [ ] Nach Codex-Aenderungen Godot-Import laufen lassen und sichtbare Editor-Fehler melden.
+- [x] Nach Codex-Aenderungen Godot-Import laufen lassen und sichtbare Editor-Fehler melden.
 
 Definition of Done:
 
-- [ ] Projekt laesst sich in Godot 4.6 oeffnen.
-- [ ] `architecture.md` und `gdd.md` bleiben die gueltigen Referenzen.
-- [ ] Keine ungeklaerten Editor-Hacks im Projekt.
+- [x] Projekt laesst sich in Godot 4.6 oeffnen.
+- [x] `architecture.md` und `gdd.md` bleiben die gueltigen Referenzen.
+- [x] Keine ungeklaerten Editor-Hacks im Projekt.
 
 ## Phase 1 - Zielstruktur und technische Grundtypen
 
@@ -84,22 +84,22 @@ Ziel: Ordner, Basisklassen und Enums so vorbereiten, dass alle weiteren Systeme 
 Codex:
 
 - [x] Zielordner anlegen: `data/`, `scripts/`, `scenes/`, `assets/`, `tests/` gemaess `architecture.md`.
-- [ ] Resource-Basisklassen fuer `CardDefinition`, `RecipeDefinition`, `EffectDefinition`, `BoosterDefinition`, `ShopDefinition`, `BalanceDefinition` erstellen.
-- [ ] Runtime-State-Klassen fuer `RunState`, `CardInstance`, `StackState`, `BoardState`, `ProcessingState` erstellen.
-- [ ] Enums/Konstanten fuer Card-Typen, Run-Phasen und Processing-States definieren.
-- [ ] ID-Konventionen dokumentieren oder als kleine Utility validieren.
-- [ ] Keine Spielregeln in Views oder Scenes schreiben.
+- [x] Resource-Basisklassen fuer `CardDefinition`, `RecipeDefinition`, `EffectDefinition`, `BoosterDefinition`, `ShopDefinition`, `BalanceDefinition` erstellen.
+- [x] Runtime-State-Klassen fuer `RunState`, `CardInstance`, `StackState`, `BoardState`, `ProcessingState` erstellen.
+- [x] Enums/Konstanten fuer Card-Typen, Run-Phasen und Processing-States definieren.
+- [x] ID-Konventionen dokumentieren oder als kleine Utility validieren.
+- [x] Keine Spielregeln in Views oder Scenes schreiben.
 
 Marco:
 
-- [ ] In Godot pruefen, ob die neuen Resource-Klassen im Inspector als Resource-Typen auftauchen.
-- [ ] Keine manuelle Resource-Massenpflege in dieser Phase; nur Smoke-Test im Editor.
+- [x] In Godot pruefen, ob die neuen Resource-Klassen im Inspector als Resource-Typen auftauchen.
+- [x] Keine manuelle Resource-Massenpflege in dieser Phase; nur Smoke-Test im Editor.
 
 Definition of Done:
 
-- [ ] Godot kompiliert die neuen GDScript-Klassen ohne Fehler.
-- [ ] Resource-Klassen sind im Editor nutzbar.
-- [ ] Runtime-State ist UI-unabhaengig.
+- [x] Godot kompiliert die neuen GDScript-Klassen ohne Fehler.
+- [x] Resource-Klassen sind im Editor nutzbar.
+- [x] Runtime-State ist UI-unabhaengig.
 
 ## Phase 2 - Data-Resources und Content-Validator
 
@@ -367,7 +367,7 @@ Definition of Done:
 
 Offene Punkte waehrend der Umsetzung hier eintragen:
 
-- [ ] 
+- [ ] Projekt-Run hat noch keine Main Scene. Das ist erwartbar bis Phase 5/6 und blockiert Phase 0/1 nicht.
 
 Entscheidungen waehrend der Umsetzung hier festhalten:
 
@@ -375,4 +375,4 @@ Entscheidungen waehrend der Umsetzung hier festhalten:
 
 Bekannte technische Schulden hier festhalten:
 
-- [ ] 
+- [ ]
