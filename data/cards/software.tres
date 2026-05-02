@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_w13xv"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_nd0ff"]
+
+[sub_resource type="Resource" id="Resource_e23bo"]
+script = ExtResource("2_nd0ff")
+background_color = Color(0.18, 0.24, 0.31, 1)
+accent_color = Color(0.4, 0.74, 0.9, 1)
+marker_text = "SW"
+
+[resource]
+script = ExtResource("1_w13xv")
+id = "card.product.software"
+display_name = "Software"
+type = 8
+tags = PackedStringArray("software", "product")
+short_text = "Produktbasis"
+tooltip_text = "Produktbasis"
+visual = SubResource("Resource_e23bo")

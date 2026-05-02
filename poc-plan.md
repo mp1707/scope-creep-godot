@@ -8,7 +8,7 @@ Der Plan ist bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, was 
 
 - [x] Phase 0 - Projektbasis und Arbeitsregeln
 - [x] Phase 1 - Zielstruktur und technische Grundtypen
-- [ ] Phase 2 - Data-Resources und Content-Validator
+- [x] Phase 2 - Data-Resources und Content-Validator
 - [ ] Phase 3 - Simulation-State und Commands
 - [ ] Phase 4 - Recipe Engine und Effect Pipeline
 - [ ] Phase 5 - Board-, Stack- und Card-Presentation
@@ -23,9 +23,9 @@ Der Plan ist bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, was 
 
 Am Ende des PoC soll ein kleiner, echter Spielablauf funktionieren:
 
-1. Run startet mit Software, Solo-Entwickler, Idee, Kaffee und wenigen 1-Geld-Karten.
+1. Run startet mit Software, Entwickler, Idee, Kaffee und wenigen 1-Geld-Karten.
 2. Karten koennen frei gezogen, gestapelt und als neutrale Stacks bewegt werden.
-3. `Idee + Solo-Entwickler` verarbeitet zu `Funktion`.
+3. `Idee + Entwickler` verarbeitet zu `Funktion`.
 4. `Funktion + Software` verarbeitet zu Geld und optional Bug.
 5. Sprint-Timer laeuft, Pause friert Timer ein.
 6. Bezahlphase sperrt alles ausser Geld und Mitarbeiter.
@@ -107,24 +107,30 @@ Ziel: Ein kleiner, echter Content-Satz wird datengetrieben gepflegt und automati
 
 Codex:
 
-- [ ] Minimal-CardDefinitions anlegen: Software, Solo-Entwickler, Idee, Funktion, Geld, Bug, Kaffee, Boosterpack-Platzhalter.
-- [ ] Minimal-RecipeDefinitions anlegen: Idee zu Funktion, Funktion zu Software, Kaffee-Modifier fuer eine Aufgabe.
-- [ ] Minimal-BoosterDefinition fuer ein einfaches Gruender-/Testpack anlegen.
-- [ ] BalanceDefinition mit Sprintdauer, Release-Dauer, Bug-Chance, Snap-Distanz und Stack-Offset anlegen.
-- [ ] Headless Content-Validator implementieren: doppelte IDs, fehlende Referenzen, ungueltige Recipe-Inputs, leere Booster-Pools.
-- [ ] Einen Godot-headless-Aufruf oder Testskript dokumentieren, mit dem der Validator laeuft.
+- [x] Minimal-CardDefinitions anlegen: Software, Entwickler, Idee, Funktion, Geld, Bug, Kaffee, Boosterpack-Platzhalter.
+- [x] Minimal-RecipeDefinitions anlegen: Idee zu Funktion, Funktion zu Software, Kaffee-Modifier fuer eine Aufgabe.
+- [x] Minimal-BoosterDefinition fuer ein einfaches Gruender-/Testpack anlegen.
+- [x] BalanceDefinition mit Sprintdauer, Release-Dauer, Bug-Chance, Snap-Distanz und Stack-Offset anlegen.
+- [x] Headless Content-Validator implementieren: doppelte IDs, fehlende Referenzen, ungueltige Recipe-Inputs, leere Booster-Pools.
+- [x] Einen Godot-headless-Aufruf oder Testskript dokumentieren, mit dem der Validator laeuft.
 
 Marco:
 
-- [ ] Resource-Dateien im Editor oeffnen und pruefen, ob Felder sinnvoll editierbar sind.
-- [ ] Platzhaltertexte und Farben im Inspector setzen, falls Codex dafuer Felder bereitstellt.
-- [ ] Keine Logik im Editor nachbauen; nur Resources pflegen.
+- [x] Resource-Dateien im Editor oeffnen und pruefen, ob Felder sinnvoll editierbar sind.
+- [x] Platzhaltertexte und Farben im Inspector setzen, falls Codex dafuer Felder bereitstellt.
+- [x] Keine Logik im Editor nachbauen; nur Resources pflegen.
 
 Definition of Done:
 
-- [ ] Validator laeuft headless.
-- [ ] Minimal-Content wird erfolgreich validiert.
-- [ ] Ein absichtlicher Fehler, z. B. fehlende Card-ID, wird klar gemeldet.
+- [x] Validator laeuft headless.
+- [x] Minimal-Content wird erfolgreich validiert.
+- [x] Ein absichtlicher Fehler, z. B. fehlende Card-ID, wird klar gemeldet.
+
+Headless-Check:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://scripts/validation/run_content_validation.gd
+```
 
 ## Phase 3 - Simulation-State und Commands
 
@@ -133,7 +139,7 @@ Ziel: Der Run kann ohne UI erzeugt und ueber Commands veraendert werden.
 Codex:
 
 - [ ] `RunController` oder aequivalenten Simulation-Service erstellen.
-- [ ] Start-Run aus Resource-IDs erzeugen: Software, Solo-Entwickler, Idee, Kaffee, Startgeld.
+- [ ] Start-Run aus Resource-IDs erzeugen: Software, Entwickler, Idee, Kaffee, Startgeld.
 - [ ] Commands implementieren: Karte bewegen, Stack bilden, Stack splitten, Pause setzen.
 - [ ] Simulation-Events ausgeben: CardSpawned, StackChanged, PhaseChanged, TimerUpdated.
 - [ ] Deterministischen RNG im RunState vorbereiten.
@@ -172,7 +178,7 @@ Marco:
 
 Definition of Done:
 
-- [ ] `Idee + Solo-Entwickler` kann headless zu `Funktion` verarbeiten.
+- [ ] `Idee + Entwickler` kann headless zu `Funktion` verarbeiten.
 - [ ] `Funktion + Software` kann headless Geld spawnen.
 - [ ] Neutrale Zusatzkarte macht Stack neutral.
 - [ ] Aktives Processing bricht bei ungueltiger Stack-Aenderung ab.
@@ -214,7 +220,7 @@ Codex:
 
 - [ ] Application-Bootstrap bauen: Content laden, Run starten, BoardView verbinden.
 - [ ] Timer-Update von Simulation zu Progressbar verbinden.
-- [ ] Recipe-Abschluss fuer `Idee + Solo-Entwickler -> Funktion` sichtbar machen.
+- [ ] Recipe-Abschluss fuer `Idee + Entwickler -> Funktion` sichtbar machen.
 - [ ] Recipe-Abschluss fuer `Funktion + Software -> Geld` sichtbar machen.
 - [ ] Spawn-Placement nahe Quelle implementieren, ohne Karten zu verdecken.
 - [ ] Einfache Debug-UI fuer Phase/Sprint/Run-Status nur falls noetig als Dev-Overlay.
@@ -228,7 +234,7 @@ Marco:
 
 Definition of Done:
 
-- [ ] Spieler kann Idee auf Solo-Entwickler ziehen.
+- [ ] Spieler kann Idee auf Entwickler ziehen.
 - [ ] Fortschrittsbalken laeuft.
 - [ ] Funktion spawnt an freier Position nahe dem Stack.
 - [ ] Funktion auf Software erzeugt 1-Geld-Karten.
@@ -372,6 +378,7 @@ Offene Punkte waehrend der Umsetzung hier eintragen:
 Entscheidungen waehrend der Umsetzung hier festhalten:
 
 - [x] PoC wird ohne externe Assets umgesetzt. Karten sind einfache Rechtecke/Formen mit Farben, Labels, Typ-Markern und Progressbars.
+- [x] Die Start-Mitarbeiterkarte ist `Entwickler` (`card.employee.developer`), nicht `Solo-Entwickler`. Solo ist nur der Startzustand ohne Kollegen.
 
 Bekannte technische Schulden hier festhalten:
 

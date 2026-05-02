@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_m0g0w"]
+[ext_resource type="Script" path="res://scripts/data/recipe_constraint_definition.gd" id="2_mtnio"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="3_jwo0l"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="4_1s3cc"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="5_ascfa"]
+
+[sub_resource type="Resource" id="Resource_ky4ud"]
+script = ExtResource("3_jwo0l")
+base_seconds = 8.0
+
+[sub_resource type="Resource" id="Resource_oyxc1"]
+script = ExtResource("4_1s3cc")
+id = "effect.consume_input.idea"
+effect_type = "consume_input"
+parameters = {
+"card_definition_id": "card.input.idea"
+}
+
+[sub_resource type="Resource" id="Resource_andnp"]
+script = ExtResource("4_1s3cc")
+id = "effect.spawn_card.feature"
+effect_type = "spawn_card"
+parameters = {
+"card_definition_id": "card.output.feature",
+"count": 1
+}
+
+[sub_resource type="Resource" id="Resource_r4rfb"]
+script = ExtResource("1_m0g0w")
+card_definition_id = "card.input.idea"
+required_tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_qgj5c"]
+script = ExtResource("1_m0g0w")
+card_definition_id = "card.employee.developer"
+required_tags = PackedStringArray()
+
+[resource]
+script = ExtResource("5_ascfa")
+id = "recipe.feature_from_idea.developer"
+display_text = "Funktion bauen"
+inputs = Array[ExtResource("1_m0g0w")]([SubResource("Resource_r4rfb"), SubResource("Resource_qgj5c")])
+duration = SubResource("Resource_ky4ud")
+priority = 10
+specificity_score = 2
+effects_on_complete = Array[ExtResource("4_1s3cc")]([SubResource("Resource_oyxc1"), SubResource("Resource_andnp")])

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="BoosterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="1_yxifr"]
+[ext_resource type="Script" path="res://scripts/data/booster_pool_entry.gd" id="2_c064f"]
+[ext_resource type="Script" path="res://scripts/data/booster_definition.gd" id="3_38o7e"]
+
+[sub_resource type="Resource" id="Resource_40nqi"]
+script = ExtResource("2_c064f")
+card_definition_id = "card.input.idea"
+weight = 5
+
+[sub_resource type="Resource" id="Resource_kye47"]
+script = ExtResource("2_c064f")
+card_definition_id = "card.consumable.coffee"
+weight = 3
+
+[sub_resource type="Resource" id="Resource_lkh16"]
+script = ExtResource("2_c064f")
+card_definition_id = "card.resource.money"
+weight = 2
+
+[sub_resource type="Resource" id="Resource_ukd73"]
+script = ExtResource("2_c064f")
+card_definition_id = "card.problem.bug"
+
+[resource]
+script = ExtResource("3_38o7e")
+id = "booster.founder.test_pack"
+display_name = "Gruender-Testpack"
+pool_entries = Array[ExtResource("2_c064f")]([SubResource("Resource_40nqi"), SubResource("Resource_kye47"), SubResource("Resource_lkh16"), SubResource("Resource_ukd73")])

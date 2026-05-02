@@ -1,0 +1,61 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_djbw0"]
+[ext_resource type="Script" path="res://scripts/data/recipe_constraint_definition.gd" id="2_24h5p"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="3_som2q"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="4_hvdyn"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="5_qkuw5"]
+
+[sub_resource type="Resource" id="Resource_krnir"]
+script = ExtResource("3_som2q")
+base_seconds = 4.0
+
+[sub_resource type="Resource" id="Resource_eoyne"]
+script = ExtResource("4_hvdyn")
+id = "effect.consume_input.idea"
+effect_type = "consume_input"
+parameters = {
+"card_definition_id": "card.input.idea"
+}
+
+[sub_resource type="Resource" id="Resource_jw2ry"]
+script = ExtResource("4_hvdyn")
+id = "effect.consume_input.coffee"
+effect_type = "consume_input"
+parameters = {
+"card_definition_id": "card.consumable.coffee"
+}
+
+[sub_resource type="Resource" id="Resource_lyfdo"]
+script = ExtResource("4_hvdyn")
+id = "effect.spawn_card.feature"
+effect_type = "spawn_card"
+parameters = {
+"card_definition_id": "card.output.feature",
+"count": 1
+}
+
+[sub_resource type="Resource" id="Resource_vcn83"]
+script = ExtResource("1_djbw0")
+card_definition_id = "card.input.idea"
+required_tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_hyrnm"]
+script = ExtResource("1_djbw0")
+card_definition_id = "card.employee.developer"
+required_tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_tbq5v"]
+script = ExtResource("1_djbw0")
+card_definition_id = "card.consumable.coffee"
+required_tags = PackedStringArray()
+
+[resource]
+script = ExtResource("5_qkuw5")
+id = "recipe.feature_from_idea.developer_coffee"
+display_text = "Funktion bauen mit Kaffee"
+inputs = Array[ExtResource("1_djbw0")]([SubResource("Resource_vcn83"), SubResource("Resource_hyrnm"), SubResource("Resource_tbq5v")])
+duration = SubResource("Resource_krnir")
+priority = 20
+specificity_score = 3
+effects_on_complete = Array[ExtResource("4_hvdyn")]([SubResource("Resource_eoyne"), SubResource("Resource_jw2ry"), SubResource("Resource_lyfdo")])

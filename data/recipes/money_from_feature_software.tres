@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_oaaar"]
+[ext_resource type="Script" path="res://scripts/data/recipe_constraint_definition.gd" id="2_khhjy"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="3_r1daj"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="4_2hk0j"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="5_g78wc"]
+
+[sub_resource type="Resource" id="Resource_61yk6"]
+script = ExtResource("3_r1daj")
+base_seconds = 6.0
+
+[sub_resource type="Resource" id="Resource_8kvva"]
+script = ExtResource("4_2hk0j")
+id = "effect.consume_input.feature"
+effect_type = "consume_input"
+parameters = {
+"card_definition_id": "card.output.feature"
+}
+
+[sub_resource type="Resource" id="Resource_r53sd"]
+script = ExtResource("4_2hk0j")
+id = "effect.spawn_card.money"
+effect_type = "spawn_card"
+parameters = {
+"card_definition_id": "card.resource.money",
+"count": 1
+}
+
+[sub_resource type="Resource" id="Resource_0bwwy"]
+script = ExtResource("4_2hk0j")
+id = "effect.roll_bug_chance"
+effect_type = "roll_chance"
+parameters = {
+"card_definition_id": "card.problem.bug",
+"chance_key": "bug_chance"
+}
+
+[sub_resource type="Resource" id="Resource_a7tst"]
+script = ExtResource("1_oaaar")
+card_definition_id = "card.output.feature"
+required_tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_hkxxn"]
+script = ExtResource("1_oaaar")
+card_definition_id = "card.product.software"
+required_tags = PackedStringArray()
+
+[resource]
+script = ExtResource("5_g78wc")
+id = "recipe.money_from_feature.software"
+display_text = "Feature releasen"
+inputs = Array[ExtResource("1_oaaar")]([SubResource("Resource_a7tst"), SubResource("Resource_hkxxn")])
+duration = SubResource("Resource_61yk6")
+priority = 10
+specificity_score = 2
+effects_on_complete = Array[ExtResource("4_2hk0j")]([SubResource("Resource_8kvva"), SubResource("Resource_r53sd"), SubResource("Resource_0bwwy")])

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_x8mrd"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_2v8g7"]
+
+[sub_resource type="Resource" id="Resource_oityl"]
+script = ExtResource("2_2v8g7")
+background_color = Color(0.22, 0.26, 0.2, 1)
+accent_color = Color(0.6, 0.82, 0.42, 1)
+marker_text = "DEV"
+
+[resource]
+script = ExtResource("1_x8mrd")
+id = "card.employee.developer"
+display_name = "Entwickler"
+type = 0
+tags = PackedStringArray("employee", "developer")
+short_text = "Baut Features"
+tooltip_text = "Baut Features"
+visual = SubResource("Resource_oityl")

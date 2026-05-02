@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_ohhjm"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_6ycvs"]
+
+[sub_resource type="Resource" id="Resource_rpu0n"]
+script = ExtResource("2_6ycvs")
+background_color = Color(0.25, 0.2, 0.31, 1)
+accent_color = Color(0.75, 0.52, 0.95, 1)
+marker_text = "PACK"
+
+[resource]
+script = ExtResource("1_ohhjm")
+id = "card.resource.booster_pack"
+display_name = "Boosterpack"
+type = 5
+tags = PackedStringArray("booster", "pack")
+short_text = "Oeffnet neue Karten"
+tooltip_text = "Oeffnet neue Karten"
+visual = SubResource("Resource_rpu0n")

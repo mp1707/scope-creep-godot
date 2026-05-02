@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_uu4mb"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_n8e6y"]
+
+[sub_resource type="Resource" id="Resource_4xlse"]
+script = ExtResource("2_n8e6y")
+background_color = Color(0.32, 0.18, 0.2, 1)
+accent_color = Color(0.92, 0.38, 0.42, 1)
+marker_text = "BUG"
+
+[resource]
+script = ExtResource("1_uu4mb")
+id = "card.problem.bug"
+display_name = "Bug"
+type = 4
+tags = PackedStringArray("problem", "bug")
+short_text = "Eskalation am Sprintstart"
+tooltip_text = "Eskalation am Sprintstart"
+visual = SubResource("Resource_4xlse")

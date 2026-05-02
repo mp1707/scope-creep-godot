@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_t1tnw"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_xtgol"]
+
+[sub_resource type="Resource" id="Resource_gmgh4"]
+script = ExtResource("2_xtgol")
+background_color = Color(0.28, 0.25, 0.18, 1)
+accent_color = Color(0.9, 0.72, 0.36, 1)
+marker_text = "IDEA"
+
+[resource]
+script = ExtResource("1_t1tnw")
+id = "card.input.idea"
+display_name = "Idee"
+tags = PackedStringArray("idea", "input")
+short_text = "Kann umgesetzt werden"
+tooltip_text = "Kann umgesetzt werden"
+visual = SubResource("Resource_gmgh4")

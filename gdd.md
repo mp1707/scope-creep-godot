@@ -107,7 +107,7 @@ Das Spiel soll sich anfühlen wie:
 Der Start ist bewusst simpel:
 
 ```text
-Idee + Solo-Entwickler → Prototyp / Funktion
+Idee + Entwickler → Prototyp / Funktion
 Funktion + Software → Geld / Kundenwunsch / Bug
 Geld + Entwickler am Sprintende → Mitarbeiter bleibt
 ```
@@ -297,17 +297,21 @@ Eine laufende Bearbeitung bricht sofort ab, wenn der Stapel verändert wird und 
 
 Mitarbeiter sind zentrale Arbeitskarten. Sie verarbeiten Ideen, Aufgaben, Probleme und Prozesse.
 
-### Solo-Entwickler
+### Entwickler
 
-Startkarte.
+Startkarte und spaeter normale Mitarbeiterkarte.
 
-Kann alles irgendwie, aber nichts organisatorisches besonders gut.
+Wenn der Entwickler zu Beginn keine Kollegen hat, ist er nur kontextuell solo. Es gibt keine eigene Solo-Entwickler-Karte oder abweichende Solo-Definition.
+
+Baut Funktionen und behebt Bugs. Kann alles irgendwie, aber nichts organisatorisches besonders gut.
 
 Stärken:
 
 - Entwickeln
 - Bugfixes
 - Prototypen
+- User Story → Funktion
+- Technische Schulden → Aufgeräumter Code
 
 Schwächen:
 
@@ -315,32 +319,19 @@ Schwächen:
 - Testen
 - Support
 - Teamprozesse
+- Ideen priorisieren
+- Kundenkommunikation
+- Konfliktlösung
 
 Typische Outputs:
 
 ```text
-Idee + Solo-Entwickler → Funktion (langsam, Risiko: Technische Schulden)
-Bug + Solo-Entwickler → Bugfix
-Kundenwunsch + Solo-Entwickler → Funktion, aber Risiko auf falsche Funktion
+Idee + Entwickler → Funktion (langsam, Risiko: Technische Schulden)
+Bug + Entwickler → Bugfix
+Kundenwunsch + Entwickler → Funktion, aber Risiko auf falsche Funktion
 ```
 
-Der „Schnellschuss"-Spielstil (Idee direkt vom Solo-Entwickler bauen lassen) ist nur eine Bezeichnung für diese Spielweise — es gibt keine eigene Schnellschuss-Karte. Sauberer wird es, wenn die Idee zuerst durch einen Product Owner zur User Story wird (siehe Kap. 8.2).
-
-### Entwickler
-
-Baut Funktionen und behebt Bugs.
-
-Stärken:
-
-- User Story → Funktion
-- Bug → Bugfix
-- Technische Schulden → Aufgeräumter Code
-
-Schwächen:
-
-- Ideen priorisieren
-- Kundenkommunikation
-- Konfliktlösung
+Der „Schnellschuss"-Spielstil (Idee direkt vom Entwickler bauen lassen) ist nur eine Bezeichnung für diese Spielweise — es gibt keine eigene Schnellschuss-Karte. Sauberer wird es, wenn die Idee zuerst durch einen Product Owner zur User Story wird (siehe Kap. 8.2).
 
 ### Product Owner
 
@@ -954,7 +945,7 @@ Es gibt keine abstrakten Software-Level („Erste Version", „Plattform" o.ä.)
 ### 10.1 Idee direkt bauen („Schnellschuss"-Spielstil)
 
 ```text
-Idee + Solo-Entwickler
+Idee + Entwickler
 → Timer (langsam)
 → Funktion + Risiko (Technische Schulden)
 ```
@@ -968,7 +959,7 @@ Risiko:
 
 - Tech Debt bleibt am Spielfeld liegen und verlängert zukünftige Feature- und Bugfix-Arbeit
 - Ungeprüfte Releases haben 50% Bug-Chance; saubere QS entfernt dieses Risiko in v1
-- Burnout-Counter am Solo-Entwickler steigt
+- Burnout-Counter am Entwickler steigt
 
 ### 10.2 Idee sauber vorbereiten
 
@@ -1032,7 +1023,7 @@ Nach 1–2 Sprints verschwindet der Externe Dev wieder.
 
 Startkarten:
 
-- Solo-Entwickler
+- Entwickler
 - Idee
 - Software / Leeres Repository
 - kleines Geld
@@ -1150,7 +1141,7 @@ Spieler darf alle 3 Karten aus einem geöffneten Pack behalten. Boosterpacks sin
 
 | Pack              | Inhalte (Pool)                                                            | Strategischer Sinn                                              |
 | ----------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| **Gründerpaket**  | Idee, Solo-Entwickler, Kaffee, kleines Geld                               | günstiger Early-Game-Restock                                    |
+| **Gründerpaket**  | Idee, Entwickler, Kaffee, kleines Geld                                    | günstiger Early-Game-Restock                                    |
 | **Office-Invest** | Pizza Party, Stressbewältigungskurs, Konfliktworkshop, Kaffeemaschine, Kaffee, Teambuilding | Mitarbeiter gesund halten und Konflikte lösen                   |
 | **Talent-Pool**   | Entwickler, Product Owner, Tester, Support, Designer                      | gezieltes Hiring (mit Glücksfaktor)                             |
 | **Hot Fix Kit**   | Externer Dev, Code aufräumen, Testlauf                                    | Krisen-Pack für Bug-Stau                                        |
@@ -1370,7 +1361,6 @@ Der erste spielbare Prototyp soll klein bleiben.
 
 Mitarbeiter:
 
-- Solo-Entwickler
 - Entwickler
 - Product Owner
 - Tester
@@ -1434,7 +1424,7 @@ Produkt:
 ### 17.2 Enthaltene Interaktionen
 
 ```text
-Idee + Solo-Entwickler → Funktion (langsam, Risiko: Tech Debt)
+Idee + Entwickler → Funktion (langsam, Risiko: Tech Debt)
 Idee + Product Owner → User Story
 Kundenwunsch + Product Owner → Vielversprechende User Story
 User Story + Entwickler → Funktion (+ Burnout-Counter +0.1)
@@ -1583,7 +1573,7 @@ Scope Creep soll ein Stacklike werden, in dem der Spieler eine Softwarefirma nic
 
 Der zentrale Reiz entsteht aus dem Spannungsfeld zwischen schneller Improvisation und wachsender Prozesskomplexität:
 
-- Am Anfang kann der Solo-Entwickler alles selbst machen, aber schlecht und riskant.
+- Am Anfang kann der Entwickler alles selbst machen, aber schlecht und riskant.
 - Später ermöglichen spezialisierte Rollen bessere Ergebnisse.
 - Noch später werden Prozesse mächtig, aber erzeugen Overhead und garantierten Burnout.
 - Probleme sind keine Zahlen, sondern Karten, die Platz einnehmen und behandelt werden müssen.
