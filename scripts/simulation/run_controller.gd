@@ -2,6 +2,8 @@ class_name RunController
 extends RefCounted
 
 const SPRINT_TIMER_ID: String = "sprint_remaining_seconds"
+const SPAWN_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
+const SPAWN_GAP: float = 36.0
 const START_CARD_IDS: Array[String] = [
 	"card.product.software",
 	"card.employee.developer",
@@ -84,6 +86,8 @@ func advance_time(delta_seconds: float) -> void:
 		stack.processing_state.elapsed += maxf(0.0, delta_seconds)
 		if stack.processing_state.elapsed >= stack.processing_state.duration:
 			_complete_processing(stack)
+		elif state.stacks.has(stack.stack_id):
+			_emit(SimulationEvent.stack_changed(stack.stack_id))
 
 func move_stack(stack_id: String, position: Vector2) -> void:
 	_require_state()
@@ -102,10 +106,18 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 	if source_stack.stack_id == target_stack.stack_id:
 		return
 
-	_remove_card_from_stack(source_stack, card_id)
-	target_stack.card_ids.append(card_id)
-	card.stack_id = target_stack.stack_id
-	card.position = target_stack.base_position
+	var start_index: int = source_stack.card_ids.find(card_id)
+	if start_index < 0:
+		push_error("Card '%s' is not in its source stack." % card_id)
+		return
+	var moving_card_ids: PackedStringArray = source_stack.card_ids.slice(start_index)
+	source_stack.card_ids = source_stack.card_ids.slice(0, start_index)
+
+	for moving_card_id: String in moving_card_ids:
+		target_stack.card_ids.append(moving_card_id)
+		var moving_card: CardInstance = _get_existing_card(moving_card_id)
+		moving_card.stack_id = target_stack.stack_id
+		moving_card.position = target_stack.base_position
 
 	_emit(SimulationEvent.stack_changed(source_stack.stack_id))
 	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
@@ -202,6 +214,7 @@ func _execute_effects(effects: Array[EffectDefinition], stack: StackState, recip
 	context.rng = _rng
 	context.spawn_card = Callable(self, "_spawn_card_as_new_stack")
 	context.remove_card = Callable(self, "_remove_card_instance")
+	context.get_spawn_position = Callable(self, "_get_spawn_position_near_stack")
 	_effect_pipeline.execute(effects, context)
 
 func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> CardInstance:
@@ -257,6 +270,66 @@ func _remove_card_from_stack(stack: StackState, card_id: String) -> void:
 func _delete_stack_if_empty(stack: StackState) -> void:
 	if stack.card_ids.is_empty():
 		state.stacks.erase(stack.stack_id)
+
+func _get_spawn_position_near_stack(source_stack_id: String, spawn_index: int = 0) -> Vector2:
+	var source_position: Vector2 = Vector2.ZERO
+	if state.stacks.has(source_stack_id):
+		source_position = _get_existing_stack(source_stack_id).base_position
+
+	var step_x: float = SPAWN_CARD_SIZE.x + SPAWN_GAP
+	var step_y: float = SPAWN_CARD_SIZE.y + SPAWN_GAP
+	var index_bias: Vector2 = Vector2(float(spawn_index) * step_x, 0.0)
+	var candidates: Array[Vector2] = [
+		source_position + Vector2(step_x, 0.0) + index_bias,
+		source_position + Vector2(0.0, step_y),
+		source_position + Vector2(-step_x, 0.0),
+		source_position + Vector2(0.0, -step_y),
+		source_position + Vector2(step_x, step_y),
+		source_position + Vector2(-step_x, step_y),
+		source_position + Vector2(step_x, -step_y),
+		source_position + Vector2(-step_x, -step_y),
+	]
+
+	var radius: float = 160.0
+	if content.balance != null:
+		radius = maxf(radius, content.balance.spawn_placement_radius)
+	for ring: int in 4:
+		for direction: Vector2 in [Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT, Vector2.UP]:
+			candidates.append(source_position + direction * (radius + float(ring) * step_x) + index_bias)
+
+	for candidate: Vector2 in candidates:
+		if not _does_spawn_overlap(candidate):
+			state.board.spawn_history.append(candidate)
+			return candidate
+
+	var fallback: Vector2 = source_position + Vector2(step_x * float(state.board.spawn_history.size() + 1), step_y)
+	state.board.spawn_history.append(fallback)
+	return fallback
+
+func _does_spawn_overlap(position: Vector2) -> bool:
+	var spawn_rect: Rect2 = Rect2(position, SPAWN_CARD_SIZE)
+	for stack: StackState in state.stacks.values():
+		if spawn_rect.intersects(_get_stack_rect(stack)):
+			return true
+	return false
+
+func _get_stack_rect(stack: StackState) -> Rect2:
+	if stack.card_ids.is_empty():
+		return Rect2(stack.base_position, SPAWN_CARD_SIZE)
+
+	var stack_offset: Vector2 = Vector2(0.0, 28.0)
+	if content.balance != null:
+		stack_offset = content.balance.stack_offset
+	var bottom_position: Vector2 = stack.base_position + stack_offset * float(stack.card_ids.size() - 1)
+	var min_position: Vector2 = Vector2(
+		minf(stack.base_position.x, bottom_position.x),
+		minf(stack.base_position.y, bottom_position.y)
+	)
+	var max_position: Vector2 = Vector2(
+		maxf(stack.base_position.x + SPAWN_CARD_SIZE.x, bottom_position.x + SPAWN_CARD_SIZE.x),
+		maxf(stack.base_position.y + SPAWN_CARD_SIZE.y, bottom_position.y + SPAWN_CARD_SIZE.y)
+	)
+	return Rect2(min_position, max_position - min_position)
 
 func _get_sprint_duration() -> float:
 	if content.balance == null:

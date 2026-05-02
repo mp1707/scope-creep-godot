@@ -1,8 +1,10 @@
 [gd_scene format=3 uid="uid://dnrupx5g5thqf"]
 
 [ext_resource type="Script" uid="uid://b5is11hjvcojl" path="res://scripts/presentation/board_view.gd" id="1_elqb8"]
+[ext_resource type="Script" uid="uid://eqsd0qqb0py0" path="res://scripts/application/main_application.gd" id="1_v00px"]
 
 [node name="Main" type="Node" unique_id=1075243361]
+script = ExtResource("1_v00px")
 
 [node name="BoardView" type="Node2D" parent="." unique_id=1196725594]
 script = ExtResource("1_elqb8")

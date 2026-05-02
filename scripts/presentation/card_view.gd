@@ -1,10 +1,6 @@
 class_name CardView
 extends Control
 
-signal drag_started(card_id: String, pointer_offset: Vector2)
-signal drag_moved(card_id: String, global_position: Vector2)
-signal drag_ended(card_id: String, global_position: Vector2)
-
 const DEFAULT_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
 
 @export var background_path: NodePath
@@ -17,19 +13,19 @@ const DEFAULT_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
 var card_id: String = ""
 var stack_id: String = ""
 
+var _shadow: ColorRect = null
 var _background: Control = null
 var _title_label: Label = null
 var _short_text_label: Label = null
 var _marker_label: Label = null
 var _progress_bar: ProgressBar = null
 var _action_label: Label = null
-var _is_dragging: bool = false
-var _pointer_offset: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
+	_set_top_left_layout(self)
 	custom_minimum_size = DEFAULT_CARD_SIZE
 	size = DEFAULT_CARD_SIZE
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_resolve_or_create_nodes()
 
 func setup(card: CardInstance, definition: CardDefinition, stack: StackState) -> void:
@@ -47,27 +43,13 @@ func update_runtime(card: CardInstance, stack: StackState) -> void:
 
 func set_drag_preview_position(board_position: Vector2) -> void:
 	position = board_position
-	z_index = 1000
 
 func clear_drag_preview() -> void:
-	z_index = 0
+	set_elevated(false)
 
-func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
-		if mouse_event.button_index != MOUSE_BUTTON_LEFT:
-			return
-		if mouse_event.pressed:
-			_is_dragging = true
-			_pointer_offset = get_global_mouse_position() - global_position
-			drag_started.emit(card_id, _pointer_offset)
-		else:
-			if _is_dragging:
-				_is_dragging = false
-				drag_ended.emit(card_id, get_global_mouse_position() - _pointer_offset)
-
-	if event is InputEventMouseMotion and _is_dragging:
-		drag_moved.emit(card_id, get_global_mouse_position() - _pointer_offset)
+func set_elevated(elevated: bool) -> void:
+	_resolve_or_create_nodes()
+	_shadow.visible = elevated
 
 func _resolve_or_create_nodes() -> void:
 	if _background == null:
@@ -82,6 +64,17 @@ func _resolve_or_create_nodes() -> void:
 		_progress_bar = get_node_or_null(progress_bar_path) as ProgressBar
 	if _action_label == null:
 		_action_label = get_node_or_null(action_label_path) as Label
+
+	if _shadow == null:
+		_shadow = get_node_or_null("DragShadow") as ColorRect
+	if _shadow == null:
+		_shadow = ColorRect.new()
+		_shadow.name = "DragShadow"
+		_shadow.color = Color(0.0, 0.0, 0.0, 0.28)
+		_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_shadow.visible = false
+		add_child(_shadow)
+		move_child(_shadow, 0)
 
 	if _background == null:
 		_background = ColorRect.new()
@@ -108,6 +101,9 @@ func _resolve_or_create_nodes() -> void:
 		add_child(_progress_bar)
 	if _action_label == null:
 		_action_label = _create_label("ActionLabel", Vector2(12.0, 164.0), Vector2(120.0, 20.0), HORIZONTAL_ALIGNMENT_CENTER)
+	move_child(_shadow, 0)
+	move_child(_background, 1)
+	_apply_default_layout()
 
 func _create_label(node_name: String, label_position: Vector2, label_size: Vector2, alignment: HorizontalAlignment) -> Label:
 	var label: Label = Label.new()
@@ -120,6 +116,47 @@ func _create_label(node_name: String, label_position: Vector2, label_size: Vecto
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(label)
 	return label
+
+func _apply_default_layout() -> void:
+	_set_top_left_layout(self)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	custom_minimum_size = DEFAULT_CARD_SIZE
+	size = DEFAULT_CARD_SIZE
+	_set_top_left_layout(_shadow)
+	_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shadow.position = Vector2(8.0, 10.0)
+	_shadow.size = DEFAULT_CARD_SIZE
+	_set_top_left_layout(_background)
+	_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_background.position = Vector2.ZERO
+	_background.size = DEFAULT_CARD_SIZE
+	_set_top_left_layout(_title_label)
+	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_title_label.position = Vector2(12.0, 10.0)
+	_title_label.size = Vector2(120.0, 26.0)
+	_set_top_left_layout(_marker_label)
+	_marker_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_marker_label.position = Vector2(98.0, 42.0)
+	_marker_label.size = Vector2(34.0, 24.0)
+	_set_top_left_layout(_short_text_label)
+	_short_text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_short_text_label.position = Vector2(12.0, 74.0)
+	_short_text_label.size = Vector2(120.0, 62.0)
+	_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_set_top_left_layout(_progress_bar)
+	_progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_progress_bar.position = Vector2(12.0, 148.0)
+	_progress_bar.size = Vector2(120.0, 12.0)
+	_set_top_left_layout(_action_label)
+	_action_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_action_label.position = Vector2(12.0, 164.0)
+	_action_label.size = Vector2(120.0, 20.0)
+
+func _set_top_left_layout(control: Control) -> void:
+	control.anchor_left = 0.0
+	control.anchor_top = 0.0
+	control.anchor_right = 0.0
+	control.anchor_bottom = 0.0
 
 func _apply_definition(definition: CardDefinition) -> void:
 	_title_label.text = definition.display_name
@@ -145,19 +182,11 @@ func _apply_definition(definition: CardDefinition) -> void:
 		style_box.border_width_top = 2
 		_background.add_theme_stylebox_override("panel", style_box)
 
-func _update_progress(stack: StackState) -> void:
-	var processing: ProcessingState = stack.processing_state
-	var is_active: bool = processing.status == ScopeEnums.ProcessingStatus.ACTIVE and processing.duration > 0.0
-	_progress_bar.visible = is_active
-	_action_label.visible = is_active
-	if not is_active:
-		_progress_bar.value = 0.0
-		_action_label.text = ""
-		return
-
-	_progress_bar.max_value = processing.duration
-	_progress_bar.value = processing.elapsed
-	_action_label.text = "..."
+func _update_progress(_stack: StackState) -> void:
+	_progress_bar.visible = false
+	_progress_bar.value = 0.0
+	_action_label.visible = false
+	_action_label.text = ""
 
 func _update_runtime_marker(card: CardInstance) -> void:
 	if card.state == null or card.state.markers.is_empty():

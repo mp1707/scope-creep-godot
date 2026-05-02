@@ -7,6 +7,7 @@ func _init() -> void:
 	_test_stack_layout_offsets_cards()
 	_test_snap_finds_near_stack()
 	_test_dragging_upper_card_requests_split()
+	_test_dragging_stack_to_stack_moves_whole_stack()
 
 	if _failed:
 		quit(1)
@@ -73,11 +74,34 @@ func _test_dragging_upper_card_requests_split() -> void:
 		split_result["position"] = position
 	)
 
-	board._on_card_drag_started(idea.instance_id, Vector2.ZERO)
-	board._on_card_drag_ended(idea.instance_id, Vector2(3000.0, 2000.0))
+	var idea_view: CardView = board.get_card_view(idea.instance_id)
+	var press_position: Vector2 = idea_view.position + Vector2(12.0, 12.0)
+	var release_position: Vector2 = Vector2(3000.0, 2000.0)
+	_send_mouse_button(board, press_position, true)
+	_send_mouse_motion(board, release_position)
+	_send_mouse_button(board, release_position, false)
 
 	_assert_equal(split_result["card_id"], idea.instance_id, "Dragging an upper stack card to empty board should request a split.")
-	_assert_equal(split_result["position"], Vector2(3000.0, 2000.0), "Split intent should keep the drop position.")
+	_assert_equal(split_result["position"], release_position - Vector2(12.0, 12.0), "Split intent should keep the dropped card top-left position.")
+
+func _test_dragging_stack_to_stack_moves_whole_stack() -> void:
+	var context: Dictionary = _create_bound_board()
+	var board: BoardView = context["board"] as BoardView
+	var controller: RunController = context["controller"] as RunController
+	var state: RunState = context["state"] as RunState
+
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var software: CardInstance = _find_card_by_definition(state, "card.product.software")
+	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
+	board.apply_events(controller.drain_events())
+
+	controller.move_card_to_stack(developer.instance_id, software.stack_id)
+	board.apply_events(controller.drain_events())
+
+	var software_stack: StackState = state.get_stack(software.stack_id)
+	_assert_true(software_stack.card_ids.has(developer.instance_id), "Dragging the base card of a stack onto another stack should move the base card.")
+	_assert_true(software_stack.card_ids.has(idea.instance_id), "Dragging the base card of a stack onto another stack should move cards above it too.")
 
 func _create_bound_board() -> Dictionary:
 	var catalog: ContentCatalog = ContentCatalog.new()
@@ -100,6 +124,18 @@ func _find_card_by_definition(state: RunState, definition_id: String) -> CardIns
 			return card
 	_assert_true(false, "Missing card with definition '%s'." % definition_id)
 	return null
+
+func _send_mouse_button(board: BoardView, board_position: Vector2, pressed: bool) -> void:
+	var event: InputEventMouseButton = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = pressed
+	event.position = board.get_global_transform_with_canvas() * board_position
+	board._unhandled_input(event)
+
+func _send_mouse_motion(board: BoardView, board_position: Vector2) -> void:
+	var event: InputEventMouseMotion = InputEventMouseMotion.new()
+	event.position = board.get_global_transform_with_canvas() * board_position
+	board._unhandled_input(event)
 
 func _assert_true(value: bool, message: String) -> void:
 	if value:

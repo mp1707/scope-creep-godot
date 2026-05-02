@@ -38,12 +38,12 @@ func _spawn_card(effect: EffectDefinition, context: EffectContext) -> void:
 	var card_definition_id: String = effect.parameters.get("card_definition_id", "") as String
 	var count: int = effect.parameters.get("count", 1) as int
 	for index: int in count:
-		context.spawn_card.call(card_definition_id, context.stack.base_position + Vector2(140.0 + float(index) * 24.0, 0.0))
+		context.spawn_card.call(card_definition_id, _get_spawn_position(context, index))
 
 func _spawn_money(effect: EffectDefinition, context: EffectContext) -> void:
 	var count: int = effect.parameters.get("count", 1) as int
 	for index: int in count:
-		context.spawn_card.call("card.resource.money", context.stack.base_position + Vector2(140.0 + float(index) * 24.0, 0.0))
+		context.spawn_card.call("card.resource.money", _get_spawn_position(context, index))
 
 func _roll_chance(effect: EffectDefinition, context: EffectContext) -> void:
 	var chance: float = _get_chance(effect, context)
@@ -53,8 +53,13 @@ func _roll_chance(effect: EffectDefinition, context: EffectContext) -> void:
 
 	var card_definition_id: String = effect.parameters.get("card_definition_id", "") as String
 	if not card_definition_id.is_empty():
-		context.spawn_card.call(card_definition_id, context.stack.base_position + Vector2(180.0, 48.0))
+		context.spawn_card.call(card_definition_id, _get_spawn_position(context, 0))
 	context.state.rng_state = context.rng.state
+
+func _get_spawn_position(context: EffectContext, spawn_index: int) -> Vector2:
+	if context.get_spawn_position.is_valid():
+		return context.get_spawn_position.call(context.stack.stack_id, spawn_index) as Vector2
+	return context.stack.base_position + Vector2(180.0 + float(spawn_index) * 180.0, 0.0)
 
 func _get_chance(effect: EffectDefinition, context: EffectContext) -> float:
 	if effect.parameters.has("chance"):

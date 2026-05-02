@@ -12,7 +12,7 @@ Der Plan ist bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, was 
 - [x] Phase 3 - Simulation-State und Commands
 - [x] Phase 4 - Recipe Engine und Effect Pipeline
 - [x] Phase 5 - Board-, Stack- und Card-Presentation
-- [ ] Phase 6 - Erste spielbare Card-Pipeline
+- [x] Phase 6 - Erste spielbare Card-Pipeline
 - [ ] Phase 7 - Sprint, Pause und Bezahlphase
 - [ ] Phase 8 - Bugs, Tech Debt und Sprintstart-Ticks
 - [ ] Phase 9 - Booster, Shop und deterministischer RNG
@@ -236,26 +236,32 @@ Ziel: Der Kernloop Idee -> Funktion -> Software -> Geld wird im Editor spielbar.
 
 Codex:
 
-- [ ] Application-Bootstrap bauen: Content laden, Run starten, BoardView verbinden.
-- [ ] Timer-Update von Simulation zu Progressbar verbinden.
-- [ ] Recipe-Abschluss fuer `Idee + Entwickler -> Funktion` sichtbar machen.
-- [ ] Recipe-Abschluss fuer `Funktion + Software -> Geld` sichtbar machen.
-- [ ] Spawn-Placement nahe Quelle implementieren, ohne Karten zu verdecken.
-- [ ] Einfache Debug-UI fuer Phase/Sprint/Run-Status nur falls noetig als Dev-Overlay.
+- [x] Application-Bootstrap bauen: Content laden, Run starten, BoardView verbinden.
+- [x] Timer-Update von Simulation zu Progressbar verbinden.
+- [x] Recipe-Abschluss fuer `Idee + Entwickler -> Funktion` sichtbar machen.
+- [x] Recipe-Abschluss fuer `Funktion + Software -> Geld` sichtbar machen.
+- [x] Spawn-Placement nahe Quelle implementieren, ohne Karten zu verdecken.
+- [x] Einfache Debug-UI fuer Phase/Sprint/Run-Status nur falls noetig als Dev-Overlay.
 
 Marco:
 
-- [ ] Im Editor Startscene als Main Scene setzen.
-- [ ] Sichtbare Kartenabmessungen, Farben und Labelgroessen im CardView abstimmen.
-- [ ] Boardgroesse und Kamera-Startposition im Editor pruefen.
-- [ ] Im Playtest auf Lesbarkeit, Drag-Gefuehl und Snap-Distanz achten.
+- [x] Im Editor Startscene als Main Scene setzen.
+- [x] Sichtbare Kartenabmessungen, Farben und Labelgroessen im CardView abstimmen.
+- [x] Boardgroesse und Kamera-Startposition im Editor pruefen.
+- [x] Im Playtest auf Lesbarkeit, Drag-Gefuehl und Snap-Distanz achten.
 
 Definition of Done:
 
-- [ ] Spieler kann Idee auf Entwickler ziehen.
-- [ ] Fortschrittsbalken laeuft.
-- [ ] Funktion spawnt an freier Position nahe dem Stack.
-- [ ] Funktion auf Software erzeugt 1-Geld-Karten.
+- [x] Spieler kann Idee auf Entwickler ziehen.
+- [x] Fortschrittsbalken laeuft.
+- [x] Funktion spawnt an freier Position nahe dem Stack.
+- [x] Funktion auf Software erzeugt 1-Geld-Karten.
+
+Headless-Test:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_phase_6.gd
+```
 
 ## Phase 7 - Sprint, Pause und Bezahlphase
 
@@ -391,12 +397,14 @@ Definition of Done:
 
 Offene Punkte waehrend der Umsetzung hier eintragen:
 
-- [ ] Projekt-Run hat noch keine Main Scene. Das ist erwartbar bis Phase 5/6 und blockiert Phase 0/1 nicht.
+- [ ]
 
 Entscheidungen waehrend der Umsetzung hier festhalten:
 
 - [x] PoC wird ohne externe Assets umgesetzt. Karten sind einfache Rechtecke/Formen mit Farben, Labels, Typ-Markern und Progressbars.
 - [x] Die Start-Mitarbeiterkarte ist `Entwickler` (`card.employee.developer`), nicht `Solo-Entwickler`. Solo ist nur der Startzustand ohne Kollegen.
+- [x] Die Main Scene ist ab Phase 6 `res://scenes/application/Main.tscn`.
+- [x] Drag/Drop folgt ab Phase 6 einem physischen Kartenmodell: zuletzt gezogene/gedroppte Karten liegen oben; neutrale Stacks bleiben organisierbar.
 
 Bekannte technische Schulden hier festhalten:
 
