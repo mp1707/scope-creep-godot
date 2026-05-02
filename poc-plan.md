@@ -11,7 +11,7 @@ Der Plan ist bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, was 
 - [x] Phase 2 - Data-Resources und Content-Validator
 - [x] Phase 3 - Simulation-State und Commands
 - [x] Phase 4 - Recipe Engine und Effect Pipeline
-- [ ] Phase 5 - Board-, Stack- und Card-Presentation
+- [x] Phase 5 - Board-, Stack- und Card-Presentation
 - [ ] Phase 6 - Erste spielbare Card-Pipeline
 - [ ] Phase 7 - Sprint, Pause und Bezahlphase
 - [ ] Phase 8 - Bugs, Tech Debt und Sprintstart-Ticks
@@ -201,28 +201,34 @@ Ziel: Der Simulation-State wird spielbar dargestellt, ohne dass Presentation Spi
 
 Codex:
 
-- [ ] CardView-Script erstellen: Definition anzeigen, Runtime-Marker anzeigen, Drag-Signale senden.
-- [ ] BoardView-Script erstellen: CardViews aus Simulation-Events erzeugen/aktualisieren.
-- [ ] StackView-/Layout-Logik erstellen: horizontal deckungsgleich, vertikal versetzt.
-- [ ] Drag-and-Drop Intent an Application/Simulation senden.
-- [ ] Magnetisches Snap oben auf Zielstack implementieren.
-- [ ] Progressbar und Aktionstext aus StackState anzeigen.
-- [ ] Kamera-Script fuer Pan/Zoom vorbereiten, soweit sinnvoll per Script.
+- [x] CardView-Script erstellen: Definition anzeigen, Runtime-Marker anzeigen, Drag-Signale senden.
+- [x] BoardView-Script erstellen: CardViews aus Simulation-Events erzeugen/aktualisieren.
+- [x] StackView-/Layout-Logik erstellen: horizontal deckungsgleich, vertikal versetzt.
+- [x] Drag-and-Drop Intent an Application/Simulation senden.
+- [x] Magnetisches Snap oben auf Zielstack implementieren.
+- [x] Progressbar und Aktionstext aus StackState anzeigen.
+- [x] Kamera-Script fuer Pan/Zoom vorbereiten, soweit sinnvoll per Script.
 
 Marco:
 
-- [ ] Main-Scene im Godot Editor anlegen oder pruefen.
-- [ ] BoardView, Camera2D, CanvasLayer/UI sauber in der Scene platzieren.
-- [ ] CardView-Scene im Editor asset-frei bauen: Rechteck/Panel als Background, Labels, Progressbar, Marker-Platzhalter.
-- [ ] Scripts im Editor an die passenden Nodes haengen, wenn Codex sie nicht sicher per bestehender Scene-Struktur setzen kann.
-- [ ] Optional Theme/Inspector fuer Farben, Randschatten, Labelgroessen und Abstaende abstimmen; keine Font-/Sprite-Abhaengigkeit fuer den PoC.
+- [x] Main-Scene im Godot Editor anlegen oder pruefen.
+- [x] BoardView, Camera2D, CanvasLayer/UI sauber in der Scene platzieren.
+- [x] CardView-Scene im Editor asset-frei bauen: Rechteck/Panel als Background, Labels, Progressbar, Marker-Platzhalter.
+- [x] Scripts im Editor an die passenden Nodes haengen, wenn Codex sie nicht sicher per bestehender Scene-Struktur setzen kann.
+- [x] Optional Theme/Inspector fuer Farben, Randschatten, Labelgroessen und Abstaende abstimmen; keine Font-/Sprite-Abhaengigkeit fuer den PoC.
 
 Definition of Done:
 
-- [ ] Startkarten erscheinen sichtbar auf dem Board.
-- [ ] Karten koennen mit Maus gezogen und gestapelt werden.
-- [ ] Stacks sehen Stacklands-artig aus.
-- [ ] Presentation mutiert keine Spielregeln direkt.
+- [x] Startkarten erscheinen sichtbar auf dem Board.
+- [x] Karten koennen mit Maus gezogen und gestapelt werden.
+- [x] Stacks sehen Stacklands-artig aus.
+- [x] Presentation mutiert keine Spielregeln direkt.
+
+Headless-Test:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_phase_5.gd
+```
 
 ## Phase 6 - Erste spielbare Card-Pipeline
 

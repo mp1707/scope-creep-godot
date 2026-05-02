@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://dnrupx5g5thqf"]
+
+[ext_resource type="Script" uid="uid://b5is11hjvcojl" path="res://scripts/presentation/board_view.gd" id="1_elqb8"]
+
+[node name="Main" type="Node" unique_id=1075243361]
+
+[node name="BoardView" type="Node2D" parent="." unique_id=1196725594]
+script = ExtResource("1_elqb8")
+metadata/_custom_type_script = "uid://b5is11hjvcojl"
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=221388809]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="Camera2D" unique_id=56301651]
