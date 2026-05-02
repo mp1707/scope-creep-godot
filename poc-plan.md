@@ -39,11 +39,19 @@ Nicht Ziel des PoC:
 
 - vollstaendiger Kartenkatalog
 - finaler Look
+- finale Card-Art, Sprites, Icons oder Audio-Assets
 - Controller-Support
 - Musik
 - externe Mods
 - komplexe Editor-Tools
 - komplette Balance
+
+Visual-Entscheidung fuer den PoC:
+
+- Karten werden asset-frei als einfache rechteckige Godot-UI-/2D-Formen dargestellt.
+- Unterscheidung erfolgt ueber Farbe, Label, Typ-Marker, Progressbar und spaeter kleine Runtime-Marker.
+- Keine externe Card-Art, Sprites oder Icon-Pipeline blockiert den Vertical Slice.
+- Visual-Felder in Resources duerfen Farben/Text-Marker enthalten, aber keine Asset-Abhaengigkeit voraussetzen.
 
 ## Phase 0 - Projektbasis und Arbeitsregeln
 
@@ -60,7 +68,7 @@ Codex:
 Marco:
 
 - [ ] Godot 4.6 Projekt einmal im Editor oeffnen und sicherstellen, dass es ohne Importfehler startet.
-- [ ] Entscheiden, ob Platzhalter-Visuals vorerst reichen oder ob frueh einfache Card-Sprites/Icons eingefuegt werden.
+- [x] Platzhalter-Visuals fuer den PoC bestaetigt: einfache Rechtecke/Formen, keine Card-Sprites/Icons.
 - [ ] Nach Codex-Aenderungen Godot-Import laufen lassen und sichtbare Editor-Fehler melden.
 
 Definition of Done:
@@ -109,7 +117,7 @@ Codex:
 Marco:
 
 - [ ] Resource-Dateien im Editor oeffnen und pruefen, ob Felder sinnvoll editierbar sind.
-- [ ] Platzhaltertexte, Farben oder einfache Icons im Inspector setzen, falls Codex dafuer Felder bereitstellt.
+- [ ] Platzhaltertexte und Farben im Inspector setzen, falls Codex dafuer Felder bereitstellt.
 - [ ] Keine Logik im Editor nachbauen; nur Resources pflegen.
 
 Definition of Done:
@@ -187,9 +195,9 @@ Marco:
 
 - [ ] Main-Scene im Godot Editor anlegen oder pruefen.
 - [ ] BoardView, Camera2D, CanvasLayer/UI sauber in der Scene platzieren.
-- [ ] CardView-Scene im Editor bauen: Labels, Background, Progressbar, Marker-Platzhalter.
+- [ ] CardView-Scene im Editor asset-frei bauen: Rechteck/Panel als Background, Labels, Progressbar, Marker-Platzhalter.
 - [ ] Scripts im Editor an die passenden Nodes haengen, wenn Codex sie nicht sicher per bestehender Scene-Struktur setzen kann.
-- [ ] Font `PatrickHand-Regular.ttf` oder andere Platzhalter-Styles im Theme/Inspector setzen.
+- [ ] Optional Theme/Inspector fuer Farben, Randschatten, Labelgroessen und Abstaende abstimmen; keine Font-/Sprite-Abhaengigkeit fuer den PoC.
 
 Definition of Done:
 
@@ -345,7 +353,7 @@ Marco:
 
 - [ ] Finaler Editor-Playtest des Vertical Slice.
 - [ ] Kartenlesbarkeit, Snap-Gefuehl, Kamera und UI-Abstaende abstimmen.
-- [ ] Platzhaltergrafiken/Sprites ersetzen, soweit fuer den Slice sinnvoll.
+- [ ] Asset-freie Platzhalterkarten auf Lesbarkeit pruefen; Ersatz durch Grafiken/Sprites ist nicht Teil des PoC.
 - [ ] Entscheiden, welche offenen Punkte in die naechste Session wandern.
 
 Definition of Done:
@@ -363,7 +371,7 @@ Offene Punkte waehrend der Umsetzung hier eintragen:
 
 Entscheidungen waehrend der Umsetzung hier festhalten:
 
-- [ ] 
+- [x] PoC wird ohne externe Assets umgesetzt. Karten sind einfache Rechtecke/Formen mit Farben, Labels, Typ-Markern und Progressbars.
 
 Bekannte technische Schulden hier festhalten:
 
