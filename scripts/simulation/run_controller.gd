@@ -37,25 +37,25 @@ func _init(content_catalog: ContentCatalog = null) -> void:
 		content = ContentCatalog.new()
 		content.load_default_content()
 
-func start_new_run(seed: int = 1) -> RunState:
+func start_new_run(run_seed: int = 1) -> RunState:
 	pending_events.clear()
 	_next_card_index = 1
 	_next_stack_index = 1
 
 	state = RunState.new()
-	state.run_id = "run_%d" % seed
+	state.run_id = "run_%d" % run_seed
 	state.sprint_index = 1
 	state.phase = ScopeEnums.RunPhase.SPRINT
 	state.is_paused = false
-	state.rng_seed = seed
-	_rng.seed = seed
+	state.rng_seed = run_seed
+	_rng.seed = run_seed
 	state.rng_state = _rng.state
 	state.content_version = "poc"
 	state.active_timers[SPRINT_TIMER_ID] = _get_sprint_duration()
 
 	for index: int in START_CARD_IDS.size():
 		var column: int = index % START_LAYOUT_COLUMNS
-		var row: int = index / START_LAYOUT_COLUMNS
+		var row: int = floori(float(index) / float(START_LAYOUT_COLUMNS))
 		var position: Vector2 = START_LAYOUT_ORIGIN + Vector2(float(column), float(row)) * START_LAYOUT_STEP
 		_spawn_card_as_new_stack(START_CARD_IDS[index], position)
 
@@ -372,7 +372,7 @@ func _run_sprint_start_effects() -> void:
 
 func _form_prod_crashes_from_bugs() -> void:
 	var bug_ids: PackedStringArray = _find_card_ids_with_tag("bug")
-	var crash_count: int = bug_ids.size() / 3
+	var crash_count: int = floori(float(bug_ids.size()) / 3.0)
 	for crash_index: int in crash_count:
 		var first_bug: CardInstance = state.get_card(bug_ids[crash_index * 3])
 		var spawn_position: Vector2 = Vector2.ZERO

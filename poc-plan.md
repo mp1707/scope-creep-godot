@@ -384,12 +384,12 @@ Ziel: Der Slice ist klein, aber als Spielrunde verstaendlich und stabil.
 
 Codex:
 
-- [ ] Fehlerlogs bereinigen.
-- [ ] Validator in einen einfachen Check-Command integrieren.
-- [ ] Headless Tests fuer alle Kernregeln laufen lassen.
-- [ ] Kleine Debug-Hilfen nur behalten, wenn sie klar als Dev-Overlay abschaltbar sind.
-- [ ] Keine PoC-Sonderpfade im Code belassen, die gegen `architecture.md` verstossen.
-- [ ] Kurze `README`-Notiz oder Abschnitt im Plan ergaenzen, wie man den Slice startet und testet.
+- [x] Fehlerlogs bereinigen.
+- [x] Validator in einen einfachen Check-Command integrieren.
+- [x] Headless Tests fuer alle Kernregeln laufen lassen.
+- [x] Kleine Debug-Hilfen nur behalten, wenn sie klar als Dev-Overlay abschaltbar sind.
+- [x] Keine PoC-Sonderpfade im Code belassen, die gegen `architecture.md` verstossen.
+- [x] Kurze `README`-Notiz oder Abschnitt im Plan ergaenzen, wie man den Slice startet und testet.
 
 Marco:
 
@@ -401,9 +401,9 @@ Marco:
 Definition of Done:
 
 - [ ] Eine kurze Runde ist von Start bis naechstem Sprint spielbar.
-- [ ] Keine bekannten Blocker in Konsole oder Validator.
-- [ ] Kernloop und negative Eskalation sind sichtbar.
-- [ ] Code folgt der Zielarchitektur statt PoC-Hacks.
+- [x] Keine bekannten Blocker in Konsole oder Validator.
+- [x] Kernloop und negative Eskalation sind sichtbar.
+- [x] Code folgt der Zielarchitektur statt PoC-Hacks.
 
 ## Laufende Notizen
 
@@ -423,6 +423,8 @@ Entscheidungen waehrend der Umsetzung hier festhalten:
 - [x] Phase 8 macht Bug, Prod-Crash und Tech Debt bereits per Entwickler bearbeitbar. Labels sind datengetrieben: `Debugging...`, `Hotfixing...`, `Aufräumen...`.
 - [x] Phase 9 modelliert den Booster-Slot als normale Karte im Start-Run. Kaufen und Oeffnen laufen ueber Recipes; nur das gewichtete Ziehen ist ein eigener `open_booster`-Effect.
 - [x] Phase 10 speichert PoC-Saves als JSON unter `user://scope_creep_poc_slot_1.json`; der 64-bit-`rng_state` wird als String gespeichert, damit JSON ihn nicht rundet.
+- [x] Phase 11 buendelt Validator und Headless-Tests in `tools/check_poc.sh`; Godot-Pfad ist ueber `GODOT_BIN` ueberschreibbar.
+- [x] Das Phase-7-HUD bleibt fuer den PoC als Dev-Overlay erhalten und ist ueber `MainApplication.show_dev_overlay` abschaltbar.
 
 Bekannte technische Schulden hier festhalten:
 

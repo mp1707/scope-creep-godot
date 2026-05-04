@@ -16,6 +16,7 @@ const HUD_BUTTON_Y_OFFSET: float = 34.0
 
 @export var board_view_path: NodePath = NodePath("BoardView")
 @export var debug_layer_path: NodePath = NodePath("Camera2D/CanvasLayer")
+@export var show_dev_overlay: bool = true
 
 var content: ContentCatalog = null
 var controller: RunController = null
@@ -48,8 +49,9 @@ func _ready() -> void:
 	_connect_board_signals()
 	_board_view.bind_run(run_state, content)
 	_apply_pending_events()
-	_create_debug_overlay()
-	_update_debug_overlay()
+	if show_dev_overlay:
+		_create_debug_overlay()
+		_update_debug_overlay()
 
 func _process(delta: float) -> void:
 	advance_run(delta)

@@ -50,9 +50,9 @@ func _test_booster_draws_are_deterministic() -> void:
 	_assert_equal(first["drawn_definitions"], second["drawn_definitions"], "Same seed should produce the same booster draw order.")
 	_assert_equal(first["rng_state"], second["rng_state"], "Same seed should leave the same RNG state after opening.")
 
-func _open_founder_booster_and_get_result(seed: int) -> Dictionary:
+func _open_founder_booster_and_get_result(run_seed: int) -> Dictionary:
 	var controller: RunController = _create_controller()
-	var state: RunState = controller.start_new_run(seed)
+	var state: RunState = controller.start_new_run(run_seed)
 	var booster_slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot")
 	var buy_money: CardInstance = _find_card_by_definition(state, "card.resource.money")
 
