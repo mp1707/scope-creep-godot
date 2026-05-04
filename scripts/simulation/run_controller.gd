@@ -8,6 +8,7 @@ const START_LAYOUT_ORIGIN: Vector2 = Vector2(600.0, 322.0)
 const START_LAYOUT_COLUMNS: int = 4
 const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
 const TechDebtModifierServiceScript: GDScript = preload("res://scripts/simulation/tech_debt_modifier_service.gd")
+const RunSaveSerializerScript: GDScript = preload("res://scripts/save/run_save_serializer.gd")
 const START_CARD_IDS: Array[String] = [
 	"card.product.software",
 	"card.employee.developer",
@@ -26,6 +27,7 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _recipe_engine: RecipeEngine = RecipeEngine.new()
 var _effect_pipeline: EffectPipeline = EffectPipeline.new()
 var _tech_debt_modifiers: RefCounted = TechDebtModifierServiceScript.new()
+var _save_serializer: RefCounted = RunSaveSerializerScript.new()
 var _next_card_index: int = 1
 var _next_stack_index: int = 1
 
@@ -65,6 +67,37 @@ func drain_events() -> Array[SimulationEvent]:
 	var events: Array[SimulationEvent] = pending_events.duplicate()
 	pending_events.clear()
 	return events
+
+func can_save_current_run() -> bool:
+	return _save_serializer.can_save_run(state)
+
+func save_current_run(path: String) -> bool:
+	_require_state()
+	return _save_serializer.save_to_file(state, path)
+
+func load_run_from_file(path: String) -> bool:
+	var loaded_state: RunState = _save_serializer.load_from_file(path, content)
+	if loaded_state == null:
+		for error: String in _save_serializer.errors:
+			push_error(error)
+		return false
+	load_run(loaded_state)
+	return true
+
+func load_run(loaded_state: RunState) -> void:
+	assert(loaded_state != null, "Loaded RunState must not be null.")
+	pending_events.clear()
+	state = loaded_state
+	_rng.seed = state.rng_seed
+	_rng.state = state.rng_state
+	_sync_next_runtime_ids()
+	_emit(SimulationEvent.phase_changed(state.phase))
+	_emit(SimulationEvent.pause_changed(state.is_paused))
+	_emit(SimulationEvent.timer_updated(SPRINT_TIMER_ID, state.active_timers.get(SPRINT_TIMER_ID, 0.0) as float))
+	_emit_all_stacks_changed()
+
+func get_save_errors() -> PackedStringArray:
+	return _save_serializer.errors.duplicate()
 
 func set_paused(paused: bool) -> void:
 	_require_state()
@@ -632,6 +665,22 @@ func _create_stack_id() -> String:
 	var id: String = "stack_%04d" % _next_stack_index
 	_next_stack_index += 1
 	return id
+
+func _sync_next_runtime_ids() -> void:
+	_next_card_index = 1
+	_next_stack_index = 1
+	for card_id: String in state.cards.keys():
+		_next_card_index = maxi(_next_card_index, _get_index_after_runtime_id(card_id, "card_"))
+	for stack_id: String in state.stacks.keys():
+		_next_stack_index = maxi(_next_stack_index, _get_index_after_runtime_id(stack_id, "stack_"))
+
+func _get_index_after_runtime_id(id: String, prefix: String) -> int:
+	if not id.begins_with(prefix):
+		return 1
+	var suffix: String = id.substr(prefix.length())
+	if not suffix.is_valid_int():
+		return 1
+	return int(suffix) + 1
 
 func _emit(event: SimulationEvent) -> void:
 	pending_events.append(event)

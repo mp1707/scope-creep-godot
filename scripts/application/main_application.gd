@@ -2,6 +2,7 @@ class_name MainApplication
 extends Node
 
 const CARD_VIEW_SCENE_PATH: String = "res://scenes/presentation/CardView.tscn"
+const DEV_SAVE_PATH: String = "user://scope_creep_poc_slot_1.json"
 const UI_BUTTON_COLOR: Color = Color(0.62, 0.82, 0.92, 1.0)
 const UI_BUTTON_HOVER_COLOR: Color = Color(0.70, 0.88, 0.96, 1.0)
 const UI_BUTTON_PRESSED_COLOR: Color = Color(0.50, 0.72, 0.84, 1.0)
@@ -25,6 +26,8 @@ var _debug_panel: Panel = null
 var _debug_label: Label = null
 var _next_sprint_button: Button = null
 var _auto_pay_button: Button = null
+var _save_button: Button = null
+var _load_button: Button = null
 
 func _ready() -> void:
 	set_process_unhandled_input(true)
@@ -109,6 +112,30 @@ func request_auto_pay() -> void:
 	_apply_pending_events()
 	_update_debug_overlay()
 
+func request_save_current_run() -> bool:
+	if controller == null:
+		return false
+	var saved: bool = controller.save_current_run(DEV_SAVE_PATH)
+	if not saved:
+		for error: String in controller.get_save_errors():
+			push_warning(error)
+	_update_debug_overlay()
+	return saved
+
+func request_load_saved_run() -> bool:
+	if controller == null:
+		return false
+	var loaded: bool = controller.load_run_from_file(DEV_SAVE_PATH)
+	if not loaded:
+		for error: String in controller.get_save_errors():
+			push_warning(error)
+		return false
+	run_state = controller.state
+	_board_view.bind_run(run_state, content)
+	_apply_pending_events()
+	_update_debug_overlay()
+	return true
+
 func get_board_view() -> BoardView:
 	return _board_view
 
@@ -144,7 +171,7 @@ func _create_debug_overlay() -> void:
 		_debug_panel = Panel.new()
 		_debug_panel.name = "DebugPanel"
 		_debug_panel.position = HUD_ORIGIN
-		_debug_panel.size = Vector2(392.0, 72.0)
+		_debug_panel.size = Vector2(584.0, 72.0)
 		_debug_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		layer.add_child(_debug_panel)
 		layer.move_child(_debug_panel, 0)
@@ -185,10 +212,35 @@ func _create_debug_overlay() -> void:
 	if not _next_sprint_button.pressed.is_connected(request_start_next_sprint):
 		_next_sprint_button.pressed.connect(request_start_next_sprint)
 
+	_save_button = layer.get_node_or_null("SaveButton") as Button
+	if _save_button == null:
+		_save_button = Button.new()
+		_save_button.name = "SaveButton"
+		_save_button.text = "Speichern"
+		_save_button.position = HUD_ORIGIN + Vector2(334.0, HUD_BUTTON_Y_OFFSET)
+		_save_button.size = Vector2(104.0, 32.0)
+		layer.add_child(_save_button)
+	_apply_button_style(_save_button)
+	if not _save_button.pressed.is_connected(request_save_current_run):
+		_save_button.pressed.connect(request_save_current_run)
+
+	_load_button = layer.get_node_or_null("LoadButton") as Button
+	if _load_button == null:
+		_load_button = Button.new()
+		_load_button.name = "LoadButton"
+		_load_button.text = "Laden"
+		_load_button.position = HUD_ORIGIN + Vector2(450.0, HUD_BUTTON_Y_OFFSET)
+		_load_button.size = Vector2(86.0, 32.0)
+		layer.add_child(_load_button)
+	_apply_button_style(_load_button)
+	if not _load_button.pressed.is_connected(request_load_saved_run):
+		_load_button.pressed.connect(request_load_saved_run)
+
 func _apply_panel_style(panel: Panel) -> void:
 	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
 func _apply_button_style(button: Button) -> void:
+	button.focus_mode = Control.FOCUS_NONE
 	button.add_theme_color_override("font_color", UI_TEXT_COLOR)
 	button.add_theme_color_override("font_hover_color", UI_TEXT_COLOR)
 	button.add_theme_color_override("font_pressed_color", UI_TEXT_COLOR)
@@ -227,6 +279,10 @@ func _update_debug_overlay() -> void:
 	if _next_sprint_button != null:
 		_next_sprint_button.visible = run_state.phase == ScopeEnums.RunPhase.PAYMENT
 		_next_sprint_button.text = "Sprint %d starten" % (run_state.sprint_index + 1)
+	if _save_button != null:
+		_save_button.disabled = not controller.can_save_current_run()
+	if _load_button != null:
+		_load_button.disabled = not FileAccess.file_exists(DEV_SAVE_PATH)
 
 func _get_phase_display_text(phase: ScopeEnums.RunPhase) -> String:
 	match phase:

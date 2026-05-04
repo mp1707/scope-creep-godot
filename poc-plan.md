@@ -16,7 +16,7 @@ Der Plan ist bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, was 
 - [x] Phase 7 - Sprint, Pause und Bezahlphase
 - [x] Phase 8 - Bugs, Tech Debt und Sprintstart-Ticks
 - [x] Phase 9 - Booster, Shop und deterministischer RNG
-- [ ] Phase 10 - Save/Load fuer frozen Runs
+- [x] Phase 10 - Save/Load fuer frozen Runs
 - [ ] Phase 11 - Vertical-Slice-Polish und QA
 
 ## Vertical-Slice-Ziel
@@ -353,24 +353,30 @@ Ziel: Der PoC kann pausierte/frozen Runs speichern und laden.
 
 Codex:
 
-- [ ] Save-Serializer fuer `RunState` implementieren.
-- [ ] Load-Deserializer mit Content-ID-Referenzen implementieren.
-- [ ] Save nur erlauben, wenn Run pausiert oder in `PAYMENT` ist.
-- [ ] Nach Load Run automatisch pausiert halten.
-- [ ] Presentation nach Load vollstaendig aus RunState neu aufbauen.
-- [ ] Tests fuer Save/Load mit Stacks, Attachments, Timer-Fortschritt und RNG-State schreiben.
+- [x] Save-Serializer fuer `RunState` implementieren.
+- [x] Load-Deserializer mit Content-ID-Referenzen implementieren.
+- [x] Save nur erlauben, wenn Run pausiert oder in `PAYMENT` ist.
+- [x] Nach Load Run automatisch pausiert halten.
+- [x] Presentation nach Load vollstaendig aus RunState neu aufbauen.
+- [x] Tests fuer Save/Load mit Stacks, Attachments, Timer-Fortschritt und RNG-State schreiben.
 
 Marco:
 
-- [ ] Slot-UI im Editor bauen oder einfache Dev-Buttons platzieren.
-- [ ] Manuell testen: pausieren, speichern, Projekt/Run neu laden, Zustand vergleichen.
-- [ ] Pruefen, ob Save-Pfade auf dem Zielsystem sinnvoll sind.
+- [x] Slot-UI im Editor bauen oder einfache Dev-Buttons platzieren.
+- [x] Manuell testen: pausieren, speichern, Projekt/Run neu laden, Zustand vergleichen.
+- [x] Pruefen, ob Save-Pfade auf dem Zielsystem sinnvoll sind.
 
 Definition of Done:
 
-- [ ] Save in laufendem, ungepaustem Sprint ist nicht erlaubt.
-- [ ] Save in Pause oder Payment funktioniert.
-- [ ] Load stellt Karten, Stacks, Timer und RNG deterministisch wieder her.
+- [x] Save in laufendem, ungepaustem Sprint ist nicht erlaubt.
+- [x] Save in Pause oder Payment funktioniert.
+- [x] Load stellt Karten, Stacks, Timer und RNG deterministisch wieder her.
+
+Headless-Test:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_phase_10.gd
+```
 
 ## Phase 11 - Vertical-Slice-Polish und QA
 
@@ -416,6 +422,7 @@ Entscheidungen waehrend der Umsetzung hier festhalten:
 - [x] Bezahlphase erlaubt ab Phase 7 weiterhin normale Kartenbewegung, damit gemischte Stacks vor manueller Bezahlung getrennt werden koennen. Processing bleibt trotzdem eingefroren.
 - [x] Phase 8 macht Bug, Prod-Crash und Tech Debt bereits per Entwickler bearbeitbar. Labels sind datengetrieben: `Debugging...`, `Hotfixing...`, `Aufräumen...`.
 - [x] Phase 9 modelliert den Booster-Slot als normale Karte im Start-Run. Kaufen und Oeffnen laufen ueber Recipes; nur das gewichtete Ziehen ist ein eigener `open_booster`-Effect.
+- [x] Phase 10 speichert PoC-Saves als JSON unter `user://scope_creep_poc_slot_1.json`; der 64-bit-`rng_state` wird als String gespeichert, damit JSON ihn nicht rundet.
 
 Bekannte technische Schulden hier festhalten:
 
