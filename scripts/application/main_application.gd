@@ -2,6 +2,16 @@ class_name MainApplication
 extends Node
 
 const CARD_VIEW_SCENE_PATH: String = "res://scenes/presentation/CardView.tscn"
+const UI_BUTTON_COLOR: Color = Color(0.62, 0.82, 0.92, 1.0)
+const UI_BUTTON_HOVER_COLOR: Color = Color(0.70, 0.88, 0.96, 1.0)
+const UI_BUTTON_PRESSED_COLOR: Color = Color(0.50, 0.72, 0.84, 1.0)
+const UI_DISABLED_COLOR: Color = Color(0.78, 0.78, 0.74, 1.0)
+const UI_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
+const UI_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
+const UI_CORNER_RADIUS: int = 8
+const UI_BORDER_WIDTH: int = 4
+const HUD_ORIGIN: Vector2 = Vector2(116.0, 116.0)
+const HUD_BUTTON_Y_OFFSET: float = 34.0
 
 @export var board_view_path: NodePath = NodePath("BoardView")
 @export var debug_layer_path: NodePath = NodePath("Camera2D/CanvasLayer")
@@ -11,6 +21,7 @@ var controller: RunController = null
 var run_state: RunState = null
 
 var _board_view: BoardView = null
+var _debug_panel: Panel = null
 var _debug_label: Label = null
 var _next_sprint_button: Button = null
 var _auto_pay_button: Button = null
@@ -128,23 +139,37 @@ func _create_debug_overlay() -> void:
 	if layer == null:
 		return
 
+	_debug_panel = layer.get_node_or_null("DebugPanel") as Panel
+	if _debug_panel == null:
+		_debug_panel = Panel.new()
+		_debug_panel.name = "DebugPanel"
+		_debug_panel.position = HUD_ORIGIN
+		_debug_panel.size = Vector2(392.0, 72.0)
+		_debug_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		layer.add_child(_debug_panel)
+		layer.move_child(_debug_panel, 0)
+	_apply_panel_style(_debug_panel)
+
 	_debug_label = layer.get_node_or_null("DebugStatusLabel") as Label
 	if _debug_label == null:
 		_debug_label = Label.new()
 		_debug_label.name = "DebugStatusLabel"
-		_debug_label.position = Vector2(24.0, 18.0)
-		_debug_label.size = Vector2(420.0, 32.0)
+		_debug_label.position = HUD_ORIGIN
+		_debug_label.size = Vector2(392.0, 28.0)
 		_debug_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		layer.add_child(_debug_label)
+	_debug_label.add_theme_color_override("font_color", UI_TEXT_COLOR)
+	_debug_label.add_theme_font_size_override("font_size", 19)
 
 	_auto_pay_button = layer.get_node_or_null("AutoPayButton") as Button
 	if _auto_pay_button == null:
 		_auto_pay_button = Button.new()
 		_auto_pay_button.name = "AutoPayButton"
 		_auto_pay_button.text = "Auto-Pay"
-		_auto_pay_button.position = Vector2(24.0, 54.0)
+		_auto_pay_button.position = HUD_ORIGIN + Vector2(0.0, HUD_BUTTON_Y_OFFSET)
 		_auto_pay_button.size = Vector2(120.0, 32.0)
 		layer.add_child(_auto_pay_button)
+	_apply_button_style(_auto_pay_button)
 	if not _auto_pay_button.pressed.is_connected(request_auto_pay):
 		_auto_pay_button.pressed.connect(request_auto_pay)
 
@@ -153,25 +178,66 @@ func _create_debug_overlay() -> void:
 		_next_sprint_button = Button.new()
 		_next_sprint_button.name = "NextSprintButton"
 		_next_sprint_button.text = "Sprint 2 starten"
-		_next_sprint_button.position = Vector2(156.0, 54.0)
+		_next_sprint_button.position = HUD_ORIGIN + Vector2(132.0, HUD_BUTTON_Y_OFFSET)
 		_next_sprint_button.size = Vector2(190.0, 32.0)
 		layer.add_child(_next_sprint_button)
+	_apply_button_style(_next_sprint_button)
 	if not _next_sprint_button.pressed.is_connected(request_start_next_sprint):
 		_next_sprint_button.pressed.connect(request_start_next_sprint)
+
+func _apply_panel_style(panel: Panel) -> void:
+	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+
+func _apply_button_style(button: Button) -> void:
+	button.add_theme_color_override("font_color", UI_TEXT_COLOR)
+	button.add_theme_color_override("font_hover_color", UI_TEXT_COLOR)
+	button.add_theme_color_override("font_pressed_color", UI_TEXT_COLOR)
+	button.add_theme_color_override("font_disabled_color", Color(0.28, 0.28, 0.26, 1.0))
+	button.add_theme_font_size_override("font_size", 16)
+	button.add_theme_stylebox_override("normal", _create_ui_style(UI_BUTTON_COLOR))
+	button.add_theme_stylebox_override("hover", _create_ui_style(UI_BUTTON_HOVER_COLOR))
+	button.add_theme_stylebox_override("pressed", _create_ui_style(UI_BUTTON_PRESSED_COLOR))
+	button.add_theme_stylebox_override("disabled", _create_ui_style(UI_DISABLED_COLOR))
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+func _create_ui_style(background_color: Color) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = background_color
+	style.border_color = UI_BORDER_COLOR
+	style.border_width_bottom = UI_BORDER_WIDTH
+	style.border_width_left = UI_BORDER_WIDTH
+	style.border_width_right = UI_BORDER_WIDTH
+	style.border_width_top = UI_BORDER_WIDTH
+	style.corner_radius_bottom_left = UI_CORNER_RADIUS
+	style.corner_radius_bottom_right = UI_CORNER_RADIUS
+	style.corner_radius_top_left = UI_CORNER_RADIUS
+	style.corner_radius_top_right = UI_CORNER_RADIUS
+	return style
 
 func _update_debug_overlay() -> void:
 	if _debug_label == null or run_state == null:
 		return
-	var phase_name: String = ScopeEnums.RunPhase.keys()[run_state.phase]
+	var phase_name: String = _get_phase_display_text(run_state.phase)
 	var sprint_remaining: float = run_state.active_timers.get(RunController.SPRINT_TIMER_ID, 0.0) as float
-	var pause_text: String = " | PAUSE" if run_state.is_paused else ""
-	_debug_label.text = "Sprint %d | %s | %.1fs%s" % [run_state.sprint_index, phase_name, sprint_remaining, pause_text]
+	var pause_text: String = " · Pause" if run_state.is_paused else ""
+	_debug_label.text = "Sprint %d · %s · %.1fs%s" % [run_state.sprint_index, phase_name, sprint_remaining, pause_text]
 	if _auto_pay_button != null:
 		_auto_pay_button.visible = run_state.phase == ScopeEnums.RunPhase.PAYMENT
 		_auto_pay_button.disabled = not _can_auto_pay()
 	if _next_sprint_button != null:
 		_next_sprint_button.visible = run_state.phase == ScopeEnums.RunPhase.PAYMENT
 		_next_sprint_button.text = "Sprint %d starten" % (run_state.sprint_index + 1)
+
+func _get_phase_display_text(phase: ScopeEnums.RunPhase) -> String:
+	match phase:
+		ScopeEnums.RunPhase.SPRINT:
+			return "Sprint"
+		ScopeEnums.RunPhase.PAYMENT:
+			return "Bezahlen"
+		ScopeEnums.RunPhase.GAME_OVER:
+			return "Game Over"
+		_:
+			return ScopeEnums.RunPhase.keys()[phase].capitalize()
 
 func _can_auto_pay() -> bool:
 	if controller == null or run_state == null:

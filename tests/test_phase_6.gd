@@ -46,8 +46,11 @@ func _test_card_view_controls_do_not_consume_mouse() -> void:
 	var board: BoardView = app.call("get_board_view") as BoardView
 	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
 	var idea_view: CardView = board.get_card_view(idea.instance_id)
+	var drag_shadow: Panel = idea_view.get_node("DragShadow") as Panel
 
-	_assert_equal(idea_view.mouse_filter, Control.MOUSE_FILTER_IGNORE, "CardView root should not consume mouse input.")
+	_assert_equal(idea_view.mouse_filter, Control.MOUSE_FILTER_PASS, "CardView root should allow tooltip hover without accepting drag input.")
+	_assert_true(drag_shadow != null, "CardView drag shadow should use a rounded Panel.")
+	_assert_true(drag_shadow.has_theme_stylebox_override("panel"), "CardView drag shadow should have a custom opaque rounded style.")
 	for child: Node in idea_view.get_children():
 		if child is Control:
 			var control: Control = child as Control
@@ -131,7 +134,7 @@ func _test_empty_board_drop_uses_free_preview_position() -> void:
 	var idea_view: CardView = board.get_card_view(idea.instance_id)
 
 	var press_position: Vector2 = idea_view.position + Vector2(22.0, 35.0)
-	var release_position: Vector2 = Vector2(812.0, 537.0)
+	var release_position: Vector2 = Vector2(1460.0, 700.0)
 	var expected_drop_position: Vector2 = release_position - Vector2(22.0, 35.0)
 	_send_mouse_button(board, press_position, true)
 	_send_mouse_motion(board, release_position)
@@ -266,14 +269,19 @@ func _test_editor_pipeline_updates_progress_and_spawns_feature() -> void:
 	var developer_view: CardView = board.get_card_view(developer.instance_id)
 	var card_progress_bar: ProgressBar = developer_view.get_node("ProgressBar") as ProgressBar
 	var stack_progress_view: Control = board.get_stack_progress_view(developer.stack_id)
-	var progress_bar: ProgressBar = stack_progress_view.get_node("ProgressBar") as ProgressBar
+	var progress_bar: FramedProgressBar = stack_progress_view.get_node("ProgressBar") as FramedProgressBar
 	var action_label: Label = stack_progress_view.get_node("ActionLabel") as Label
 	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.developer", "Developer + idea should start the feature recipe through Application.")
 	_assert_false(card_progress_bar.visible, "Processing progress should not be rendered on the card itself.")
 	_assert_true(stack_progress_view != null, "Processing progress should be visible above the stack.")
-	_assert_equal(stack_progress_view.position, stack.base_position + Vector2(0.0, -34.0), "Processing progress should sit above the stack.")
+	_assert_equal(stack_progress_view.position, stack.base_position + Vector2(0.0, -82.0), "Processing progress should sit above the stack without covering card titles.")
 	_assert_equal(progress_bar.value, 2.0, "Application ticks should update the visible progress bar.")
 	_assert_equal(action_label.text, "Funktion bauen", "Visible action text should come from the active recipe.")
+	_assert_equal(action_label.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART, "Progress label should support multi-line recipe titles.")
+	_assert_true(action_label.position.y + action_label.size.y <= progress_bar.position.y, "Progress label should stay above the framed progress bar.")
+	_assert_equal(action_label.get_theme_color("font_color"), Color(0.055, 0.052, 0.047, 1.0), "Progress label should stay readable on the whiteboard.")
+	_assert_equal(progress_bar.border_width, 5, "Progress bar frame should match the card border thickness.")
+	_assert_equal(progress_bar.border_color, Color(0.055, 0.052, 0.047, 1.0), "Progress bar frame should use the same black border as cards.")
 
 	app.call("advance_run", 6.0)
 
@@ -349,7 +357,7 @@ func _count_cards_by_definition(state: RunState, definition_id: String) -> int:
 func _stack_rect(stack: StackState) -> Rect2:
 	if stack == null:
 		return Rect2()
-	var bottom_position: Vector2 = stack.base_position + Vector2(0.0, 28.0) * float(stack.card_ids.size() - 1)
+	var bottom_position: Vector2 = stack.base_position + Vector2(0.0, 40.0) * float(stack.card_ids.size() - 1)
 	var min_position: Vector2 = Vector2(minf(stack.base_position.x, bottom_position.x), minf(stack.base_position.y, bottom_position.y))
 	var max_position: Vector2 = Vector2(maxf(stack.base_position.x + CARD_SIZE.x, bottom_position.x + CARD_SIZE.x), maxf(stack.base_position.y + CARD_SIZE.y, bottom_position.y + CARD_SIZE.y))
 	return Rect2(min_position, max_position - min_position)

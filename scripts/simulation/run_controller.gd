@@ -4,9 +4,9 @@ extends RefCounted
 const SPRINT_TIMER_ID: String = "sprint_remaining_seconds"
 const SPAWN_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
 const SPAWN_GAP: float = 36.0
-const START_LAYOUT_ORIGIN: Vector2 = Vector2(120.0, 120.0)
+const START_LAYOUT_ORIGIN: Vector2 = Vector2(600.0, 322.0)
 const START_LAYOUT_COLUMNS: int = 4
-const START_LAYOUT_STEP: Vector2 = Vector2(180.0, 240.0)
+const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
 const START_CARD_IDS: Array[String] = [
 	"card.product.software",
 	"card.employee.developer",
@@ -523,7 +523,7 @@ func _get_stack_rect(stack: StackState) -> Rect2:
 	if stack.card_ids.is_empty():
 		return Rect2(stack.base_position, SPAWN_CARD_SIZE)
 
-	var stack_offset: Vector2 = Vector2(0.0, 28.0)
+	var stack_offset: Vector2 = Vector2(0.0, 40.0)
 	if content.balance != null:
 		stack_offset = content.balance.stack_offset
 	var bottom_position: Vector2 = stack.base_position + stack_offset * float(stack.card_ids.size() - 1)

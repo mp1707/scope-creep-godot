@@ -5,9 +5,10 @@
 
 [sub_resource type="Resource" id="Resource_oityl"]
 script = ExtResource("2_2v8g7")
-background_color = Color(0.22, 0.26, 0.2, 1)
-accent_color = Color(0.6, 0.82, 0.42, 1)
-marker_text = "DEV"
+background_color = Color(0.64, 0.82, 0.58, 1)
+accent_color = Color(0.25, 0.48, 0.25, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+marker_text = ""
 
 [resource]
 script = ExtResource("1_x8mrd")

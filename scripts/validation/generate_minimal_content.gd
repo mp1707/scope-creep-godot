@@ -16,9 +16,8 @@ func _save_cards() -> int:
 		ScopeEnums.CardType.PRODUCT,
 		PackedStringArray(["software", "product"]),
 		"Produktbasis",
-		Color(0.18, 0.24, 0.31),
-		Color(0.40, 0.74, 0.90),
-		"SW"
+		Color(0.62, 0.82, 0.92),
+		Color(0.16, 0.42, 0.58)
 	), "res://data/cards/software.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.employee.developer",
@@ -26,9 +25,8 @@ func _save_cards() -> int:
 		ScopeEnums.CardType.EMPLOYEE,
 		PackedStringArray(["employee", "developer"]),
 		"Baut Features",
-		Color(0.22, 0.26, 0.20),
-		Color(0.60, 0.82, 0.42),
-		"DEV"
+		Color(0.64, 0.82, 0.58),
+		Color(0.25, 0.48, 0.25)
 	), "res://data/cards/developer.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.input.idea",
@@ -36,9 +34,8 @@ func _save_cards() -> int:
 		ScopeEnums.CardType.INPUT,
 		PackedStringArray(["idea", "input"]),
 		"Kann umgesetzt werden",
-		Color(0.28, 0.25, 0.18),
-		Color(0.90, 0.72, 0.36),
-		"IDEA"
+		Color(0.98, 0.82, 0.42),
+		Color(0.62, 0.42, 0.08)
 	), "res://data/cards/idea.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.output.feature",
@@ -46,9 +43,8 @@ func _save_cards() -> int:
 		ScopeEnums.CardType.OUTPUT,
 		PackedStringArray(["feature", "output"]),
 		"Erzeugt Wert in Software",
-		Color(0.19, 0.23, 0.30),
-		Color(0.53, 0.66, 0.98),
-		"FEAT"
+		Color(0.70, 0.78, 0.96),
+		Color(0.22, 0.36, 0.68)
 	), "res://data/cards/feature.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.resource.money",
@@ -56,9 +52,8 @@ func _save_cards() -> int:
 		ScopeEnums.CardType.RESOURCE,
 		PackedStringArray(["money", "resource"]),
 		"Immer genau 1 Geld",
-		Color(0.18, 0.29, 0.23),
-		Color(0.50, 0.86, 0.58),
-		"1"
+		Color(0.62, 0.88, 0.66),
+		Color(0.17, 0.48, 0.24)
 	), "res://data/cards/money.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.problem.bug",
@@ -66,9 +61,8 @@ func _save_cards() -> int:
 		ScopeEnums.CardType.PROBLEM,
 		PackedStringArray(["problem", "bug"]),
 		"Eskalation am Sprintstart",
-		Color(0.32, 0.18, 0.20),
-		Color(0.92, 0.38, 0.42),
-		"BUG"
+		Color(0.94, 0.52, 0.55),
+		Color(0.55, 0.12, 0.17)
 	), "res://data/cards/bug.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.consumable.coffee",
@@ -76,9 +70,8 @@ func _save_cards() -> int:
 		ScopeEnums.CardType.CONSUMABLE,
 		PackedStringArray(["coffee", "consumable"]),
 		"Beschleunigt ein Arbeits-Recipe",
-		Color(0.25, 0.21, 0.18),
-		Color(0.79, 0.58, 0.36),
-		"CAF"
+		Color(0.92, 0.68, 0.52),
+		Color(0.50, 0.25, 0.12)
 	), "res://data/cards/coffee.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.resource.booster_pack",
@@ -86,9 +79,8 @@ func _save_cards() -> int:
 		ScopeEnums.CardType.RESOURCE,
 		PackedStringArray(["booster", "pack"]),
 		"Oeffnet neue Karten",
-		Color(0.25, 0.20, 0.31),
-		Color(0.75, 0.52, 0.95),
-		"PACK"
+		Color(0.78, 0.67, 0.90),
+		Color(0.36, 0.28, 0.48)
 	), "res://data/cards/booster_pack.tres"))
 	return exit_code
 
@@ -169,7 +161,7 @@ func _save_balance() -> int:
 	balance.release_duration_seconds = 6.0
 	balance.bug_chance = 0.25
 	balance.board_snap_distance = 96.0
-	balance.stack_offset = Vector2(0.0, 28.0)
+	balance.stack_offset = Vector2(0.0, 40.0)
 	balance.spawn_placement_radius = 160.0
 	return _save_resource(balance, "res://data/balance/poc_default.tres")
 
@@ -180,13 +172,13 @@ func _create_card(
 	tags: PackedStringArray,
 	short_text: String,
 	background_color: Color,
-	accent_color: Color,
-	marker_text: String
+	accent_color: Color
 ) -> CardDefinition:
 	var visual: CardVisualDefinition = CardVisualDefinition.new()
 	visual.background_color = background_color
 	visual.accent_color = accent_color
-	visual.marker_text = marker_text
+	visual.text_color = Color(0.06, 0.055, 0.05)
+	visual.marker_text = ""
 
 	var card: CardDefinition = CardDefinition.new()
 	card.id = id

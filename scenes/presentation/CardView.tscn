@@ -14,7 +14,12 @@ progress_bar_path = NodePath("ProgressBar")
 action_label_path = NodePath("ActionLabel")
 metadata/_custom_type_script = "uid://btde6a6hcp0h4"
 
-[node name="Background" type="ColorRect" parent="." unique_id=435676595]
+[node name="Background" type="Panel" parent="." unique_id=435676595]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HeaderBand" type="Panel" parent="." unique_id=725238716]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0

@@ -13,6 +13,7 @@ func _run() -> void:
 	_test_auto_pay_fails_without_money()
 	_test_application_auto_pay_without_money_does_not_prevent_quit()
 	_test_application_second_auto_pay_without_money_does_not_prevent_quit()
+	_test_application_overlay_uses_readable_theme()
 	_test_auto_pay_button_is_disabled_without_money()
 	_test_auto_pay_fails_when_no_employee_needs_payment()
 	_test_start_next_sprint_resets_timer_and_keeps_paid_employee()
@@ -179,6 +180,19 @@ func _test_auto_pay_button_is_disabled_without_money() -> void:
 	auto_pay_button.pressed.emit()
 	_assert_false(state.paid_employee_ids.has(developer.instance_id), "Disabled auto-pay button path must not mark developer paid.")
 	_assert_false(developer.state.is_paid, "Disabled auto-pay button path must not set paid marker.")
+	app.queue_free()
+
+func _test_application_overlay_uses_readable_theme() -> void:
+	var app: Node = _create_app()
+	var debug_panel: Panel = app.get_node("Camera2D/CanvasLayer/DebugPanel") as Panel
+	var debug_label: Label = app.get_node("Camera2D/CanvasLayer/DebugStatusLabel") as Label
+	var auto_pay_button: Button = app.get_node("Camera2D/CanvasLayer/AutoPayButton") as Button
+
+	_assert_true(debug_panel != null, "Application HUD should keep a stable layout anchor.")
+	_assert_equal(debug_panel.position, Vector2(116.0, 116.0), "Application HUD should be placed inside the whiteboard area.")
+	_assert_equal(debug_label.get_theme_color("font_color"), Color(0.055, 0.052, 0.047, 1.0), "Debug overlay text should be dark on the offwhite board.")
+	_assert_true(debug_panel.get_theme_stylebox("panel") is StyleBoxEmpty, "Application HUD should not draw a separate floating panel frame.")
+	_assert_true(auto_pay_button.has_theme_stylebox_override("normal"), "Overlay buttons should use the game UI style.")
 	app.queue_free()
 
 func _test_auto_pay_fails_when_no_employee_needs_payment() -> void:

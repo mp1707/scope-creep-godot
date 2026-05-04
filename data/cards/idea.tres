@@ -5,9 +5,10 @@
 
 [sub_resource type="Resource" id="Resource_gmgh4"]
 script = ExtResource("2_xtgol")
-background_color = Color(0.28, 0.25, 0.18, 1)
-accent_color = Color(0.9, 0.72, 0.36, 1)
-marker_text = "IDEA"
+background_color = Color(0.98, 0.82, 0.42, 1)
+accent_color = Color(0.62, 0.42, 0.08, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+marker_text = ""
 
 [resource]
 script = ExtResource("1_t1tnw")

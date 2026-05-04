@@ -4,6 +4,7 @@ var _failed: bool = false
 
 func _init() -> void:
 	_test_board_builds_card_views()
+	_test_cards_show_name_and_tooltip_only()
 	_test_stack_layout_offsets_cards()
 	_test_snap_finds_near_stack()
 	_test_dragging_upper_card_requests_split()
@@ -24,6 +25,24 @@ func _test_board_builds_card_views() -> void:
 	_assert_equal(board.get_child_count(), state.cards.size(), "BoardView should create one CardView per card.")
 	for card_id: String in state.cards.keys():
 		_assert_true(board.get_card_view(card_id) != null, "BoardView should expose created CardView.")
+
+func _test_cards_show_name_and_tooltip_only() -> void:
+	var context: Dictionary = _create_bound_board()
+	var board: BoardView = context["board"] as BoardView
+	var state: RunState = context["state"] as RunState
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var developer_view: CardView = board.get_card_view(developer.instance_id)
+	var title_label: Label = developer_view.get_node("TitleLabel") as Label
+	var header_band: Control = developer_view.get_node("HeaderBand") as Control
+	var short_text_label: Label = developer_view.get_node("ShortTextLabel") as Label
+	var marker_label: Label = developer_view.get_node("MarkerLabel") as Label
+
+	_assert_equal(title_label.text, "Entwickler", "Card face should show the display name.")
+	_assert_true(header_band != null, "Card face should include a visible title band.")
+	_assert_true(title_label.position.y + title_label.size.y <= board.stack_offset.y, "Card title should fit inside the visible stacked header area.")
+	_assert_equal(short_text_label.visible, false, "Card face should not show explanatory text.")
+	_assert_equal(marker_label.visible, false, "Card face should not show type abbreviations.")
+	_assert_equal(developer_view.tooltip_text, "Baut Features", "Card tooltip should carry the explanation text.")
 
 func _test_stack_layout_offsets_cards() -> void:
 	var context: Dictionary = _create_bound_board()

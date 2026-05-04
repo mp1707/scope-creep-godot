@@ -2,6 +2,12 @@ class_name CardView
 extends Control
 
 const DEFAULT_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
+const CARD_CORNER_RADIUS: int = 8
+const CARD_BORDER_WIDTH: int = 5
+const HEADER_HEIGHT: float = 34.0
+const CARD_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
+const DRAG_SHADOW_COLOR: Color = Color(0.18, 0.17, 0.15, 1.0)
+const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
 
 @export var background_path: NodePath
 @export var title_label_path: NodePath
@@ -13,20 +19,22 @@ const DEFAULT_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
 var card_id: String = ""
 var stack_id: String = ""
 
-var _shadow: ColorRect = null
+var _shadow: Control = null
 var _background: Control = null
+var _header_band: Control = null
 var _title_label: Label = null
 var _short_text_label: Label = null
 var _marker_label: Label = null
 var _progress_bar: ProgressBar = null
 var _action_label: Label = null
 var _default_marker_text: String = ""
+var _card_font: FontFile = null
 
 func _ready() -> void:
 	_set_top_left_layout(self)
 	custom_minimum_size = DEFAULT_CARD_SIZE
 	size = DEFAULT_CARD_SIZE
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mouse_filter = Control.MOUSE_FILTER_PASS
 	_resolve_or_create_nodes()
 
 func setup(card: CardInstance, definition: CardDefinition, stack: StackState) -> void:
@@ -56,6 +64,8 @@ func set_elevated(elevated: bool) -> void:
 func _resolve_or_create_nodes() -> void:
 	if _background == null:
 		_background = get_node_or_null(background_path) as Control
+	if _header_band == null:
+		_header_band = get_node_or_null("HeaderBand") as Control
 	if _title_label == null:
 		_title_label = get_node_or_null(title_label_path) as Label
 	if _short_text_label == null:
@@ -68,26 +78,33 @@ func _resolve_or_create_nodes() -> void:
 		_action_label = get_node_or_null(action_label_path) as Label
 
 	if _shadow == null:
-		_shadow = get_node_or_null("DragShadow") as ColorRect
+		_shadow = get_node_or_null("DragShadow") as Control
 	if _shadow == null:
-		_shadow = ColorRect.new()
+		_shadow = Panel.new()
 		_shadow.name = "DragShadow"
-		_shadow.color = Color(0.0, 0.0, 0.0, 0.28)
 		_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_shadow.visible = false
 		add_child(_shadow)
 		move_child(_shadow, 0)
 
 	if _background == null:
-		_background = ColorRect.new()
+		_background = Panel.new()
 		_background.name = "Background"
 		_background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(_background)
 		move_child(_background, 0)
 
+	if _header_band == null:
+		_header_band = Panel.new()
+		_header_band.name = "HeaderBand"
+		_header_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_header_band)
+
+	if _card_font == null:
+		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
 	if _title_label == null:
-		_title_label = _create_label("TitleLabel", Vector2(12.0, 10.0), Vector2(120.0, 26.0), HORIZONTAL_ALIGNMENT_LEFT)
+		_title_label = _create_label("TitleLabel", Vector2(9.0, 3.0), Vector2(126.0, 25.0), HORIZONTAL_ALIGNMENT_CENTER)
 	if _marker_label == null:
 		_marker_label = _create_label("MarkerLabel", Vector2(98.0, 42.0), Vector2(34.0, 24.0), HORIZONTAL_ALIGNMENT_CENTER)
 	if _short_text_label == null:
@@ -105,6 +122,7 @@ func _resolve_or_create_nodes() -> void:
 		_action_label = _create_label("ActionLabel", Vector2(12.0, 164.0), Vector2(120.0, 20.0), HORIZONTAL_ALIGNMENT_CENTER)
 	move_child(_shadow, 0)
 	move_child(_background, 1)
+	move_child(_header_band, 2)
 	_apply_default_layout()
 
 func _create_label(node_name: String, label_position: Vector2, label_size: Vector2, alignment: HorizontalAlignment) -> Label:
@@ -121,30 +139,44 @@ func _create_label(node_name: String, label_position: Vector2, label_size: Vecto
 
 func _apply_default_layout() -> void:
 	_set_top_left_layout(self)
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mouse_filter = Control.MOUSE_FILTER_PASS
 	custom_minimum_size = DEFAULT_CARD_SIZE
 	size = DEFAULT_CARD_SIZE
 	_set_top_left_layout(_shadow)
 	_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_shadow.position = Vector2(8.0, 10.0)
 	_shadow.size = DEFAULT_CARD_SIZE
+	_apply_shadow_style()
 	_set_top_left_layout(_background)
 	_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_background.position = Vector2.ZERO
 	_background.size = DEFAULT_CARD_SIZE
+	_set_top_left_layout(_header_band)
+	_header_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_header_band.position = Vector2(CARD_BORDER_WIDTH, CARD_BORDER_WIDTH)
+	_header_band.size = Vector2(DEFAULT_CARD_SIZE.x - float(CARD_BORDER_WIDTH * 2), HEADER_HEIGHT)
 	_set_top_left_layout(_title_label)
 	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_title_label.position = Vector2(12.0, 10.0)
-	_title_label.size = Vector2(120.0, 26.0)
+	_title_label.position = Vector2(9.0, 3.0)
+	_title_label.size = Vector2(126.0, 25.0)
+	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_title_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_title_label.clip_text = true
+	if _card_font != null:
+		_title_label.add_theme_font_override("font", _card_font)
+	_title_label.add_theme_font_size_override("font_size", 22)
 	_set_top_left_layout(_marker_label)
 	_marker_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_marker_label.position = Vector2(98.0, 42.0)
 	_marker_label.size = Vector2(34.0, 24.0)
+	_marker_label.visible = false
 	_set_top_left_layout(_short_text_label)
 	_short_text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_short_text_label.position = Vector2(12.0, 74.0)
 	_short_text_label.size = Vector2(120.0, 62.0)
 	_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_short_text_label.visible = false
 	_set_top_left_layout(_progress_bar)
 	_progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_progress_bar.position = Vector2(12.0, 148.0)
@@ -162,7 +194,8 @@ func _set_top_left_layout(control: Control) -> void:
 
 func _apply_definition(definition: CardDefinition) -> void:
 	_title_label.text = definition.display_name
-	_short_text_label.text = definition.short_text
+	_short_text_label.text = ""
+	tooltip_text = definition.tooltip_text if not definition.tooltip_text.is_empty() else definition.short_text
 
 	var visual: CardVisualDefinition = definition.visual
 	if visual == null:
@@ -178,12 +211,45 @@ func _apply_definition(definition: CardDefinition) -> void:
 	else:
 		var style_box: StyleBoxFlat = StyleBoxFlat.new()
 		style_box.bg_color = visual.background_color
-		style_box.border_color = visual.accent_color
-		style_box.border_width_bottom = 2
-		style_box.border_width_left = 2
-		style_box.border_width_right = 2
-		style_box.border_width_top = 2
+		style_box.border_color = CARD_BORDER_COLOR
+		style_box.border_width_bottom = CARD_BORDER_WIDTH
+		style_box.border_width_left = CARD_BORDER_WIDTH
+		style_box.border_width_right = CARD_BORDER_WIDTH
+		style_box.border_width_top = CARD_BORDER_WIDTH
+		style_box.corner_radius_bottom_left = CARD_CORNER_RADIUS
+		style_box.corner_radius_bottom_right = CARD_CORNER_RADIUS
+		style_box.corner_radius_top_left = CARD_CORNER_RADIUS
+		style_box.corner_radius_top_right = CARD_CORNER_RADIUS
 		_background.add_theme_stylebox_override("panel", style_box)
+	_apply_header_style(visual)
+
+func _apply_header_style(visual: CardVisualDefinition) -> void:
+	if _header_band == null:
+		return
+	if _header_band is ColorRect:
+		(_header_band as ColorRect).color = visual.accent_color.lightened(0.35)
+		return
+	var header_style: StyleBoxFlat = StyleBoxFlat.new()
+	header_style.bg_color = visual.accent_color.lightened(0.35)
+	header_style.border_color = CARD_BORDER_COLOR
+	header_style.border_width_bottom = CARD_BORDER_WIDTH
+	header_style.corner_radius_top_left = maxi(CARD_CORNER_RADIUS - 3, 0)
+	header_style.corner_radius_top_right = maxi(CARD_CORNER_RADIUS - 3, 0)
+	_header_band.add_theme_stylebox_override("panel", header_style)
+
+func _apply_shadow_style() -> void:
+	if _shadow == null:
+		return
+	if _shadow is ColorRect:
+		(_shadow as ColorRect).color = DRAG_SHADOW_COLOR
+		return
+	var shadow_style: StyleBoxFlat = StyleBoxFlat.new()
+	shadow_style.bg_color = DRAG_SHADOW_COLOR
+	shadow_style.corner_radius_bottom_left = CARD_CORNER_RADIUS
+	shadow_style.corner_radius_bottom_right = CARD_CORNER_RADIUS
+	shadow_style.corner_radius_top_left = CARD_CORNER_RADIUS
+	shadow_style.corner_radius_top_right = CARD_CORNER_RADIUS
+	_shadow.add_theme_stylebox_override("panel", shadow_style)
 
 func _update_progress(_stack: StackState) -> void:
 	_progress_bar.visible = false

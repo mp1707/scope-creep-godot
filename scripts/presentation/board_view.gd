@@ -5,6 +5,25 @@ const DRAG_LAYER_Z: int = 4090
 const STACK_Z_STEP: int = 8
 const STACK_PROGRESS_Z_OFFSET: int = 4
 const MAX_STACK_LAYER: int = 360
+const BOARD_RECT: Rect2 = Rect2(Vector2(72.0, 96.0), Vector2(1776.0, 888.0))
+const BOARD_OUTER_RECT: Rect2 = Rect2(Vector2(56.0, 80.0), Vector2(1808.0, 920.0))
+const BOARD_BACKGROUND_COLOR: Color = Color(0.955, 0.948, 0.918, 1.0)
+const BOARD_OUTER_COLOR: Color = Color(0.99, 0.985, 0.955, 1.0)
+const BOARD_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
+const BOARD_GRID_COLOR: Color = Color(0.58, 0.64, 0.62, 0.12)
+const BOARD_NOTE_COLOR: Color = Color(0.38, 0.52, 0.58, 0.16)
+const BOARD_CORNER_RADIUS: int = 22
+const BOARD_BORDER_WIDTH: int = 7
+const PROGRESS_OFFSET: Vector2 = Vector2(0.0, -82.0)
+const PROGRESS_CONTAINER_SIZE: Vector2 = Vector2(144.0, 72.0)
+const PROGRESS_LABEL_SIZE: Vector2 = Vector2(144.0, 42.0)
+const PROGRESS_BAR_POSITION: Vector2 = Vector2(0.0, 46.0)
+const PROGRESS_BAR_SIZE: Vector2 = Vector2(144.0, 24.0)
+const PROGRESS_BORDER_WIDTH: int = 5
+const PROGRESS_CORNER_RADIUS: int = 7
+const PROGRESS_BACKGROUND_COLOR: Color = Color(0.99, 0.985, 0.955, 1.0)
+const PROGRESS_FILL_COLOR: Color = Color(0.56, 0.78, 0.90, 1.0)
+const PROGRESS_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
 
 signal move_stack_requested(stack_id: String, position: Vector2)
 signal move_card_to_stack_requested(card_id: String, target_stack_id: String)
@@ -12,7 +31,7 @@ signal split_stack_requested(card_id: String, position: Vector2)
 
 @export var card_view_scene: PackedScene
 @export var card_size: Vector2 = Vector2(144.0, 196.0)
-@export var stack_offset: Vector2 = Vector2(0.0, 28.0)
+@export var stack_offset: Vector2 = Vector2(0.0, 40.0)
 @export var snap_distance: float = 96.0
 
 var state: RunState = null
@@ -32,6 +51,42 @@ var _drag_pointer_offset: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	set_process_unhandled_input(true)
+	queue_redraw()
+
+func _draw() -> void:
+	var outer_style: StyleBoxFlat = StyleBoxFlat.new()
+	outer_style.bg_color = BOARD_OUTER_COLOR
+	outer_style.border_color = BOARD_OUTER_COLOR
+	outer_style.corner_radius_bottom_left = BOARD_CORNER_RADIUS + 8
+	outer_style.corner_radius_bottom_right = BOARD_CORNER_RADIUS + 8
+	outer_style.corner_radius_top_left = BOARD_CORNER_RADIUS + 8
+	outer_style.corner_radius_top_right = BOARD_CORNER_RADIUS + 8
+	draw_style_box(outer_style, BOARD_OUTER_RECT)
+
+	var board_style: StyleBoxFlat = StyleBoxFlat.new()
+	board_style.bg_color = BOARD_BACKGROUND_COLOR
+	board_style.border_color = BOARD_BORDER_COLOR
+	board_style.border_width_bottom = BOARD_BORDER_WIDTH
+	board_style.border_width_left = BOARD_BORDER_WIDTH
+	board_style.border_width_right = BOARD_BORDER_WIDTH
+	board_style.border_width_top = BOARD_BORDER_WIDTH
+	board_style.corner_radius_bottom_left = BOARD_CORNER_RADIUS
+	board_style.corner_radius_bottom_right = BOARD_CORNER_RADIUS
+	board_style.corner_radius_top_left = BOARD_CORNER_RADIUS
+	board_style.corner_radius_top_right = BOARD_CORNER_RADIUS
+	draw_style_box(board_style, BOARD_RECT)
+
+	for x_index: int in range(int(BOARD_RECT.position.x) + 96, int(BOARD_RECT.end.x), 160):
+		var x: float = float(x_index)
+		draw_line(Vector2(x, BOARD_RECT.position.y + 16.0), Vector2(x, BOARD_RECT.end.y - 16.0), BOARD_GRID_COLOR, 1.0)
+	for y_index: int in range(int(BOARD_RECT.position.y) + 96, int(BOARD_RECT.end.y), 160):
+		var y: float = float(y_index)
+		draw_line(Vector2(BOARD_RECT.position.x + 16.0, y), Vector2(BOARD_RECT.end.x - 16.0, y), BOARD_GRID_COLOR, 1.0)
+
+	draw_arc(Vector2(350.0, 845.0), 34.0, 0.15, 2.8, 16, BOARD_NOTE_COLOR, 2.0)
+	draw_arc(Vector2(1510.0, 795.0), 42.0, 3.5, 5.9, 16, BOARD_NOTE_COLOR, 2.0)
+	draw_line(Vector2(1440.0, 190.0), Vector2(1502.0, 190.0), BOARD_NOTE_COLOR, 2.0)
+	draw_line(Vector2(1440.0, 214.0), Vector2(1536.0, 214.0), BOARD_NOTE_COLOR, 2.0)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -336,11 +391,11 @@ func _update_stack_progress_view(stack: StackState) -> void:
 	if _drag_start_stack_id == stack.stack_id and not _drag_preview_card_ids.is_empty():
 		container.z_index = _drag_preview_card_ids.size() + STACK_PROGRESS_Z_OFFSET
 	else:
-		container.position = stack.base_position + Vector2(0.0, -34.0)
+		container.position = stack.base_position + PROGRESS_OFFSET
 		container.z_index = _get_stack_base_z(stack.stack_id) + STACK_PROGRESS_Z_OFFSET
 
 	var label: Label = container.get_node("ActionLabel") as Label
-	var progress_bar: ProgressBar = container.get_node("ProgressBar") as ProgressBar
+	var progress_bar: FramedProgressBar = container.get_node("ProgressBar") as FramedProgressBar
 	label.text = _get_stack_action_text(stack)
 	progress_bar.max_value = processing.duration
 	progress_bar.value = processing.elapsed
@@ -349,7 +404,7 @@ func _update_drag_progress_preview(preview_base_position: Vector2) -> void:
 	var progress_view: Control = get_stack_progress_view(_drag_start_stack_id)
 	if progress_view == null:
 		return
-	progress_view.position = preview_base_position + Vector2(0.0, -34.0)
+	progress_view.position = preview_base_position + PROGRESS_OFFSET
 	progress_view.z_index = _drag_preview_card_ids.size() + STACK_PROGRESS_Z_OFFSET
 
 func _ensure_stack_progress_view(stack_id: String) -> Control:
@@ -358,26 +413,33 @@ func _ensure_stack_progress_view(stack_id: String) -> Control:
 
 	var container: Control = Control.new()
 	container.name = "StackProgress_%s" % stack_id
-	container.size = Vector2(card_size.x, 28.0)
+	container.size = PROGRESS_CONTAINER_SIZE
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	container.z_index = 2000
 
 	var label: Label = Label.new()
 	label.name = "ActionLabel"
 	label.position = Vector2(0.0, 0.0)
-	label.size = Vector2(card_size.x, 14.0)
+	label.size = PROGRESS_LABEL_SIZE
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.clip_text = true
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_color_override("font_color", PROGRESS_TEXT_COLOR)
+	label.add_theme_font_size_override("font_size", 16)
 	container.add_child(label)
 
-	var progress_bar: ProgressBar = ProgressBar.new()
+	var progress_bar: FramedProgressBar = FramedProgressBar.new()
 	progress_bar.name = "ProgressBar"
-	progress_bar.position = Vector2(0.0, 16.0)
-	progress_bar.size = Vector2(card_size.x, 10.0)
-	progress_bar.show_percentage = false
+	progress_bar.position = PROGRESS_BAR_POSITION
+	progress_bar.size = PROGRESS_BAR_SIZE
 	progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	progress_bar.background_color = PROGRESS_BACKGROUND_COLOR
+	progress_bar.fill_color = PROGRESS_FILL_COLOR
+	progress_bar.border_color = BOARD_BORDER_COLOR
+	progress_bar.border_width = PROGRESS_BORDER_WIDTH
+	progress_bar.corner_radius = PROGRESS_CORNER_RADIUS
 	container.add_child(progress_bar)
 
 	add_child(container)

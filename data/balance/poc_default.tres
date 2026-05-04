@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="BalanceDefinition" format=3]
+[gd_resource type="Resource" script_class="BalanceDefinition" format=3 uid="uid://ds0jkmvqxtgix"]
 
-[ext_resource type="Script" path="res://scripts/data/balance_definition.gd" id="1_0xr8k"]
+[ext_resource type="Script" uid="uid://p7f1n0y0ko8b" path="res://scripts/data/balance_definition.gd" id="1_0xr8k"]
 
 [resource]
 script = ExtResource("1_0xr8k")
 id = "balance.poc.default"
 release_duration_seconds = 6.0
+stack_offset = Vector2(0, 33)

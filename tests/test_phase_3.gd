@@ -24,8 +24,8 @@ func _test_start_run() -> void:
 	_assert_equal(_count_cards_by_definition(state, "card.employee.developer"), 1, "Start run should create one developer.")
 	_assert_true(state.rng_seed == 123 and state.rng_state != 0, "Start run should prepare deterministic RNG state.")
 	for stack: StackState in state.stacks.values():
-		_assert_true(stack.base_position.x >= 0.0 and stack.base_position.x <= 760.0, "Start stack should fit into the initial horizontal viewport area.")
-		_assert_true(stack.base_position.y >= 0.0 and stack.base_position.y <= 420.0, "Start stack should fit into the initial vertical viewport area.")
+		_assert_true(stack.base_position.x >= 560.0 and stack.base_position.x <= 1220.0, "Start stack should spawn in the central horizontal board area.")
+		_assert_true(stack.base_position.y >= 300.0 and stack.base_position.y <= 620.0, "Start stack should spawn in the central vertical board area.")
 
 	var events: Array[SimulationEvent] = controller.drain_events()
 	_assert_true(_has_event(events, ScopeEnums.SimulationEventType.CARD_SPAWNED), "Start run should emit CardSpawned.")
