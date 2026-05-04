@@ -7,6 +7,7 @@ const SPAWN_GAP: float = 36.0
 const START_LAYOUT_ORIGIN: Vector2 = Vector2(600.0, 322.0)
 const START_LAYOUT_COLUMNS: int = 4
 const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
+const TechDebtModifierServiceScript: GDScript = preload("res://scripts/simulation/tech_debt_modifier_service.gd")
 const START_CARD_IDS: Array[String] = [
 	"card.product.software",
 	"card.employee.developer",
@@ -23,6 +24,7 @@ var pending_events: Array[SimulationEvent] = []
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _recipe_engine: RecipeEngine = RecipeEngine.new()
 var _effect_pipeline: EffectPipeline = EffectPipeline.new()
+var _tech_debt_modifiers: RefCounted = TechDebtModifierServiceScript.new()
 var _next_card_index: int = 1
 var _next_stack_index: int = 1
 
@@ -213,6 +215,7 @@ func start_next_sprint() -> void:
 		return
 
 	state.sprint_index += 1
+	_run_sprint_start_effects()
 	state.phase = ScopeEnums.RunPhase.SPRINT
 	state.is_paused = false
 	state.paid_employee_ids = PackedStringArray()
@@ -278,14 +281,14 @@ func _can_interact_with_board() -> bool:
 func _find_unpaid_employee_in_stack(stack: StackState) -> String:
 	for card_id: String in stack.card_ids:
 		var card: CardInstance = state.get_card(card_id)
-		if card != null and _is_employee_card(card) and not state.paid_employee_ids.has(card.instance_id):
+		if card != null and _requires_salary(card) and not state.paid_employee_ids.has(card.instance_id):
 			return card.instance_id
 	return ""
 
 func _get_unpaid_employee_ids() -> PackedStringArray:
 	var employee_ids: PackedStringArray = PackedStringArray()
 	for card: CardInstance in state.cards.values():
-		if _is_employee_card(card) and not state.paid_employee_ids.has(card.instance_id):
+		if _requires_salary(card) and not state.paid_employee_ids.has(card.instance_id):
 			employee_ids.append(card.instance_id)
 	return employee_ids
 
@@ -326,6 +329,65 @@ func _quit_unpaid_employees() -> void:
 			_cancel_processing(stack)
 		_remove_card_instance(employee_id)
 
+func _run_sprint_start_effects() -> void:
+	_form_prod_crashes_from_bugs()
+	_duplicate_remaining_bugs()
+	_expire_open_orders()
+	_expire_unused_external_devs()
+	_spawn_persistent_tick_cards()
+
+func _form_prod_crashes_from_bugs() -> void:
+	var bug_ids: PackedStringArray = _find_card_ids_with_tag("bug")
+	var crash_count: int = bug_ids.size() / 3
+	for crash_index: int in crash_count:
+		var first_bug: CardInstance = state.get_card(bug_ids[crash_index * 3])
+		var spawn_position: Vector2 = Vector2.ZERO
+		if first_bug != null:
+			spawn_position = _get_spawn_position_near_stack(first_bug.stack_id, crash_index)
+
+		for offset: int in 3:
+			_remove_card_instance(bug_ids[crash_index * 3 + offset])
+		_spawn_card_as_new_stack("card.problem.prod_crash", spawn_position)
+
+func _duplicate_remaining_bugs() -> void:
+	var bug_ids: PackedStringArray = _find_card_ids_with_tag("bug")
+	for index: int in bug_ids.size():
+		var bug: CardInstance = state.get_card(bug_ids[index])
+		if bug == null:
+			continue
+		_spawn_card_as_new_stack("card.problem.bug", _get_spawn_position_near_stack(bug.stack_id, index))
+
+func _expire_open_orders() -> void:
+	var order_ids: PackedStringArray = _find_card_ids_with_tag("order")
+	for card_id: String in order_ids:
+		_remove_card_instance(card_id)
+
+func _expire_unused_external_devs() -> void:
+	var external_dev_ids: PackedStringArray = _find_card_ids_with_tag("external_dev")
+	for card_id: String in external_dev_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card != null and not bool(card.values.get("completed_task", false)):
+			_remove_card_instance(card_id)
+
+func _spawn_persistent_tick_cards() -> void:
+	var spawner_ids: PackedStringArray = _find_card_ids_with_tag("sprint_tick_spawner")
+	for card_id: String in spawner_ids:
+		var spawner: CardInstance = state.get_card(card_id)
+		if spawner == null:
+			continue
+		var spawned_card_definition_id: String = spawner.values.get("sprint_tick_spawn_card_id", "") as String
+		if spawned_card_definition_id.is_empty():
+			continue
+		_spawn_card_as_new_stack(spawned_card_definition_id, _get_spawn_position_near_stack(spawner.stack_id, 0))
+
+func _find_card_ids_with_tag(tag: String) -> PackedStringArray:
+	var card_ids: PackedStringArray = PackedStringArray()
+	for card: CardInstance in state.cards.values():
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has(tag):
+			card_ids.append(card.instance_id)
+	return card_ids
+
 func _has_no_employees() -> bool:
 	for card: CardInstance in state.cards.values():
 		if _is_employee_card(card):
@@ -334,7 +396,7 @@ func _has_no_employees() -> bool:
 
 func _refresh_payment_card_states() -> void:
 	for card: CardInstance in state.cards.values():
-		var is_employee: bool = _is_employee_card(card)
+		var is_employee: bool = _requires_salary(card)
 		card.state.is_locked = false
 		card.state.is_paid = is_employee and state.paid_employee_ids.has(card.instance_id)
 		card.state.is_payment_target = state.phase == ScopeEnums.RunPhase.PAYMENT and is_employee and not card.state.is_paid
@@ -348,6 +410,10 @@ func _clear_payment_card_states() -> void:
 func _is_employee_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
 	return definition != null and definition.type == ScopeEnums.CardType.EMPLOYEE
+
+func _requires_salary(card: CardInstance) -> bool:
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition != null and definition.type == ScopeEnums.CardType.EMPLOYEE and not definition.tags.has("external_dev")
 
 func _is_money_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
@@ -383,7 +449,7 @@ func _start_processing(stack: StackState, recipe: RecipeDefinition) -> void:
 	stack.processing_state.active_recipe_id = recipe.id
 	stack.processing_state.status = ScopeEnums.ProcessingStatus.ACTIVE
 	stack.processing_state.elapsed = 0.0
-	stack.processing_state.duration = recipe.duration.base_seconds
+	stack.processing_state.duration = _tech_debt_modifiers.get_duration_seconds(recipe, state, content)
 	_emit(SimulationEvent.recipe_started(stack.stack_id))
 	_emit(SimulationEvent.stack_changed(stack.stack_id))
 

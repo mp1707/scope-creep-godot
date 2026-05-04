@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_n5kep"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="2_q8x4l"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_hr2bt"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_6yfx2"]
+
+[sub_resource type="Resource" id="Resource_fuwxn"]
+script = ExtResource("2_q8x4l")
+base_seconds = 12.0
+
+[sub_resource type="Resource" id="Resource_jd0wy"]
+script = ExtResource("3_hr2bt")
+id = "effect.remove_card.bug"
+effect_type = "remove_card"
+parameters = {
+"card_definition_id": "card.problem.bug"
+}
+
+[sub_resource type="Resource" id="Resource_rhgsv"]
+script = ExtResource("1_n5kep")
+card_definition_id = "card.problem.bug"
+required_tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_u8efu"]
+script = ExtResource("1_n5kep")
+card_definition_id = "card.employee.developer"
+required_tags = PackedStringArray()
+
+[resource]
+script = ExtResource("4_6yfx2")
+id = "recipe.debug_bug.developer"
+display_text = "Debugging..."
+inputs = Array[ExtResource("1_n5kep")]([SubResource("Resource_rhgsv"), SubResource("Resource_u8efu")])
+duration = SubResource("Resource_fuwxn")
+priority = 10
+specificity_score = 2
+effects_on_complete = Array[ExtResource("3_hr2bt")]([SubResource("Resource_jd0wy")])
+duration_modifier_tags = PackedStringArray("bugfix_work")

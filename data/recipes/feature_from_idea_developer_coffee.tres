@@ -59,3 +59,4 @@ duration = SubResource("Resource_krnir")
 priority = 20
 specificity_score = 3
 effects_on_complete = Array[ExtResource("4_hvdyn")]([SubResource("Resource_eoyne"), SubResource("Resource_jw2ry"), SubResource("Resource_lyfdo")])
+duration_modifier_tags = PackedStringArray("feature_work")

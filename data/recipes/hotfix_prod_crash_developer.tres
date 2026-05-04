@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_f4yvj"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="2_a0hyy"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_otdak"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_ve0ki"]
+
+[sub_resource type="Resource" id="Resource_y1paf"]
+script = ExtResource("2_a0hyy")
+base_seconds = 45.0
+
+[sub_resource type="Resource" id="Resource_632ud"]
+script = ExtResource("3_otdak")
+id = "effect.remove_card.prod_crash"
+effect_type = "remove_card"
+parameters = {
+"card_definition_id": "card.problem.prod_crash"
+}
+
+[sub_resource type="Resource" id="Resource_3m61c"]
+script = ExtResource("1_f4yvj")
+card_definition_id = "card.problem.prod_crash"
+required_tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_hgirw"]
+script = ExtResource("1_f4yvj")
+card_definition_id = "card.employee.developer"
+required_tags = PackedStringArray()
+
+[resource]
+script = ExtResource("4_ve0ki")
+id = "recipe.hotfix_prod_crash.developer"
+display_text = "Hotfixing..."
+inputs = Array[ExtResource("1_f4yvj")]([SubResource("Resource_3m61c"), SubResource("Resource_hgirw")])
+duration = SubResource("Resource_y1paf")
+priority = 10
+specificity_score = 2
+effects_on_complete = Array[ExtResource("3_otdak")]([SubResource("Resource_632ud")])

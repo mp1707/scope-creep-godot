@@ -14,7 +14,7 @@ Der Plan ist bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, was 
 - [x] Phase 5 - Board-, Stack- und Card-Presentation
 - [x] Phase 6 - Erste spielbare Card-Pipeline
 - [x] Phase 7 - Sprint, Pause und Bezahlphase
-- [ ] Phase 8 - Bugs, Tech Debt und Sprintstart-Ticks
+- [x] Phase 8 - Bugs, Tech Debt und Sprintstart-Ticks
 - [ ] Phase 9 - Booster, Shop und deterministischer RNG
 - [ ] Phase 10 - Save/Load fuer frozen Runs
 - [ ] Phase 11 - Vertical-Slice-Polish und QA
@@ -297,24 +297,30 @@ Ziel: Der Slice zeigt erste negative Eskalation, ohne Sonderlogik im UI.
 
 Codex:
 
-- [ ] Bug-Chance beim ungeprueften Release ueber `RollChanceEffect` anbinden.
-- [ ] Bug-CardDefinition und Spawn aus Release-Recipe finalisieren.
-- [ ] Sprintstart-Effect-Reihenfolge implementieren: Kuendigungen, Bug-Formation, Bug-Verdopplung, Auftrag-Verfall, Externer-Dev-Verfall, persistente Spawns.
-- [ ] Fuer PoC mindestens Bug-Formation und Bug-Verdopplung aktivieren.
-- [ ] Tech-Debt-Modifier-Service vorbereiten, auch wenn Tech Debt im PoC nur minimal sichtbar ist.
-- [ ] Tests: Bug-Formation vor Bug-Verdopplung; neu verdoppelte Bugs crashen erst naechsten Sprint.
+- [x] Bug-Chance beim ungeprueften Release ueber `RollChanceEffect` anbinden.
+- [x] Bug-CardDefinition und Spawn aus Release-Recipe finalisieren.
+- [x] Sprintstart-Effect-Reihenfolge implementieren: Kuendigungen, Bug-Formation, Bug-Verdopplung, Auftrag-Verfall, Externer-Dev-Verfall, persistente Spawns.
+- [x] Fuer PoC mindestens Bug-Formation und Bug-Verdopplung aktivieren.
+- [x] Tech-Debt-Modifier-Service vorbereiten, auch wenn Tech Debt im PoC nur minimal sichtbar ist.
+- [x] Tests: Bug-Formation vor Bug-Verdopplung; neu verdoppelte Bugs crashen erst naechsten Sprint.
 
 Marco:
 
-- [ ] Bug-Visuals/Marker im Editor setzen oder Platzhalter bestaetigen.
-- [ ] Playtest: Bugs sollen sichtbar genug sein und nicht unter anderen Karten spawnen.
+- [x] Bug-Visuals/Marker im Editor setzen oder Platzhalter bestaetigen.
+- [x] Playtest: Bugs sollen sichtbar genug sein und nicht unter anderen Karten spawnen.
 
 Definition of Done:
 
-- [ ] Ungepruefter Release kann Bug erzeugen.
-- [ ] Drei vorhandene Bugs werden am Sprintstart zu Prod-Crash.
-- [ ] Uebrige Bugs verdoppeln sich danach.
-- [ ] Reihenfolge entspricht `gdd.md` v1.4.
+- [x] Ungepruefter Release kann Bug erzeugen.
+- [x] Drei vorhandene Bugs werden am Sprintstart zu Prod-Crash.
+- [x] Uebrige Bugs verdoppeln sich danach.
+- [x] Reihenfolge entspricht `gdd.md` v1.4.
+
+Headless-Test:
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_phase_8.gd
+```
 
 ## Phase 9 - Booster, Shop und deterministischer RNG
 
@@ -408,7 +414,8 @@ Entscheidungen waehrend der Umsetzung hier festhalten:
 - [x] Phase 7 setzt unbezahlte Mitarbeiter bereits beim Start des naechsten Sprints um, weil ein `StartNextSprintCommand` ohne Kuendigung die GDD-Regel verletzen wuerde. Phase 8 ergaenzt darauf die restliche Sprintstart-Reihenfolge.
 - [x] Phase 7 nutzt vorerst das bestehende Dev-Overlay fuer Timer, Pause, Auto-Pay und `Sprint N+1 starten`; finaler UI-Aufbau/Styling bleibt Editor-Arbeit.
 - [x] Bezahlphase erlaubt ab Phase 7 weiterhin normale Kartenbewegung, damit gemischte Stacks vor manueller Bezahlung getrennt werden koennen. Processing bleibt trotzdem eingefroren.
+- [x] Phase 8 macht Bug, Prod-Crash und Tech Debt bereits per Entwickler bearbeitbar. Labels sind datengetrieben: `Debugging...`, `Hotfixing...`, `Aufräumen...`.
 
 Bekannte technische Schulden hier festhalten:
 
-- [ ]
+- [ ] PoC-Dauern fuer `Bug + Entwickler` und `Tech Debt + Entwickler` sind noch Balancing-Platzhalter; `Prod-Crash + Entwickler` nutzt bereits die GDD-Dauer 45s.

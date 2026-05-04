@@ -12,3 +12,4 @@ extends Resource
 @export var effects_on_complete: Array[EffectDefinition] = []
 @export var effects_on_cancel: Array[EffectDefinition] = []
 @export var allowed_extra_inputs: Array[RecipeInputMatcher] = []
+@export var duration_modifier_tags: PackedStringArray = PackedStringArray()

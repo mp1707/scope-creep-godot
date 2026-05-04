@@ -35,12 +35,16 @@ func _remove_card(effect: EffectDefinition, context: EffectContext) -> void:
 		context.remove_card.call(card.instance_id)
 
 func _spawn_card(effect: EffectDefinition, context: EffectContext) -> void:
+	if _should_skip_effect(effect, context):
+		return
 	var card_definition_id: String = effect.parameters.get("card_definition_id", "") as String
 	var count: int = effect.parameters.get("count", 1) as int
 	for index: int in count:
 		context.spawn_card.call(card_definition_id, _get_spawn_position(context, index))
 
 func _spawn_money(effect: EffectDefinition, context: EffectContext) -> void:
+	if _should_skip_effect(effect, context):
+		return
 	var count: int = effect.parameters.get("count", 1) as int
 	for index: int in count:
 		context.spawn_card.call("card.resource.money", _get_spawn_position(context, index))
@@ -81,3 +85,15 @@ func _find_card_in_stack(card_definition_id: String, context: EffectContext) -> 
 			return card
 
 	return null
+
+func _should_skip_effect(effect: EffectDefinition, context: EffectContext) -> bool:
+	var blocked_tag: String = effect.parameters.get("skip_if_any_card_tag", "") as String
+	if blocked_tag.is_empty():
+		return false
+
+	for card: CardInstance in context.state.cards.values():
+		var definition: CardDefinition = context.content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has(blocked_tag):
+			return true
+
+	return false

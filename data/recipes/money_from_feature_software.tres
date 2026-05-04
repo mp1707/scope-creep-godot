@@ -24,7 +24,8 @@ id = "effect.spawn_card.money"
 effect_type = "spawn_card"
 parameters = {
 "card_definition_id": "card.resource.money",
-"count": 1
+"count": 1,
+"skip_if_any_card_tag": "prod_crash"
 }
 
 [sub_resource type="Resource" id="Resource_0bwwy"]

@@ -65,6 +65,24 @@ func _save_cards() -> int:
 		Color(0.55, 0.12, 0.17)
 	), "res://data/cards/bug.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
+		"card.problem.prod_crash",
+		"Prod-Crash",
+		ScopeEnums.CardType.PROBLEM,
+		PackedStringArray(["problem", "prod_crash"]),
+		"Blockiert Einnahmen",
+		Color(0.48, 0.09, 0.12),
+		Color(0.98, 0.58, 0.24)
+	), "res://data/cards/prod_crash.tres"))
+	exit_code = max(exit_code, _save_resource(_create_card(
+		"card.problem.tech_debt",
+		"Technische Schulden",
+		ScopeEnums.CardType.PROBLEM,
+		PackedStringArray(["problem", "tech_debt"]),
+		"+5s auf Feature/Bugfix",
+		Color(0.74, 0.72, 0.68),
+		Color(0.26, 0.27, 0.29)
+	), "res://data/cards/tech_debt.tres"))
+	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.consumable.coffee",
 		"Kaffee",
 		ScopeEnums.CardType.CONSUMABLE,
@@ -101,6 +119,7 @@ func _save_recipes() -> int:
 		_create_effect("effect.consume_input.idea", "consume_input", {"card_definition_id": "card.input.idea"}),
 		_create_effect("effect.spawn_card.feature", "spawn_card", {"card_definition_id": "card.output.feature", "count": 1}),
 	]
+	idea_to_feature.duration_modifier_tags = PackedStringArray(["feature_work"])
 	exit_code = max(exit_code, _save_resource(idea_to_feature, "res://data/recipes/feature_from_idea_developer.tres"))
 
 	var idea_to_feature_with_coffee: RecipeDefinition = RecipeDefinition.new()
@@ -119,6 +138,7 @@ func _save_recipes() -> int:
 		_create_effect("effect.consume_input.coffee", "consume_input", {"card_definition_id": "card.consumable.coffee"}),
 		_create_effect("effect.spawn_card.feature", "spawn_card", {"card_definition_id": "card.output.feature", "count": 1}),
 	]
+	idea_to_feature_with_coffee.duration_modifier_tags = PackedStringArray(["feature_work"])
 	exit_code = max(exit_code, _save_resource(idea_to_feature_with_coffee, "res://data/recipes/feature_from_idea_developer_coffee.tres"))
 
 	var feature_to_money: RecipeDefinition = RecipeDefinition.new()
@@ -133,10 +153,60 @@ func _save_recipes() -> int:
 	feature_to_money.specificity_score = 2
 	feature_to_money.effects_on_complete = [
 		_create_effect("effect.consume_input.feature", "consume_input", {"card_definition_id": "card.output.feature"}),
-		_create_effect("effect.spawn_card.money", "spawn_card", {"card_definition_id": "card.resource.money", "count": 1}),
+		_create_effect("effect.spawn_card.money", "spawn_card", {
+			"card_definition_id": "card.resource.money",
+			"count": 1,
+			"skip_if_any_card_tag": "prod_crash",
+		}),
 		_create_effect("effect.roll_bug_chance", "roll_chance", {"card_definition_id": "card.problem.bug", "chance_key": "bug_chance"}),
 	]
 	exit_code = max(exit_code, _save_resource(feature_to_money, "res://data/recipes/money_from_feature_software.tres"))
+
+	var debug_bug: RecipeDefinition = RecipeDefinition.new()
+	debug_bug.id = "recipe.debug_bug.developer"
+	debug_bug.display_text = "Debugging..."
+	debug_bug.inputs = [
+		_create_input("card.problem.bug"),
+		_create_input("card.employee.developer"),
+	]
+	debug_bug.duration = _create_duration(12.0)
+	debug_bug.priority = 10
+	debug_bug.specificity_score = 2
+	debug_bug.effects_on_complete = [
+		_create_effect("effect.remove_card.bug", "remove_card", {"card_definition_id": "card.problem.bug"}),
+	]
+	debug_bug.duration_modifier_tags = PackedStringArray(["bugfix_work"])
+	exit_code = max(exit_code, _save_resource(debug_bug, "res://data/recipes/debug_bug_developer.tres"))
+
+	var hotfix_prod_crash: RecipeDefinition = RecipeDefinition.new()
+	hotfix_prod_crash.id = "recipe.hotfix_prod_crash.developer"
+	hotfix_prod_crash.display_text = "Hotfixing..."
+	hotfix_prod_crash.inputs = [
+		_create_input("card.problem.prod_crash"),
+		_create_input("card.employee.developer"),
+	]
+	hotfix_prod_crash.duration = _create_duration(45.0)
+	hotfix_prod_crash.priority = 10
+	hotfix_prod_crash.specificity_score = 2
+	hotfix_prod_crash.effects_on_complete = [
+		_create_effect("effect.remove_card.prod_crash", "remove_card", {"card_definition_id": "card.problem.prod_crash"}),
+	]
+	exit_code = max(exit_code, _save_resource(hotfix_prod_crash, "res://data/recipes/hotfix_prod_crash_developer.tres"))
+
+	var cleanup_tech_debt: RecipeDefinition = RecipeDefinition.new()
+	cleanup_tech_debt.id = "recipe.cleanup_tech_debt.developer"
+	cleanup_tech_debt.display_text = "Aufräumen..."
+	cleanup_tech_debt.inputs = [
+		_create_input("card.problem.tech_debt"),
+		_create_input("card.employee.developer"),
+	]
+	cleanup_tech_debt.duration = _create_duration(10.0)
+	cleanup_tech_debt.priority = 10
+	cleanup_tech_debt.specificity_score = 2
+	cleanup_tech_debt.effects_on_complete = [
+		_create_effect("effect.remove_card.tech_debt", "remove_card", {"card_definition_id": "card.problem.tech_debt"}),
+	]
+	exit_code = max(exit_code, _save_resource(cleanup_tech_debt, "res://data/recipes/cleanup_tech_debt_developer.tres"))
 
 	return exit_code
 
@@ -159,7 +229,8 @@ func _save_balance() -> int:
 	balance.id = "balance.poc.default"
 	balance.sprint_duration_seconds = 60.0
 	balance.release_duration_seconds = 6.0
-	balance.bug_chance = 0.25
+	balance.bug_chance = 0.5
+	balance.tech_debt_duration_seconds_per_card = 5.0
 	balance.board_snap_distance = 96.0
 	balance.stack_offset = Vector2(0.0, 40.0)
 	balance.spawn_placement_radius = 160.0

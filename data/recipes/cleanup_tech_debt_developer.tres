@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_x0rdm"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="2_lc4rb"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_4a3m2"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_c8urp"]
+
+[sub_resource type="Resource" id="Resource_qw5oy"]
+script = ExtResource("2_lc4rb")
+base_seconds = 10.0
+
+[sub_resource type="Resource" id="Resource_2md1a"]
+script = ExtResource("3_4a3m2")
+id = "effect.remove_card.tech_debt"
+effect_type = "remove_card"
+parameters = {
+"card_definition_id": "card.problem.tech_debt"
+}
+
+[sub_resource type="Resource" id="Resource_adyb6"]
+script = ExtResource("1_x0rdm")
+card_definition_id = "card.problem.tech_debt"
+required_tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_6d3tx"]
+script = ExtResource("1_x0rdm")
+card_definition_id = "card.employee.developer"
+required_tags = PackedStringArray()
+
+[resource]
+script = ExtResource("4_c8urp")
+id = "recipe.cleanup_tech_debt.developer"
+display_text = "Aufräumen..."
+inputs = Array[ExtResource("1_x0rdm")]([SubResource("Resource_adyb6"), SubResource("Resource_6d3tx")])
+duration = SubResource("Resource_qw5oy")
+priority = 10
+specificity_score = 2
+effects_on_complete = Array[ExtResource("3_4a3m2")]([SubResource("Resource_2md1a")])

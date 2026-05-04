@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_fr0m8"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_y8crk"]
+
+[sub_resource type="Resource" id="Resource_8n4wy"]
+script = ExtResource("2_y8crk")
+background_color = Color(0.48, 0.09, 0.12, 1)
+accent_color = Color(0.98, 0.58, 0.24, 1)
+text_color = Color(0.98, 0.94, 0.88, 1)
+marker_text = ""
+
+[resource]
+script = ExtResource("1_fr0m8")
+id = "card.problem.prod_crash"
+display_name = "Prod-Crash"
+type = 4
+tags = PackedStringArray("problem", "prod_crash")
+short_text = "Blockiert Einnahmen"
+tooltip_text = "Entsteht aus 3 Bugs am Sprintstart"
+visual = SubResource("Resource_8n4wy")
