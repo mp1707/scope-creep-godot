@@ -4,6 +4,9 @@ extends RefCounted
 const SPRINT_TIMER_ID: String = "sprint_remaining_seconds"
 const SPAWN_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
 const SPAWN_GAP: float = 36.0
+const START_LAYOUT_ORIGIN: Vector2 = Vector2(120.0, 120.0)
+const START_LAYOUT_COLUMNS: int = 4
+const START_LAYOUT_STEP: Vector2 = Vector2(180.0, 240.0)
 const START_CARD_IDS: Array[String] = [
 	"card.product.software",
 	"card.employee.developer",
@@ -45,10 +48,11 @@ func start_new_run(seed: int = 1) -> RunState:
 	state.content_version = "poc"
 	state.active_timers[SPRINT_TIMER_ID] = _get_sprint_duration()
 
-	var position: Vector2 = Vector2(160.0, 160.0)
-	for card_definition_id: String in START_CARD_IDS:
-		_spawn_card_as_new_stack(card_definition_id, position)
-		position.x += 180.0
+	for index: int in START_CARD_IDS.size():
+		var column: int = index % START_LAYOUT_COLUMNS
+		var row: int = index / START_LAYOUT_COLUMNS
+		var position: Vector2 = START_LAYOUT_ORIGIN + Vector2(float(column), float(row)) * START_LAYOUT_STEP
+		_spawn_card_as_new_stack(START_CARD_IDS[index], position)
 
 	_emit(SimulationEvent.phase_changed(state.phase))
 	_emit(SimulationEvent.timer_updated(SPRINT_TIMER_ID, state.active_timers[SPRINT_TIMER_ID] as float))
@@ -61,6 +65,8 @@ func drain_events() -> Array[SimulationEvent]:
 
 func set_paused(paused: bool) -> void:
 	_require_state()
+	if state.phase != ScopeEnums.RunPhase.SPRINT:
+		paused = false
 	if state.is_paused == paused:
 		return
 	state.is_paused = paused
@@ -68,14 +74,23 @@ func set_paused(paused: bool) -> void:
 
 func advance_time(delta_seconds: float) -> void:
 	_require_state()
-	if state.is_paused:
+	if state.phase != ScopeEnums.RunPhase.SPRINT or state.is_paused:
 		return
 
-	var remaining: float = state.active_timers.get(SPRINT_TIMER_ID, 0.0) as float
-	remaining = maxf(0.0, remaining - maxf(0.0, delta_seconds))
-	state.active_timers[SPRINT_TIMER_ID] = remaining
-	_emit(SimulationEvent.timer_updated(SPRINT_TIMER_ID, remaining))
+	var safe_delta: float = maxf(0.0, delta_seconds)
+	var remaining_before: float = state.active_timers.get(SPRINT_TIMER_ID, 0.0) as float
+	var elapsed_this_tick: float = minf(safe_delta, remaining_before)
+	var remaining_after: float = maxf(0.0, remaining_before - safe_delta)
+	state.active_timers[SPRINT_TIMER_ID] = remaining_after
+	_emit(SimulationEvent.timer_updated(SPRINT_TIMER_ID, remaining_after))
 
+	if elapsed_this_tick > 0.0:
+		_advance_processing(elapsed_this_tick)
+
+	if remaining_after <= 0.0:
+		_enter_payment_phase()
+
+func _advance_processing(delta_seconds: float) -> void:
 	var stack_ids: Array = state.stacks.keys()
 	for stack_id: String in stack_ids:
 		if not state.stacks.has(stack_id):
@@ -83,7 +98,7 @@ func advance_time(delta_seconds: float) -> void:
 		var stack: StackState = _get_existing_stack(stack_id)
 		if not stack.processing_state.is_active():
 			continue
-		stack.processing_state.elapsed += maxf(0.0, delta_seconds)
+		stack.processing_state.elapsed += delta_seconds
 		if stack.processing_state.elapsed >= stack.processing_state.duration:
 			_complete_processing(stack)
 		elif state.stacks.has(stack.stack_id):
@@ -92,6 +107,8 @@ func advance_time(delta_seconds: float) -> void:
 func move_stack(stack_id: String, position: Vector2) -> void:
 	_require_state()
 	var stack: StackState = _get_existing_stack(stack_id)
+	if not _can_interact_with_board():
+		return
 	stack.base_position = position
 	for card_id: String in stack.card_ids:
 		var card: CardInstance = _get_existing_card(card_id)
@@ -111,6 +128,10 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 		push_error("Card '%s' is not in its source stack." % card_id)
 		return
 	var moving_card_ids: PackedStringArray = source_stack.card_ids.slice(start_index)
+	if _try_pay_employee_with_money(card, moving_card_ids, target_stack):
+		return
+	if not _can_interact_with_board():
+		return
 	source_stack.card_ids = source_stack.card_ids.slice(0, start_index)
 
 	for moving_card_id: String in moving_card_ids:
@@ -136,6 +157,9 @@ func split_stack_from_card(card_id: String, new_position: Vector2) -> StackState
 
 	var new_stack: StackState = _create_stack(new_position)
 	var moving_card_ids: PackedStringArray = source_stack.card_ids.slice(start_index)
+	if not _can_interact_with_board():
+		state.stacks.erase(new_stack.stack_id)
+		return null
 	source_stack.card_ids = source_stack.card_ids.slice(0, start_index)
 
 	for moving_card_id: String in moving_card_ids:
@@ -150,6 +174,188 @@ func split_stack_from_card(card_id: String, new_position: Vector2) -> StackState
 	_refresh_stack_recipe_if_present(source_stack.stack_id)
 	_refresh_stack_recipe_if_present(new_stack.stack_id)
 	return new_stack
+
+func auto_pay_all_employees() -> bool:
+	_require_state()
+	if not can_auto_pay():
+		return false
+
+	var unpaid_employee_ids: PackedStringArray = _get_unpaid_employee_ids()
+	var money_ids: PackedStringArray = _get_money_card_ids()
+
+	for employee_id: String in unpaid_employee_ids:
+		var money_id: String = _take_best_auto_pay_money_id(employee_id, money_ids)
+		if money_id.is_empty() or not _consume_money_card(money_id):
+			return false
+		money_ids.remove_at(money_ids.find(money_id))
+		_mark_employee_paid(employee_id)
+	_refresh_payment_card_states()
+	_emit_all_stacks_changed()
+	return true
+
+func can_auto_pay() -> bool:
+	_require_state()
+	if state.phase != ScopeEnums.RunPhase.PAYMENT:
+		return false
+	var unpaid_employee_ids: PackedStringArray = _get_unpaid_employee_ids()
+	if unpaid_employee_ids.is_empty():
+		return false
+	return _get_money_card_ids().size() >= unpaid_employee_ids.size()
+
+func start_next_sprint() -> void:
+	_require_state()
+	if state.phase != ScopeEnums.RunPhase.PAYMENT:
+		return
+
+	_quit_unpaid_employees()
+	if _has_no_employees():
+		_enter_game_over()
+		return
+
+	state.sprint_index += 1
+	state.phase = ScopeEnums.RunPhase.SPRINT
+	state.is_paused = false
+	state.paid_employee_ids = PackedStringArray()
+	state.active_timers[SPRINT_TIMER_ID] = _get_sprint_duration()
+	_clear_payment_card_states()
+	_emit(SimulationEvent.phase_changed(state.phase))
+	_emit(SimulationEvent.pause_changed(false))
+	_emit(SimulationEvent.timer_updated(SPRINT_TIMER_ID, state.active_timers[SPRINT_TIMER_ID] as float))
+	_emit_all_stacks_changed()
+
+func _enter_payment_phase() -> void:
+	if state.phase != ScopeEnums.RunPhase.SPRINT:
+		return
+	state.phase = ScopeEnums.RunPhase.PAYMENT
+	if state.is_paused:
+		state.is_paused = false
+		_emit(SimulationEvent.pause_changed(false))
+	state.active_timers[SPRINT_TIMER_ID] = 0.0
+	_refresh_payment_card_states()
+	_emit(SimulationEvent.phase_changed(state.phase))
+	_emit(SimulationEvent.timer_updated(SPRINT_TIMER_ID, 0.0))
+	_emit_all_stacks_changed()
+
+func _enter_game_over() -> void:
+	state.phase = ScopeEnums.RunPhase.GAME_OVER
+	state.is_paused = false
+	state.active_timers[SPRINT_TIMER_ID] = 0.0
+	_clear_payment_card_states()
+	_emit(SimulationEvent.phase_changed(state.phase))
+	_emit(SimulationEvent.pause_changed(false))
+	_emit(SimulationEvent.timer_updated(SPRINT_TIMER_ID, 0.0))
+	_emit_all_stacks_changed()
+
+func _try_pay_employee_with_money(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
+	if state.phase != ScopeEnums.RunPhase.PAYMENT:
+		return false
+	if moving_card_ids.size() != 1:
+		return false
+	if not _is_money_card(card):
+		return false
+
+	var employee_id: String = _find_unpaid_employee_in_stack(target_stack)
+	if employee_id.is_empty():
+		return false
+
+	if not _consume_money_card(card.instance_id):
+		return false
+	_mark_employee_paid(employee_id)
+	_refresh_payment_card_states()
+	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
+	return true
+
+func _mark_employee_paid(employee_id: String) -> void:
+	if not state.paid_employee_ids.has(employee_id):
+		state.paid_employee_ids.append(employee_id)
+	var employee: CardInstance = _get_existing_card(employee_id)
+	employee.state.is_paid = true
+	employee.state.is_payment_target = false
+
+func _can_interact_with_board() -> bool:
+	return state.phase == ScopeEnums.RunPhase.SPRINT or state.phase == ScopeEnums.RunPhase.PAYMENT
+
+func _find_unpaid_employee_in_stack(stack: StackState) -> String:
+	for card_id: String in stack.card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card != null and _is_employee_card(card) and not state.paid_employee_ids.has(card.instance_id):
+			return card.instance_id
+	return ""
+
+func _get_unpaid_employee_ids() -> PackedStringArray:
+	var employee_ids: PackedStringArray = PackedStringArray()
+	for card: CardInstance in state.cards.values():
+		if _is_employee_card(card) and not state.paid_employee_ids.has(card.instance_id):
+			employee_ids.append(card.instance_id)
+	return employee_ids
+
+func _get_money_card_ids() -> PackedStringArray:
+	var money_ids: PackedStringArray = PackedStringArray()
+	for card: CardInstance in state.cards.values():
+		if _is_money_card(card):
+			money_ids.append(card.instance_id)
+	return money_ids
+
+func _consume_money_card(card_id: String) -> bool:
+	var card: CardInstance = state.get_card(card_id)
+	if card == null or not _is_money_card(card):
+		return false
+	_remove_card_instance(card_id)
+	return true
+
+func _take_best_auto_pay_money_id(employee_id: String, available_money_ids: PackedStringArray) -> String:
+	var employee: CardInstance = state.get_card(employee_id)
+	if employee != null:
+		var employee_stack: StackState = state.get_stack(employee.stack_id)
+		if employee_stack != null:
+			for card_id: String in employee_stack.card_ids:
+				if available_money_ids.has(card_id):
+					return card_id
+	if available_money_ids.is_empty():
+		return ""
+	return available_money_ids[0]
+
+func _quit_unpaid_employees() -> void:
+	var unpaid_employee_ids: PackedStringArray = _get_unpaid_employee_ids()
+	for employee_id: String in unpaid_employee_ids:
+		var employee: CardInstance = state.get_card(employee_id)
+		if employee == null:
+			continue
+		var stack: StackState = state.get_stack(employee.stack_id)
+		if stack != null and stack.processing_state.is_active():
+			_cancel_processing(stack)
+		_remove_card_instance(employee_id)
+
+func _has_no_employees() -> bool:
+	for card: CardInstance in state.cards.values():
+		if _is_employee_card(card):
+			return false
+	return true
+
+func _refresh_payment_card_states() -> void:
+	for card: CardInstance in state.cards.values():
+		var is_employee: bool = _is_employee_card(card)
+		card.state.is_locked = false
+		card.state.is_paid = is_employee and state.paid_employee_ids.has(card.instance_id)
+		card.state.is_payment_target = state.phase == ScopeEnums.RunPhase.PAYMENT and is_employee and not card.state.is_paid
+
+func _clear_payment_card_states() -> void:
+	for card: CardInstance in state.cards.values():
+		card.state.is_locked = false
+		card.state.is_paid = false
+		card.state.is_payment_target = false
+
+func _is_employee_card(card: CardInstance) -> bool:
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition != null and definition.type == ScopeEnums.CardType.EMPLOYEE
+
+func _is_money_card(card: CardInstance) -> bool:
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition != null and definition.tags.has("money")
+
+func _emit_all_stacks_changed() -> void:
+	for stack_id: String in state.stacks.keys():
+		_emit(SimulationEvent.stack_changed(stack_id))
 
 func _refresh_stack_recipe_if_present(stack_id: String) -> void:
 	if state.stacks.has(stack_id):

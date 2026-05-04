@@ -20,6 +20,7 @@ var _short_text_label: Label = null
 var _marker_label: Label = null
 var _progress_bar: ProgressBar = null
 var _action_label: Label = null
+var _default_marker_text: String = ""
 
 func _ready() -> void:
 	_set_top_left_layout(self)
@@ -40,6 +41,7 @@ func update_runtime(card: CardInstance, stack: StackState) -> void:
 	stack_id = card.stack_id
 	_update_progress(stack)
 	_update_runtime_marker(card)
+	_update_runtime_tint(card)
 
 func set_drag_preview_position(board_position: Vector2) -> void:
 	position = board_position
@@ -167,6 +169,7 @@ func _apply_definition(definition: CardDefinition) -> void:
 		visual = CardVisualDefinition.new()
 
 	_marker_label.text = visual.marker_text
+	_default_marker_text = visual.marker_text
 	for label: Label in [_title_label, _short_text_label, _marker_label, _action_label]:
 		label.add_theme_color_override("font_color", visual.text_color)
 
@@ -189,6 +192,28 @@ func _update_progress(_stack: StackState) -> void:
 	_action_label.text = ""
 
 func _update_runtime_marker(card: CardInstance) -> void:
-	if card.state == null or card.state.markers.is_empty():
+	if card.state == null:
+		return
+	if card.state.is_paid:
+		_marker_label.text = "OK"
+		return
+	if card.state.is_payment_target:
+		_marker_label.text = "$"
+		return
+	if card.state.markers.is_empty():
+		_marker_label.text = _default_marker_text
 		return
 	_marker_label.text = card.state.markers[0]
+
+func _update_runtime_tint(card: CardInstance) -> void:
+	if card.state == null:
+		modulate = Color.WHITE
+		return
+	if card.state.is_locked:
+		modulate = Color(0.55, 0.55, 0.55, 0.72)
+	elif card.state.is_paid:
+		modulate = Color(0.68, 0.86, 0.68, 0.88)
+	elif card.state.is_payment_target:
+		modulate = Color(1.0, 0.96, 0.72, 1.0)
+	else:
+		modulate = Color.WHITE

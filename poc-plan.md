@@ -13,7 +13,7 @@ Der Plan ist bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, was 
 - [x] Phase 4 - Recipe Engine und Effect Pipeline
 - [x] Phase 5 - Board-, Stack- und Card-Presentation
 - [x] Phase 6 - Erste spielbare Card-Pipeline
-- [ ] Phase 7 - Sprint, Pause und Bezahlphase
+- [x] Phase 7 - Sprint, Pause und Bezahlphase
 - [ ] Phase 8 - Bugs, Tech Debt und Sprintstart-Ticks
 - [ ] Phase 9 - Booster, Shop und deterministischer RNG
 - [ ] Phase 10 - Save/Load fuer frozen Runs
@@ -269,14 +269,14 @@ Ziel: Der Slice bekommt den echten Sprint-Rahmen aus dem GDD.
 
 Codex:
 
-- [ ] Sprint-Timer in Simulation implementieren.
-- [ ] Pause-Command implementieren: Timer frieren ein, Karten bleiben gemaess GDD beweglich.
-- [ ] Wechsel in `PAYMENT` nach Sprintende implementieren.
-- [ ] Payment-Regeln implementieren: nur Geld und Mitarbeiter beweglich/interaktiv.
-- [ ] Manuelles Bezahlen: 1-Geld-Karte auf Mitarbeiter verbrauchen und Mitarbeiter markieren.
-- [ ] Auto-Pay-Command optional fuer PoC, aber architekturkonform vorbereiten.
-- [ ] `StartNextSprintCommand` implementieren.
-- [ ] Tests fuer Phase-Wechsel, Pause und manuelles Bezahlen schreiben.
+- [x] Sprint-Timer in Simulation implementieren.
+- [x] Pause-Command implementieren: Timer frieren ein, Karten bleiben gemaess GDD beweglich.
+- [x] Wechsel in `PAYMENT` nach Sprintende implementieren.
+- [x] Payment-Regeln implementieren: alle Karten bleiben beweglich, Processing bleibt eingefroren.
+- [x] Manuelles Bezahlen: 1-Geld-Karte auf Mitarbeiter verbrauchen und Mitarbeiter markieren.
+- [x] Auto-Pay-Command optional fuer PoC, aber architekturkonform vorbereiten.
+- [x] `StartNextSprintCommand` implementieren.
+- [x] Tests fuer Phase-Wechsel, Pause und manuelles Bezahlen schreiben.
 
 Marco:
 
@@ -286,10 +286,10 @@ Marco:
 
 Definition of Done:
 
-- [ ] Sprint endet nach konfigurierter Dauer.
-- [ ] Bezahlphase friert Processing ein.
-- [ ] Geld auf Mitarbeiter bezahlt korrekt.
-- [ ] Naechster Sprint kann gestartet werden.
+- [x] Sprint endet nach konfigurierter Dauer.
+- [x] Bezahlphase friert Processing ein.
+- [x] Geld auf Mitarbeiter bezahlt korrekt.
+- [x] Naechster Sprint kann gestartet werden.
 
 ## Phase 8 - Bugs, Tech Debt und Sprintstart-Ticks
 
@@ -405,6 +405,9 @@ Entscheidungen waehrend der Umsetzung hier festhalten:
 - [x] Die Start-Mitarbeiterkarte ist `Entwickler` (`card.employee.developer`), nicht `Solo-Entwickler`. Solo ist nur der Startzustand ohne Kollegen.
 - [x] Die Main Scene ist ab Phase 6 `res://scenes/application/Main.tscn`.
 - [x] Drag/Drop folgt ab Phase 6 einem physischen Kartenmodell: zuletzt gezogene/gedroppte Karten liegen oben; neutrale Stacks bleiben organisierbar.
+- [x] Phase 7 setzt unbezahlte Mitarbeiter bereits beim Start des naechsten Sprints um, weil ein `StartNextSprintCommand` ohne Kuendigung die GDD-Regel verletzen wuerde. Phase 8 ergaenzt darauf die restliche Sprintstart-Reihenfolge.
+- [x] Phase 7 nutzt vorerst das bestehende Dev-Overlay fuer Timer, Pause, Auto-Pay und `Sprint N+1 starten`; finaler UI-Aufbau/Styling bleibt Editor-Arbeit.
+- [x] Bezahlphase erlaubt ab Phase 7 weiterhin normale Kartenbewegung, damit gemischte Stacks vor manueller Bezahlung getrennt werden koennen. Processing bleibt trotzdem eingefroren.
 
 Bekannte technische Schulden hier festhalten:
 

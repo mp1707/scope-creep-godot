@@ -182,9 +182,9 @@ Davor — beim Spielstart — kommt der Slot-Auswahl-Screen (siehe Save-System, 
 
 ### 6.3 Sprintende und Bezahlphase
 
-Nach Ablauf der 60 Sekunden startet die **Bezahlphase**. Während dieser Phase sind nur **Geldkarten und Mitarbeiter** beweglich; alle anderen Karten und Stapel sind gesperrt. Die Bezahlphase wird durch Klick auf den Button **„Sprint N+1 starten"** beendet — sie hat keinen Timer.
+Nach Ablauf der 60 Sekunden startet die **Bezahlphase**. Während dieser Phase sind alle Karten und Stapel weiterhin beweglich, damit gemischte Stacks vor der Bezahlung sauber getrennt oder organisiert werden koennen. Laufende Bearbeitungen bleiben aber eingefroren und Fortschrittsbalken laufen nicht weiter. Die Bezahlphase wird durch Klick auf den Button **„Sprint N+1 starten"** beendet — sie hat keinen Timer.
 
-Visuell bleibt das Board exakt gestapelt wie am Sprintende. Alle gesperrten Karten sind leicht abgedunkelt; bezahlbare Mitarbeiter sind hervorgehoben. Ein Mitarbeiter kann auch bezahlt werden, wenn er gerade in einem Stapel liegt. Beim manuellen Bezahlen wird eine Geldkarte auf den Mitarbeiter gezogen, die Geldkarte verschwindet, und der Mitarbeiter wird als bezahlt markiert. Bezahlte Mitarbeiter werden ebenfalls abgedunkelt.
+Visuell bleibt das Board exakt gestapelt wie am Sprintende. Bezahlbare Mitarbeiter sind hervorgehoben. Ein Mitarbeiter kann auch bezahlt werden, wenn er gerade in einem Stapel liegt. Beim manuellen Bezahlen wird eine Geldkarte auf den Mitarbeiter gezogen, die Geldkarte verschwindet, und der Mitarbeiter wird als bezahlt markiert. Bezahlte Mitarbeiter werden ebenfalls abgedunkelt.
 
 **Regeln:**
 

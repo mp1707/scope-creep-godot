@@ -76,6 +76,9 @@ func apply_events(events: Array[SimulationEvent]) -> void:
 			ScopeEnums.SimulationEventType.RECIPE_CANCELLED, \
 			ScopeEnums.SimulationEventType.RECIPE_COMPLETED:
 				_update_stack(event.stack_id)
+			ScopeEnums.SimulationEventType.PHASE_CHANGED, \
+			ScopeEnums.SimulationEventType.PAUSE_CHANGED:
+				refresh()
 			_:
 				pass
 
@@ -92,7 +95,7 @@ func get_stack_progress_view(stack_id: String) -> Control:
 	return _stack_progress_views.get(stack_id, null) as Control
 
 func find_snap_stack(card_id: String, board_position: Vector2) -> StackState:
-	if state == null:
+	if not _can_interact_with_board():
 		return null
 
 	var best_stack: StackState = null
@@ -181,11 +184,15 @@ func _begin_drag(card_id: String, board_position: Vector2) -> void:
 	var view: CardView = get_card_view(card_id)
 	if view == null:
 		return
+	var start_card_index: int = _get_card_index_in_stack(card_id, card.stack_id)
+	var preview_card_ids: PackedStringArray = _get_drag_preview_card_ids(card.stack_id, start_card_index)
+	if preview_card_ids.is_empty() or not _can_interact_with_board():
+		return
 	_dragging_card_id = card_id
 	_drag_start_stack_id = card.stack_id
-	_drag_start_card_index = _get_card_index_in_stack(card_id, card.stack_id)
+	_drag_start_card_index = start_card_index
 	_drag_pointer_offset = board_position - view.position
-	_drag_preview_card_ids = _get_drag_preview_card_ids(card.stack_id, _drag_start_card_index)
+	_drag_preview_card_ids = preview_card_ids
 	_move_drag_views_to_layer()
 	_bring_stack_to_front(card.stack_id)
 	_update_drag_preview(board_position)
@@ -312,6 +319,11 @@ func _distance_to_rect(point: Vector2, rect: Rect2) -> float:
 		clampf(point.y, rect.position.y, rect.position.y + rect.size.y)
 	)
 	return point.distance_to(closest_point)
+
+func _can_interact_with_board() -> bool:
+	if state == null:
+		return false
+	return state.phase == ScopeEnums.RunPhase.SPRINT or state.phase == ScopeEnums.RunPhase.PAYMENT
 
 func _update_stack_progress_view(stack: StackState) -> void:
 	var processing: ProcessingState = stack.processing_state
