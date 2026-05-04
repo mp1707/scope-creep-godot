@@ -15,7 +15,7 @@ Der Plan ist bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, was 
 - [x] Phase 6 - Erste spielbare Card-Pipeline
 - [x] Phase 7 - Sprint, Pause und Bezahlphase
 - [x] Phase 8 - Bugs, Tech Debt und Sprintstart-Ticks
-- [ ] Phase 9 - Booster, Shop und deterministischer RNG
+- [x] Phase 9 - Booster, Shop und deterministischer RNG
 - [ ] Phase 10 - Save/Load fuer frozen Runs
 - [ ] Phase 11 - Vertical-Slice-Polish und QA
 
@@ -328,24 +328,24 @@ Ziel: Ein einfacher Booster ist spielbar und nutzt die langfristige Booster-Arch
 
 Codex:
 
-- [ ] Booster-Slot als Presentation/Application-Interaktion anbinden.
-- [ ] `Geld + Booster-Slot -> Boosterpack` als Recipe/Command abbilden.
-- [ ] `Geld + Boosterpack -> 3 Karten aus Pool` ueber `OpenBoosterEffect` implementieren.
-- [ ] Booster-Ziehungen ueber Run-RNG deterministisch machen.
-- [ ] Minimal-Booster-Pool fuer PoC pflegen: Idee, Kaffee, Geld, ggf. Bugfix-Patch.
-- [ ] Tests fuer deterministische Booster-Ziehung schreiben.
+- [x] Booster-Slot als Presentation/Application-Interaktion anbinden.
+- [x] `Geld + Booster-Slot -> Boosterpack` als Recipe/Command abbilden.
+- [x] `Geld + Boosterpack -> 3 Karten aus Pool` ueber `OpenBoosterEffect` implementieren.
+- [x] Booster-Ziehungen ueber Run-RNG deterministisch machen.
+- [x] Minimal-Booster-Pool fuer PoC pflegen: Idee, Kaffee, Geld, ggf. Bugfix-Patch.
+- [x] Tests fuer deterministische Booster-Ziehung schreiben.
 
 Marco:
 
 - [ ] Booster-Slot im Editor am Bildschirmrand platzieren.
-- [ ] Boosterpack-Card-Visual/Label pruefen.
-- [ ] Playtest: Kaufen und Oeffnen soll sich klar von normalen Stacks unterscheiden.
+- [x] Boosterpack-Card-Visual/Label pruefen.
+- [x] Playtest: Kaufen und Oeffnen soll sich klar von normalen Stacks unterscheiden.
 
 Definition of Done:
 
-- [ ] Spieler kann mit Geld einen Booster erzeugen.
-- [ ] Spieler kann Booster oeffnen und 3 Karten erhalten.
-- [ ] Gleicher RNG-State erzeugt gleiche Booster-Ziehung.
+- [x] Spieler kann mit Geld einen Booster erzeugen.
+- [x] Spieler kann Booster oeffnen und 3 Karten erhalten.
+- [x] Gleicher RNG-State erzeugt gleiche Booster-Ziehung.
 
 ## Phase 10 - Save/Load fuer frozen Runs
 
@@ -415,6 +415,7 @@ Entscheidungen waehrend der Umsetzung hier festhalten:
 - [x] Phase 7 nutzt vorerst das bestehende Dev-Overlay fuer Timer, Pause, Auto-Pay und `Sprint N+1 starten`; finaler UI-Aufbau/Styling bleibt Editor-Arbeit.
 - [x] Bezahlphase erlaubt ab Phase 7 weiterhin normale Kartenbewegung, damit gemischte Stacks vor manueller Bezahlung getrennt werden koennen. Processing bleibt trotzdem eingefroren.
 - [x] Phase 8 macht Bug, Prod-Crash und Tech Debt bereits per Entwickler bearbeitbar. Labels sind datengetrieben: `Debugging...`, `Hotfixing...`, `Aufräumen...`.
+- [x] Phase 9 modelliert den Booster-Slot als normale Karte im Start-Run. Kaufen und Oeffnen laufen ueber Recipes; nur das gewichtete Ziehen ist ein eigener `open_booster`-Effect.
 
 Bekannte technische Schulden hier festhalten:
 

@@ -18,8 +18,8 @@ func _test_start_run() -> void:
 	var controller: RunController = _create_controller()
 	var state: RunState = controller.start_new_run(123)
 
-	_assert_equal(state.cards.size(), 7, "Start run should create 7 cards.")
-	_assert_equal(state.stacks.size(), 7, "Start run should place each card in its own stack.")
+	_assert_equal(state.cards.size(), 8, "Start run should create 8 cards.")
+	_assert_equal(state.stacks.size(), 8, "Start run should place each card in its own stack.")
 	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), 3, "Start run should create three 1-money cards.")
 	_assert_equal(_count_cards_by_definition(state, "card.employee.developer"), 1, "Start run should create one developer.")
 	_assert_true(state.rng_seed == 123 and state.rng_state != 0, "Start run should prepare deterministic RNG state.")

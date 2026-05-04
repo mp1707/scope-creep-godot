@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ShopDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/shop_entry_definition.gd" id="1_x90nf"]
+[ext_resource type="Script" path="res://scripts/data/shop_definition.gd" id="2_g36yp"]
+
+[sub_resource type="Resource" id="Resource_t84vb"]
+script = ExtResource("1_x90nf")
+id = "shop_entry.booster.founder_test_pack"
+display_name = "Gruender-Testpack"
+cost_money_cards = 1
+card_definition_id = "card.resource.booster_pack"
+booster_definition_id = "booster.founder.test_pack"
+
+[resource]
+script = ExtResource("2_g36yp")
+id = "shop.poc.boosters"
+entries = Array[ExtResource("1_x90nf")]([SubResource("Resource_t84vb")])

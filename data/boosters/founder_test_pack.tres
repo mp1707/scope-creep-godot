@@ -19,12 +19,10 @@ script = ExtResource("2_c064f")
 card_definition_id = "card.resource.money"
 weight = 2
 
-[sub_resource type="Resource" id="Resource_ukd73"]
-script = ExtResource("2_c064f")
-card_definition_id = "card.problem.bug"
-
 [resource]
 script = ExtResource("3_38o7e")
 id = "booster.founder.test_pack"
 display_name = "Gruender-Testpack"
-pool_entries = Array[ExtResource("2_c064f")]([SubResource("Resource_40nqi"), SubResource("Resource_kye47"), SubResource("Resource_lkh16"), SubResource("Resource_ukd73")])
+cost_money_cards = 1
+draw_count = 3
+pool_entries = Array[ExtResource("2_c064f")]([SubResource("Resource_40nqi"), SubResource("Resource_kye47"), SubResource("Resource_lkh16")])

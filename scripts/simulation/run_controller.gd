@@ -13,6 +13,7 @@ const START_CARD_IDS: Array[String] = [
 	"card.employee.developer",
 	"card.input.idea",
 	"card.consumable.coffee",
+	"card.shop.booster_slot",
 	"card.resource.money",
 	"card.resource.money",
 	"card.resource.money",
@@ -478,6 +479,7 @@ func _clear_processing(stack: StackState) -> void:
 	stack.processing_state.duration = 0.0
 
 func _execute_effects(effects: Array[EffectDefinition], stack: StackState, recipe: RecipeDefinition) -> void:
+	_rng.state = state.rng_state
 	var context: EffectContext = EffectContext.new()
 	context.state = state
 	context.stack = stack

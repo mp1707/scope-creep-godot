@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_s5v6k"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="2_q0axn"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_yx2tw"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_dgq1w"]
+
+[sub_resource type="Resource" id="Resource_2k6hn"]
+script = ExtResource("2_q0axn")
+base_seconds = 1.0
+
+[sub_resource type="Resource" id="Resource_9tv7l"]
+script = ExtResource("3_yx2tw")
+id = "effect.consume_input.money.booster_buy"
+effect_type = "consume_input"
+parameters = {
+"card_definition_id": "card.resource.money"
+}
+
+[sub_resource type="Resource" id="Resource_k3u6j"]
+script = ExtResource("3_yx2tw")
+id = "effect.spawn_card.booster_pack"
+effect_type = "spawn_card"
+parameters = {
+"card_definition_id": "card.resource.booster_pack",
+"count": 1
+}
+
+[sub_resource type="Resource" id="Resource_4w7p1"]
+script = ExtResource("1_s5v6k")
+card_definition_id = "card.resource.money"
+required_tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_hk85b"]
+script = ExtResource("1_s5v6k")
+card_definition_id = "card.shop.booster_slot"
+required_tags = PackedStringArray()
+
+[resource]
+script = ExtResource("4_dgq1w")
+id = "recipe.booster_pack_from_money.slot"
+display_text = "Booster kaufen"
+inputs = Array[ExtResource("1_s5v6k")]([SubResource("Resource_4w7p1"), SubResource("Resource_hk85b")])
+duration = SubResource("Resource_2k6hn")
+priority = 10
+specificity_score = 2
+effects_on_complete = Array[ExtResource("3_yx2tw")]([SubResource("Resource_9tv7l"), SubResource("Resource_k3u6j")])

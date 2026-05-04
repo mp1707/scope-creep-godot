@@ -14,6 +14,8 @@ func execute(effects: Array[EffectDefinition], context: EffectContext) -> void:
 				_spawn_money(effect, context)
 			"roll_chance":
 				_roll_chance(effect, context)
+			"open_booster":
+				_open_booster(effect, context)
 			_:
 				push_warning("Unknown effect_type '%s' on effect '%s'." % [effect.effect_type, effect.id])
 
@@ -59,6 +61,43 @@ func _roll_chance(effect: EffectDefinition, context: EffectContext) -> void:
 	if not card_definition_id.is_empty():
 		context.spawn_card.call(card_definition_id, _get_spawn_position(context, 0))
 	context.state.rng_state = context.rng.state
+
+func _open_booster(effect: EffectDefinition, context: EffectContext) -> void:
+	var booster_id: String = effect.parameters.get("booster_definition_id", "") as String
+	var booster: BoosterDefinition = context.content.get_booster_definition(booster_id)
+	if booster == null:
+		push_error("Missing booster definition: %s" % booster_id)
+		return
+
+	for draw_index: int in booster.draw_count:
+		var card_definition_id: String = _draw_card_from_booster(booster, context.rng)
+		if card_definition_id.is_empty():
+			continue
+		context.spawn_card.call(card_definition_id, _get_spawn_position(context, draw_index))
+
+	context.state.rng_state = context.rng.state
+
+	if not booster.open_effects.is_empty():
+		execute(booster.open_effects, context)
+
+func _draw_card_from_booster(booster: BoosterDefinition, rng: RandomNumberGenerator) -> String:
+	var total_weight: int = 0
+	for entry: BoosterPoolEntry in booster.pool_entries:
+		if entry != null:
+			total_weight += maxi(entry.weight, 0)
+	if total_weight <= 0:
+		return ""
+
+	var roll: int = rng.randi_range(1, total_weight)
+	var running_weight: int = 0
+	for entry: BoosterPoolEntry in booster.pool_entries:
+		if entry == null:
+			continue
+		running_weight += maxi(entry.weight, 0)
+		if roll <= running_weight:
+			return entry.card_definition_id
+
+	return ""
 
 func _get_spawn_position(context: EffectContext, spawn_index: int) -> Vector2:
 	if context.get_spawn_position.is_valid():

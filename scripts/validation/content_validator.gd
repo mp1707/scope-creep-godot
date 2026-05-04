@@ -4,24 +4,31 @@ extends RefCounted
 const CARD_DIR: String = "res://data/cards"
 const RECIPE_DIR: String = "res://data/recipes"
 const BOOSTER_DIR: String = "res://data/boosters"
+const SHOP_DIR: String = "res://data/shops"
 const BALANCE_DIR: String = "res://data/balance"
 
 var _errors: PackedStringArray = PackedStringArray()
 var _seen_ids: Dictionary = {}
 var _card_ids: Dictionary = {}
+var _booster_ids: Dictionary = {}
 
 func validate_content() -> PackedStringArray:
 	_errors.clear()
 	_seen_ids.clear()
 	_card_ids.clear()
+	_booster_ids.clear()
 
 	var cards: Array = _load_resources(CARD_DIR, CardDefinition)
 	var recipes: Array = _load_resources(RECIPE_DIR, RecipeDefinition)
 	var boosters: Array = _load_resources(BOOSTER_DIR, BoosterDefinition)
+	var shops: Array = _load_resources(SHOP_DIR, ShopDefinition)
 	var balances: Array = _load_resources(BALANCE_DIR, BalanceDefinition)
 
 	for card_resource: Resource in cards:
 		_validate_card(card_resource as CardDefinition)
+	for booster_resource: Resource in boosters:
+		var booster: BoosterDefinition = booster_resource as BoosterDefinition
+		_booster_ids[booster.id] = booster.resource_path
 
 	for recipe_resource: Resource in recipes:
 		_validate_recipe(recipe_resource as RecipeDefinition)
@@ -29,6 +36,9 @@ func validate_content() -> PackedStringArray:
 
 	for booster_resource: Resource in boosters:
 		_validate_booster(booster_resource as BoosterDefinition)
+
+	for shop_resource: Resource in shops:
+		_validate_shop(shop_resource as ShopDefinition)
 
 	for balance_resource: Resource in balances:
 		_validate_balance(balance_resource as BalanceDefinition)
@@ -176,6 +186,10 @@ func _validate_effects(path: String, owner_id: String, effects: Array[EffectDefi
 			var card_definition_id: String = effect.parameters["card_definition_id"] as String
 			if not _card_ids.has(card_definition_id):
 				_errors.append("%s: Effect on '%s' references missing card '%s'." % [path, owner_id, card_definition_id])
+		if effect.parameters.has("booster_definition_id"):
+			var booster_definition_id: String = effect.parameters["booster_definition_id"] as String
+			if not _booster_ids.has(booster_definition_id):
+				_errors.append("%s: Effect on '%s' references missing booster '%s'." % [path, owner_id, booster_definition_id])
 
 func _validate_booster(booster: BoosterDefinition) -> void:
 	var path: String = booster.resource_path
@@ -196,6 +210,27 @@ func _validate_booster(booster: BoosterDefinition) -> void:
 			_errors.append("%s: Booster '%s' references missing card '%s'." % [path, booster.id, entry.card_definition_id])
 
 	_validate_effects(path, booster.id, booster.open_effects)
+
+func _validate_shop(shop: ShopDefinition) -> void:
+	var path: String = shop.resource_path
+	if shop.entries.is_empty():
+		_errors.append("%s: Shop '%s' needs at least one entry." % [path, shop.id])
+
+	for entry: ShopEntryDefinition in shop.entries:
+		if entry == null:
+			_errors.append("%s: Shop '%s' has an empty entry." % [path, shop.id])
+			continue
+		if entry.display_name.strip_edges().is_empty():
+			_errors.append("%s: Shop entry '%s' needs display_name." % [path, entry.id])
+		if entry.cost_money_cards < 0:
+			_errors.append("%s: Shop entry '%s' has negative cost." % [path, entry.id])
+		if not entry.card_definition_id.is_empty() and not _card_ids.has(entry.card_definition_id):
+			_errors.append("%s: Shop entry '%s' references missing card '%s'." % [path, entry.id, entry.card_definition_id])
+		if not entry.booster_definition_id.is_empty() and not _booster_ids.has(entry.booster_definition_id):
+			_errors.append("%s: Shop entry '%s' references missing booster '%s'." % [path, entry.id, entry.booster_definition_id])
+		if entry.card_definition_id.is_empty() and entry.booster_definition_id.is_empty() and entry.effects_on_buy.is_empty():
+			_errors.append("%s: Shop entry '%s' needs a card, booster, or buy effect." % [path, entry.id])
+		_validate_effects(path, entry.id, entry.effects_on_buy)
 
 func _validate_balance(balance: BalanceDefinition) -> void:
 	var path: String = balance.resource_path

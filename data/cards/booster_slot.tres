@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_vy2m0"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_t9l0h"]
+
+[sub_resource type="Resource" id="Resource_7u6xq"]
+script = ExtResource("2_t9l0h")
+background_color = Color(0.64, 0.76, 0.88, 1)
+accent_color = Color(0.18, 0.33, 0.48, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+marker_text = "$"
+
+[resource]
+script = ExtResource("1_vy2m0")
+id = "card.shop.booster_slot"
+display_name = "Booster-Slot"
+type = 6
+tags = PackedStringArray("shop", "booster_slot")
+short_text = "Kauft ein Pack"
+tooltip_text = "Lege 1 Geld auf den Slot, um ein Boosterpack zu kaufen."
+visual = SubResource("Resource_7u6xq")
