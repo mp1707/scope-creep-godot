@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_matcher"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="2_duration"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_effect"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_recipe"]
+
+[sub_resource type="Resource" id="Duration_promising_story"]
+script = ExtResource("2_duration")
+base_seconds = 6.0
+
+[sub_resource type="Resource" id="Effect_consume_customer_request"]
+script = ExtResource("3_effect")
+id = "effect.consume_input.customer_request"
+effect_type = "consume_input"
+parameters = {
+"card_definition_id": "card.input.customer_request"
+}
+
+[sub_resource type="Resource" id="Effect_spawn_promising_user_story"]
+script = ExtResource("3_effect")
+id = "effect.spawn_card.promising_user_story"
+effect_type = "spawn_card"
+parameters = {
+"card_definition_id": "card.task.promising_user_story",
+"count": 1
+}
+
+[sub_resource type="Resource" id="Input_customer_request"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.input.customer_request"
+
+[sub_resource type="Resource" id="Input_product_owner"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.employee.product_owner"
+
+[resource]
+script = ExtResource("4_recipe")
+id = "recipe.promising_user_story_from_customer_request.product_owner"
+display_text = "Kundenwunsch klaeren"
+inputs = Array[ExtResource("1_matcher")]([SubResource("Input_customer_request"), SubResource("Input_product_owner")])
+duration = SubResource("Duration_promising_story")
+priority = 20
+specificity_score = 2
+effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_consume_customer_request"), SubResource("Effect_spawn_promising_user_story")])
+duration_modifier_tags = PackedStringArray("planning_work")

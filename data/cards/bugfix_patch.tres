@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_card"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+
+[sub_resource type="Resource" id="Resource_visual"]
+script = ExtResource("2_visual")
+background_color = Color(0.60, 0.86, 0.82, 1)
+accent_color = Color(0.08, 0.46, 0.40, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+marker_text = "FIX"
+
+[resource]
+script = ExtResource("1_card")
+id = "card.consumable.bugfix_patch"
+display_name = "Bugfix-Patch"
+type = 9
+tags = PackedStringArray("consumable", "bugfix_patch")
+short_text = "Entfernt Bug sofort"
+tooltip_text = "Kann einen Bug sofort entfernen und wird dabei verbraucht."
+visual = SubResource("Resource_visual")

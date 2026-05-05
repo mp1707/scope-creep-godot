@@ -14,8 +14,8 @@ Der Plan bleibt bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, w
 
 ## Fortschritt
 
-- [ ] Phase 0 - Baseline sichern und PoC2-Scope einfrieren
-- [ ] Phase 1 - Content-Katalog fuer PoC2 anlegen
+- [x] Phase 0 - Baseline sichern und PoC2-Scope einfrieren
+- [x] Phase 1 - Content-Katalog fuer PoC2 anlegen
 - [ ] Phase 2 - Rollen und saubere Feature-Pipeline
 - [ ] Phase 3 - Feature-Wert, Release-Varianten und Tech-Debt-Risiko
 - [ ] Phase 4 - Problemwirtschaft: Bugs, Bugfixes, Tech Debt, Prod-Crash
@@ -154,25 +154,25 @@ Ziel: Der bestehende PoC bleibt stabil. PoC2 beginnt mit einem klaren Scope und 
 
 Codex:
 
-- [ ] `git status --short` pruefen und keine lokalen User-Aenderungen ueberschreiben.
-- [ ] Bestehende Tests aus `poc-plan.md` laufen lassen oder dokumentieren, welche noch offen sind.
-- [ ] Bestehende Content-IDs erfassen, damit PoC2 keine versehentlichen ID-Umbenennungen erzeugt.
-- [ ] Kurz pruefen, welche PoC2-Karten/Recipes bereits teilweise existieren: Bug, Tech Debt, Prod-Crash, Kaffee, Booster-Slot.
-- [ ] Eine kleine `POC2_NOTES.md` oder einen Abschnitt in diesem Plan nutzen, um Abweichungen waehrend der Umsetzung festzuhalten.
+- [x] `git status --short` pruefen und keine lokalen User-Aenderungen ueberschreiben.
+- [x] Bestehende Tests aus `poc-plan.md` laufen lassen oder dokumentieren, welche noch offen sind.
+- [x] Bestehende Content-IDs erfassen, damit PoC2 keine versehentlichen ID-Umbenennungen erzeugt.
+- [x] Kurz pruefen, welche PoC2-Karten/Recipes bereits teilweise existieren: Bug, Tech Debt, Prod-Crash, Kaffee, Booster-Slot.
+- [x] Eine kleine `POC2_NOTES.md` oder einen Abschnitt in diesem Plan nutzen, um Abweichungen waehrend der Umsetzung festzuhalten.
 
 Marco:
 
-- [ ] Aktuellen PoC einmal im Editor starten.
-- [ ] Bestaetigen, dass der aktuelle Slice weiterhin spielbar ist.
-- [ ] Entscheiden, ob PoC2 auf demselben Branch oder auf einem neuen Branch umgesetzt wird.
-- [ ] Scope bestaetigen: Konflikt-System bleibt bewusst out-of-scope.
+- [x] Aktuellen PoC einmal im Editor starten.
+- [x] Bestaetigen, dass der aktuelle Slice weiterhin spielbar ist.
+- [x] Entscheiden, ob PoC2 auf demselben Branch oder auf einem neuen Branch umgesetzt wird.
+- [x] Scope bestaetigen: Konflikt-System bleibt bewusst out-of-scope.
 
 Definition of Done:
 
-- [ ] Aktueller PoC startet ohne neue Blocker.
-- [ ] Bestehende Kernregeln sind nicht kaputt.
-- [ ] PoC2-Scope ist schriftlich eingefroren.
-- [ ] Keine ID-Umbenennungen ohne bewusste Migration/Alias-Regel.
+- [x] Aktueller PoC startet ohne neue Blocker.
+- [x] Bestehende Kernregeln sind nicht kaputt.
+- [x] PoC2-Scope ist schriftlich eingefroren.
+- [x] Keine ID-Umbenennungen ohne bewusste Migration/Alias-Regel.
 
 ## Phase 1 - Content-Katalog fuer PoC2 anlegen
 
@@ -180,25 +180,25 @@ Ziel: Alle neuen Karten, Booster, Shops und Balance-Werte existieren datengetrie
 
 Codex:
 
-- [ ] Neue `CardDefinition`-Resources fuer Product Owner, Tester, Externer Dev, Kundenwunsch, User Story, Vielversprechende User Story, Gepruefte Funktion, Burnout, Kunde, Kaffeemaschine, Auftrag, Pizza Party, Stressbewaeltigungskurs und Bugfix-Patch anlegen.
-- [ ] Falls noch nicht final vorhanden: Tech Debt und Prod-Crash CardDefinitions vervollstaendigen.
-- [ ] Tags sauber setzen, z. B. `employee`, `product_owner`, `tester`, `developer`, `external`, `input`, `task`, `feature`, `checked`, `problem`, `burnout`, `tech_debt`, `value_source`, `consumable`.
-- [ ] Visual-Minimum pflegen: Farbe, Label, kurzer Typmarker, Tooltip-Text.
-- [ ] `BalanceDefinition` um PoC2-Werte erweitern: PO-Dauer, Tester-Dauer, Tech-Debt-Chance, Burnout-Increment, Burnout-Recovery-Dauer, Pizza-Recovery-Dauer, Bugfix-Dauern, Prod-Crash-Dauer, Auftrag-Bonus.
-- [ ] Content-Validator erweitern, damit fehlende Tags/Visual-Minima fuer neue Karten auffallen.
+- [x] Neue `CardDefinition`-Resources fuer Product Owner, Tester, Externer Dev, Kundenwunsch, User Story, Vielversprechende User Story, Gepruefte Funktion, Burnout, Kunde, Kaffeemaschine, Auftrag, Pizza Party, Stressbewaeltigungskurs und Bugfix-Patch anlegen.
+- [x] Falls noch nicht final vorhanden: Tech Debt und Prod-Crash CardDefinitions vervollstaendigen.
+- [x] Tags sauber setzen, z. B. `employee`, `product_owner`, `tester`, `developer`, `external`, `input`, `task`, `feature`, `checked`, `problem`, `burnout`, `tech_debt`, `value_source`, `consumable`.
+- [x] Visual-Minimum pflegen: Farbe, Label, kurzer Typmarker, Tooltip-Text.
+- [x] `BalanceDefinition` um PoC2-Werte erweitern: PO-Dauer, Tester-Dauer, Tech-Debt-Chance, Burnout-Increment, Burnout-Recovery-Dauer, Pizza-Recovery-Dauer, Bugfix-Dauern, Prod-Crash-Dauer, Auftrag-Bonus.
+- [x] Content-Validator erweitern, damit fehlende Tags/Visual-Minima fuer neue Karten auffallen.
 
 Marco:
 
-- [ ] Neue Resources im Godot Editor oeffnen und pruefen, ob Felder sinnvoll editierbar sind.
-- [ ] Farben und Labels grob abstimmen, damit die Kartengruppen im Playtest sofort unterscheidbar sind.
-- [ ] Tooltips/kurze Texte bei Bedarf inhaltlich schaerfen.
+- [x] Neue Resources im Godot Editor oeffnen und pruefen, ob Felder sinnvoll editierbar sind.
+- [x] Farben und Labels grob abstimmen, damit die Kartengruppen im Playtest sofort unterscheidbar sind.
+- [x] Tooltips/kurze Texte bei Bedarf inhaltlich schaerfen.
 
 Definition of Done:
 
-- [ ] Alle PoC2-Karten existieren als Resource.
-- [ ] Content-Validator meldet keine fehlenden Referenzen.
-- [ ] Neue Karten sind im Inspector sinnvoll pflegbar.
-- [ ] Keine neue Karte ist nur hardcodiert im Script bekannt.
+- [x] Alle PoC2-Karten existieren als Resource.
+- [x] Content-Validator meldet keine fehlenden Referenzen.
+- [x] Neue Karten sind im Inspector sinnvoll pflegbar.
+- [x] Keine neue Karte ist nur hardcodiert im Script bekannt.
 
 Headless-Check:
 
@@ -212,14 +212,14 @@ Ziel: Product Owner und Tester machen den Unterschied zwischen schneller und sau
 
 Codex:
 
-- [ ] Recipes anlegen: `Idee + Product Owner -> User Story`.
-- [ ] Recipes anlegen: `Kundenwunsch + Product Owner -> Vielversprechende User Story`.
-- [ ] Recipes anlegen: `User Story + Entwickler -> Funktion`.
+- [x] Recipes anlegen: `Idee + Product Owner -> User Story`.
+- [x] Recipes anlegen: `Kundenwunsch + Product Owner -> Vielversprechende User Story`.
+- [x] Recipes anlegen: `User Story + Entwickler -> Funktion`.
 - [ ] Recipes anlegen: `Vielversprechende User Story + Entwickler -> Funktion` mit hoeherem Funktionswert oder Runtime-Wert `feature_value`.
-- [ ] Recipes anlegen: `Funktion + Tester -> Gepruefte Funktion`.
-- [ ] Sicherstellen, dass Reihenfolge im Stack irrelevant bleibt.
-- [ ] Sicherstellen, dass Zusatzkarten, die nicht Teil des Recipes sind, den Stack neutral machen.
-- [ ] Headless Tests fuer alle neuen Pipeline-Recipes schreiben.
+- [x] Recipes anlegen: `Funktion + Tester -> Gepruefte Funktion`.
+- [x] Sicherstellen, dass Reihenfolge im Stack irrelevant bleibt.
+- [x] Sicherstellen, dass Zusatzkarten, die nicht Teil des Recipes sind, den Stack neutral machen.
+- [x] Headless Tests fuer alle neuen Pipeline-Recipes schreiben.
 - [ ] Optional: Startzustand oder Test-Debug-Spawn so erweitern, dass PO/Tester fuer Playtests leicht verfuegbar sind.
 
 Marco:
@@ -230,11 +230,11 @@ Marco:
 
 Definition of Done:
 
-- [ ] Spieler kann aus Idee per PO eine User Story erzeugen.
-- [ ] Spieler kann aus User Story per Entwickler eine Funktion erzeugen.
-- [ ] Spieler kann aus Funktion per Tester eine Gepruefte Funktion erzeugen.
-- [ ] Gepruefte Funktion bleibt eine eigene Karte, kein unsichtbarer Status.
-- [ ] Simulation-Tests bestehen ohne Presentation.
+- [x] Spieler kann aus Idee per PO eine User Story erzeugen.
+- [x] Spieler kann aus User Story per Entwickler eine Funktion erzeugen.
+- [x] Spieler kann aus Funktion per Tester eine Gepruefte Funktion erzeugen.
+- [x] Gepruefte Funktion bleibt eine eigene Karte, kein unsichtbarer Status.
+- [x] Simulation-Tests bestehen ohne Presentation.
 
 Headless-Test:
 

@@ -14,7 +14,7 @@ icon_color = Color(0.06, 0.055, 0.05, 1)
 icon_size = Vector2(78, 78)
 icon_offset = Vector2(0, 0)
 icon_recolor_alpha_mask = true
-marker_text = ""
+marker_text = "TD"
 
 [resource]
 script = ExtResource("1_n4dn8")
@@ -22,6 +22,6 @@ id = "card.problem.tech_debt"
 display_name = "Technische Schulden"
 type = 4
 tags = PackedStringArray("problem", "tech_debt")
-short_text = "+5s auf Feature/Bugfix"
-tooltip_text = "Verlaengert Feature- und Bugfix-Arbeit global"
+short_text = "Verlaengert Arbeit"
+tooltip_text = "Verlaengert Feature- und Bugfix-Arbeit global."
 visual = SubResource("Resource_tn0rp")

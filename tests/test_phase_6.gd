@@ -39,7 +39,8 @@ func _test_application_bootstrap_binds_board() -> void:
 	_assert_true(app.run_state != null, "Application should start a run.")
 	_assert_equal(board.state, app.run_state, "BoardView should bind to the application RunState.")
 	_assert_equal(board.content, app.content, "BoardView should bind to the application ContentCatalog.")
-	_assert_equal(board.get_child_count(), app.run_state.cards.size(), "BoardView should create card views for the start run.")
+	for card_id: String in app.run_state.cards.keys():
+		_assert_true(board.get_card_view(card_id) != null, "BoardView should create card views for the start run.")
 	app.queue_free()
 
 func _test_card_view_controls_do_not_consume_mouse() -> void:

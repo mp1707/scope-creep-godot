@@ -6,6 +6,24 @@ const RECIPE_DIR: String = "res://data/recipes"
 const BOOSTER_DIR: String = "res://data/boosters"
 const SHOP_DIR: String = "res://data/shops"
 const BALANCE_DIR: String = "res://data/balance"
+const POC2_REQUIRED_CARD_TAGS: Dictionary = {
+	"card.employee.product_owner": ["employee", "product_owner"],
+	"card.employee.tester": ["employee", "tester"],
+	"card.employee.external_dev": ["employee", "developer", "external"],
+	"card.input.customer_request": ["input", "customer_request"],
+	"card.task.user_story": ["task", "user_story"],
+	"card.task.promising_user_story": ["task", "user_story", "promising"],
+	"card.output.checked_feature": ["output", "feature", "checked"],
+	"card.problem.tech_debt": ["problem", "tech_debt"],
+	"card.problem.burnout": ["problem", "burnout"],
+	"card.problem.prod_crash": ["problem", "prod_crash"],
+	"card.consumable.bugfix_patch": ["consumable", "bugfix_patch"],
+	"card.consumable.pizza_party": ["consumable", "pizza_party"],
+	"card.consumable.stress_course": ["consumable", "stress_course"],
+	"card.value_source.customer": ["value_source", "customer"],
+	"card.value_source.coffee_machine": ["value_source", "coffee_machine"],
+	"card.value_source.order": ["value_source", "order"],
+}
 
 var _errors: PackedStringArray = PackedStringArray()
 var _seen_ids: Dictionary = {}
@@ -104,8 +122,26 @@ func _validate_card(card: CardDefinition) -> void:
 		_errors.append("%s: Card '%s' needs short_text for placeholder cards." % [path, card.id])
 	if card.visual == null:
 		_errors.append("%s: Card '%s' needs a visual definition." % [path, card.id])
+	else:
+		_validate_poc2_visual_minimum(card)
+	_validate_poc2_required_tags(card)
 
 	_card_ids[card.id] = path
+
+func _validate_poc2_required_tags(card: CardDefinition) -> void:
+	if not POC2_REQUIRED_CARD_TAGS.has(card.id):
+		return
+
+	var required_tags: Array = POC2_REQUIRED_CARD_TAGS[card.id] as Array
+	for tag: String in required_tags:
+		if not card.tags.has(tag):
+			_errors.append("%s: PoC2 card '%s' needs tag '%s'." % [card.resource_path, card.id, tag])
+
+func _validate_poc2_visual_minimum(card: CardDefinition) -> void:
+	if not POC2_REQUIRED_CARD_TAGS.has(card.id):
+		return
+	if card.visual.marker_text.strip_edges().is_empty():
+		_errors.append("%s: PoC2 card '%s' needs visual.marker_text." % [card.resource_path, card.id])
 
 func _validate_recipe(recipe: RecipeDefinition) -> void:
 	var path: String = recipe.resource_path
@@ -238,3 +274,7 @@ func _validate_balance(balance: BalanceDefinition) -> void:
 		_errors.append("%s: Balance '%s' needs positive sprint_duration_seconds." % [path, balance.id])
 	if balance.board_snap_distance <= 0.0:
 		_errors.append("%s: Balance '%s' needs positive board_snap_distance." % [path, balance.id])
+	if balance.tech_debt_chance < 0.0 or balance.tech_debt_chance > 1.0:
+		_errors.append("%s: Balance '%s' needs tech_debt_chance between 0 and 1." % [path, balance.id])
+	if balance.order_bonus_money_cards < 0:
+		_errors.append("%s: Balance '%s' needs non-negative order_bonus_money_cards." % [path, balance.id])

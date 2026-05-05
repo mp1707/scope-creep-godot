@@ -6,4 +6,15 @@
 script = ExtResource("1_0xr8k")
 id = "balance.poc.default"
 release_duration_seconds = 6.0
+product_owner_duration_seconds = 6.0
+tester_duration_seconds = 7.0
+tech_debt_chance = 0.25
+burnout_increment_per_completed_work = 0.1
+burnout_recovery_duration_seconds = 45.0
+pizza_recovery_duration_seconds = 5.0
+developer_bugfix_duration_seconds = 8.0
+tester_bugfix_duration_seconds = 11.0
+external_dev_bugfix_duration_seconds = 4.0
+prod_crash_fix_duration_seconds = 18.0
+order_bonus_money_cards = 2
 stack_offset = Vector2(0, 33)

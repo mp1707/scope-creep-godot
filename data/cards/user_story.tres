@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_card"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+
+[sub_resource type="Resource" id="Resource_visual"]
+script = ExtResource("2_visual")
+background_color = Color(0.84, 0.80, 0.60, 1)
+accent_color = Color(0.44, 0.36, 0.12, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+marker_text = "US"
+
+[resource]
+script = ExtResource("1_card")
+id = "card.task.user_story"
+display_name = "User Story"
+type = 2
+tags = PackedStringArray("task", "user_story")
+short_text = "Sauberer Arbeitsinput"
+tooltip_text = "Kann mit Entwickler zu einer Funktion umgesetzt werden."
+visual = SubResource("Resource_visual")
