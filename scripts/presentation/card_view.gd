@@ -8,9 +8,12 @@ const HEADER_HEIGHT: float = 34.0
 const CARD_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
 const DRAG_SHADOW_COLOR: Color = Color(0.18, 0.17, 0.15, 1.0)
 const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
+const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 108.0)
+const ICON_MASK_SHADER_CODE: String = "shader_type canvas_item;\nuniform vec4 icon_color : source_color = vec4(0.06, 0.055, 0.05, 1.0);\nvoid fragment() {\n\tvec4 texture_color = texture(TEXTURE, UV);\n\tCOLOR = vec4(icon_color.rgb, texture_color.a * icon_color.a);\n}\n"
 
 @export var background_path: NodePath
 @export var title_label_path: NodePath
+@export var icon_texture_rect_path: NodePath
 @export var short_text_label_path: NodePath
 @export var marker_label_path: NodePath
 @export var progress_bar_path: NodePath
@@ -23,12 +26,15 @@ var _shadow: Control = null
 var _background: Control = null
 var _header_band: Control = null
 var _title_label: Label = null
+var _icon_texture_rect: TextureRect = null
 var _short_text_label: Label = null
 var _marker_label: Label = null
 var _progress_bar: ProgressBar = null
 var _action_label: Label = null
 var _default_marker_text: String = ""
 var _card_font: FontFile = null
+var _icon_mask_material: ShaderMaterial = null
+var _layout_initialized: bool = false
 
 func _ready() -> void:
 	_set_top_left_layout(self)
@@ -75,6 +81,10 @@ func _resolve_or_create_nodes() -> void:
 		_header_band = get_node_or_null("HeaderBand") as Control
 	if _title_label == null:
 		_title_label = get_node_or_null(title_label_path) as Label
+	if _icon_texture_rect == null:
+		_icon_texture_rect = get_node_or_null(icon_texture_rect_path) as TextureRect
+	if _icon_texture_rect == null:
+		_icon_texture_rect = get_node_or_null("IconTextureRect") as TextureRect
 	if _short_text_label == null:
 		_short_text_label = get_node_or_null(short_text_label_path) as Label
 	if _marker_label == null:
@@ -114,6 +124,14 @@ func _resolve_or_create_nodes() -> void:
 		_title_label = _create_label("TitleLabel", Vector2(9.0, 3.0), Vector2(126.0, 25.0), HORIZONTAL_ALIGNMENT_CENTER)
 	if _marker_label == null:
 		_marker_label = _create_label("MarkerLabel", Vector2(98.0, 42.0), Vector2(34.0, 24.0), HORIZONTAL_ALIGNMENT_CENTER)
+	if _icon_texture_rect == null:
+		_icon_texture_rect = TextureRect.new()
+		_icon_texture_rect.name = "IconTextureRect"
+		_icon_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_icon_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_icon_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		_icon_texture_rect.clip_contents = true
+		add_child(_icon_texture_rect)
 	if _short_text_label == null:
 		_short_text_label = _create_label("ShortTextLabel", Vector2(12.0, 74.0), Vector2(120.0, 62.0), HORIZONTAL_ALIGNMENT_LEFT)
 		_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -130,7 +148,15 @@ func _resolve_or_create_nodes() -> void:
 	move_child(_shadow, 0)
 	move_child(_background, 1)
 	move_child(_header_band, 2)
-	_apply_default_layout()
+	move_child(_icon_texture_rect, 3)
+	move_child(_title_label, 4)
+	move_child(_marker_label, 5)
+	move_child(_short_text_label, 6)
+	move_child(_progress_bar, 7)
+	move_child(_action_label, 8)
+	if not _layout_initialized:
+		_apply_default_layout()
+		_layout_initialized = true
 
 func _create_label(node_name: String, label_position: Vector2, label_size: Vector2, alignment: HorizontalAlignment) -> Label:
 	var label: Label = Label.new()
@@ -173,6 +199,14 @@ func _apply_default_layout() -> void:
 	if _card_font != null:
 		_title_label.add_theme_font_override("font", _card_font)
 	_title_label.add_theme_font_size_override("font_size", 22)
+	_set_top_left_layout(_icon_texture_rect)
+	_icon_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_icon_texture_rect.custom_minimum_size = Vector2.ZERO
+	_icon_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_icon_texture_rect.position = DEFAULT_ICON_CENTER - Vector2(39.0, 39.0)
+	_icon_texture_rect.size = Vector2(78.0, 78.0)
+	_icon_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_icon_texture_rect.clip_contents = true
 	_set_top_left_layout(_marker_label)
 	_marker_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_marker_label.position = Vector2(98.0, 42.0)
@@ -210,6 +244,7 @@ func _apply_definition(definition: CardDefinition) -> void:
 
 	_marker_label.text = visual.marker_text
 	_default_marker_text = visual.marker_text
+	_apply_icon_style(visual)
 	for label: Label in [_title_label, _short_text_label, _marker_label, _action_label]:
 		label.add_theme_color_override("font_color", visual.text_color)
 
@@ -229,6 +264,33 @@ func _apply_definition(definition: CardDefinition) -> void:
 		style_box.corner_radius_top_right = CARD_CORNER_RADIUS
 		_background.add_theme_stylebox_override("panel", style_box)
 	_apply_header_style(visual)
+
+func _apply_icon_style(visual: CardVisualDefinition) -> void:
+	_icon_texture_rect.texture = visual.icon_texture
+	_icon_texture_rect.visible = visual.icon_texture != null
+	_icon_texture_rect.custom_minimum_size = Vector2.ZERO
+	_icon_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_icon_texture_rect.size = visual.icon_size
+	_icon_texture_rect.position = DEFAULT_ICON_CENTER - (visual.icon_size * 0.5) + visual.icon_offset
+	_icon_texture_rect.self_modulate = Color.WHITE
+	if visual.icon_texture == null:
+		_icon_texture_rect.material = null
+		return
+	if visual.icon_recolor_alpha_mask:
+		_icon_texture_rect.material = _get_icon_mask_material()
+		_icon_mask_material.set_shader_parameter("icon_color", visual.icon_color)
+	else:
+		_icon_texture_rect.material = null
+		_icon_texture_rect.self_modulate = visual.icon_color
+
+func _get_icon_mask_material() -> ShaderMaterial:
+	if _icon_mask_material != null:
+		return _icon_mask_material
+	var shader: Shader = Shader.new()
+	shader.code = ICON_MASK_SHADER_CODE
+	_icon_mask_material = ShaderMaterial.new()
+	_icon_mask_material.shader = shader
+	return _icon_mask_material
 
 func _apply_header_style(visual: CardVisualDefinition) -> void:
 	if _header_band == null:

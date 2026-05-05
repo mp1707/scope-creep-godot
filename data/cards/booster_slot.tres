@@ -2,12 +2,18 @@
 
 [ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_vy2m0"]
 [ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_t9l0h"]
+[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/money.png" id="3_37ofg"]
 
 [sub_resource type="Resource" id="Resource_7u6xq"]
 script = ExtResource("2_t9l0h")
 background_color = Color(0.64, 0.76, 0.88, 1)
 accent_color = Color(0.18, 0.33, 0.48, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
+icon_texture = ExtResource("3_37ofg")
+icon_color = Color(0.06, 0.055, 0.05, 1)
+icon_size = Vector2(78, 78)
+icon_offset = Vector2(0, 0)
+icon_recolor_alpha_mask = true
 marker_text = "$"
 
 [resource]

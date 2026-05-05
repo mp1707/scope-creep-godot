@@ -1,14 +1,15 @@
-[gd_resource type="Resource" script_class="CardDefinition" format=3]
+[gd_resource type="Resource" script_class="CardDefinition" format=3 uid="uid://jm5qp3y1q41r"]
 
-[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_uu4mb"]
-[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_n8e6y"]
+[ext_resource type="Script" uid="uid://cindpeikx18t1" path="res://scripts/data/card_definition.gd" id="1_uu4mb"]
+[ext_resource type="Script" uid="uid://doiop67wth2ac" path="res://scripts/data/card_visual_definition.gd" id="2_n8e6y"]
+[ext_resource type="Texture2D" uid="uid://dgrsktiva4cgk" path="res://assets/icons/handdrawn/cardIcons/bug.png" id="3_hludf"]
 
 [sub_resource type="Resource" id="Resource_4xlse"]
 script = ExtResource("2_n8e6y")
 background_color = Color(0.94, 0.52, 0.55, 1)
 accent_color = Color(0.55, 0.12, 0.17, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
-marker_text = ""
+icon_texture = ExtResource("3_hludf")
 
 [resource]
 script = ExtResource("1_uu4mb")

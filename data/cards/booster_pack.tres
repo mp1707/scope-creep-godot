@@ -2,12 +2,18 @@
 
 [ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_ohhjm"]
 [ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_6ycvs"]
+[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/star.png" id="3_tcf2r"]
 
 [sub_resource type="Resource" id="Resource_rpu0n"]
 script = ExtResource("2_6ycvs")
 background_color = Color(0.78, 0.67, 0.9, 1)
 accent_color = Color(0.36, 0.28, 0.48, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
+icon_texture = ExtResource("3_tcf2r")
+icon_color = Color(0.06, 0.055, 0.05, 1)
+icon_size = Vector2(78, 78)
+icon_offset = Vector2(0, 0)
+icon_recolor_alpha_mask = true
 marker_text = ""
 
 [resource]

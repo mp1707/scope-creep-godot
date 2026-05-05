@@ -2,12 +2,18 @@
 
 [ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_w13xv"]
 [ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_nd0ff"]
+[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/calendar.png" id="3_h3l4v"]
 
 [sub_resource type="Resource" id="Resource_e23bo"]
 script = ExtResource("2_nd0ff")
 background_color = Color(0.62, 0.82, 0.92, 1)
 accent_color = Color(0.16, 0.42, 0.58, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
+icon_texture = ExtResource("3_h3l4v")
+icon_color = Color(0.06, 0.055, 0.05, 1)
+icon_size = Vector2(78, 78)
+icon_offset = Vector2(0, 0)
+icon_recolor_alpha_mask = true
 marker_text = ""
 
 [resource]

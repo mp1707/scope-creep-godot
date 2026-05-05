@@ -5,6 +5,8 @@ var _failed: bool = false
 func _init() -> void:
 	_test_board_builds_card_views()
 	_test_cards_show_name_and_tooltip_only()
+	_test_card_icon_uses_visual_size_and_offset()
+	_test_drag_preserves_card_icon_visual_size()
 	_test_stack_layout_offsets_cards()
 	_test_snap_finds_near_stack()
 	_test_dragging_upper_card_requests_split()
@@ -43,6 +45,45 @@ func _test_cards_show_name_and_tooltip_only() -> void:
 	_assert_equal(short_text_label.visible, false, "Card face should not show explanatory text.")
 	_assert_equal(marker_label.visible, false, "Card face should not show type abbreviations.")
 	_assert_equal(developer_view.tooltip_text, "Baut Features", "Card tooltip should carry the explanation text.")
+
+func _test_card_icon_uses_visual_size_and_offset() -> void:
+	var context: Dictionary = _create_bound_board()
+	var board: BoardView = context["board"] as BoardView
+	var catalog: ContentCatalog = context["catalog"] as ContentCatalog
+	var money_definition: CardDefinition = catalog.get_card_definition("card.resource.money")
+	money_definition.visual.icon_size = Vector2(26.0, 26.0)
+	money_definition.visual.icon_offset = Vector2(3.0, -5.0)
+	board.refresh()
+
+	var state: RunState = context["state"] as RunState
+	var money: CardInstance = _find_card_by_definition(state, "card.resource.money")
+	var money_view: CardView = board.get_card_view(money.instance_id)
+	var icon: TextureRect = money_view.get_node("IconTextureRect") as TextureRect
+
+	_assert_equal(icon.size, Vector2(26.0, 26.0), "Card icon should use the visual icon_size exactly.")
+	_assert_equal(icon.position, Vector2(62.0, 90.0), "Card icon should be centered and then shifted by visual icon_offset.")
+
+func _test_drag_preserves_card_icon_visual_size() -> void:
+	var context: Dictionary = _create_bound_board()
+	var board: BoardView = context["board"] as BoardView
+	var catalog: ContentCatalog = context["catalog"] as ContentCatalog
+	var developer_definition: CardDefinition = catalog.get_card_definition("card.employee.developer")
+	developer_definition.visual.icon_size = Vector2(117.0, 117.0)
+	board.refresh()
+
+	var state: RunState = context["state"] as RunState
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var developer_view: CardView = board.get_card_view(developer.instance_id)
+	var icon: TextureRect = developer_view.get_node("IconTextureRect") as TextureRect
+	_assert_equal(icon.size, Vector2(117.0, 117.0), "Card icon should use enlarged visual icon_size before dragging.")
+
+	var press_position: Vector2 = developer_view.position + Vector2(12.0, 12.0)
+	var drag_position: Vector2 = press_position + Vector2(64.0, 32.0)
+	_send_mouse_button(board, press_position, true)
+	_send_mouse_motion(board, drag_position)
+
+	_assert_equal(icon.size, Vector2(117.0, 117.0), "Dragging should not reset CardView icon size to defaults.")
+	_send_mouse_button(board, drag_position, false)
 
 func _test_stack_layout_offsets_cards() -> void:
 	var context: Dictionary = _create_bound_board()

@@ -1,14 +1,16 @@
-[gd_resource type="Resource" script_class="CardDefinition" format=3]
+[gd_resource type="Resource" script_class="CardDefinition" format=3 uid="uid://ogqpsgik74v0"]
 
-[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_x8mrd"]
-[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_2v8g7"]
+[ext_resource type="Script" uid="uid://cindpeikx18t1" path="res://scripts/data/card_definition.gd" id="1_x8mrd"]
+[ext_resource type="Script" uid="uid://doiop67wth2ac" path="res://scripts/data/card_visual_definition.gd" id="2_2v8g7"]
+[ext_resource type="Texture2D" uid="uid://c87jo4kl50kse" path="res://assets/icons/handdrawn/characters/steve.png" id="3_u8si4"]
 
 [sub_resource type="Resource" id="Resource_oityl"]
 script = ExtResource("2_2v8g7")
 background_color = Color(0.64, 0.82, 0.58, 1)
 accent_color = Color(0.25, 0.48, 0.25, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
-marker_text = ""
+icon_texture = ExtResource("3_u8si4")
+icon_size = Vector2(117, 117)
 
 [resource]
 script = ExtResource("1_x8mrd")

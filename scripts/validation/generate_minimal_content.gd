@@ -18,7 +18,8 @@ func _save_cards() -> int:
 		PackedStringArray(["software", "product"]),
 		"Produktbasis",
 		Color(0.62, 0.82, 0.92),
-		Color(0.16, 0.42, 0.58)
+		Color(0.16, 0.42, 0.58),
+		"res://assets/icons/handdrawn/cardIcons/calendar.png"
 	), "res://data/cards/software.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.employee.developer",
@@ -27,7 +28,8 @@ func _save_cards() -> int:
 		PackedStringArray(["employee", "developer"]),
 		"Baut Features",
 		Color(0.64, 0.82, 0.58),
-		Color(0.25, 0.48, 0.25)
+		Color(0.25, 0.48, 0.25),
+		"res://assets/icons/handdrawn/characters/steve.png"
 	), "res://data/cards/developer.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.input.idea",
@@ -36,7 +38,8 @@ func _save_cards() -> int:
 		PackedStringArray(["idea", "input"]),
 		"Kann umgesetzt werden",
 		Color(0.98, 0.82, 0.42),
-		Color(0.62, 0.42, 0.08)
+		Color(0.62, 0.42, 0.08),
+		"res://assets/icons/handdrawn/cardIcons/star.png"
 	), "res://data/cards/idea.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.output.feature",
@@ -45,7 +48,8 @@ func _save_cards() -> int:
 		PackedStringArray(["feature", "output"]),
 		"Erzeugt Wert in Software",
 		Color(0.70, 0.78, 0.96),
-		Color(0.22, 0.36, 0.68)
+		Color(0.22, 0.36, 0.68),
+		"res://assets/icons/handdrawn/cardIcons/mail.png"
 	), "res://data/cards/feature.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.resource.money",
@@ -54,7 +58,8 @@ func _save_cards() -> int:
 		PackedStringArray(["money", "resource"]),
 		"Immer genau 1 Geld",
 		Color(0.62, 0.88, 0.66),
-		Color(0.17, 0.48, 0.24)
+		Color(0.17, 0.48, 0.24),
+		"res://assets/icons/handdrawn/cardIcons/money.png"
 	), "res://data/cards/money.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.problem.bug",
@@ -63,7 +68,8 @@ func _save_cards() -> int:
 		PackedStringArray(["problem", "bug"]),
 		"Eskalation am Sprintstart",
 		Color(0.94, 0.52, 0.55),
-		Color(0.55, 0.12, 0.17)
+		Color(0.55, 0.12, 0.17),
+		"res://assets/icons/handdrawn/cardIcons/bug.png"
 	), "res://data/cards/bug.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.problem.prod_crash",
@@ -72,7 +78,8 @@ func _save_cards() -> int:
 		PackedStringArray(["problem", "prod_crash"]),
 		"Blockiert Einnahmen",
 		Color(0.48, 0.09, 0.12),
-		Color(0.98, 0.58, 0.24)
+		Color(0.98, 0.58, 0.24),
+		"res://assets/icons/handdrawn/cardIcons/fire.png"
 	), "res://data/cards/prod_crash.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.problem.tech_debt",
@@ -81,7 +88,8 @@ func _save_cards() -> int:
 		PackedStringArray(["problem", "tech_debt"]),
 		"+5s auf Feature/Bugfix",
 		Color(0.74, 0.72, 0.68),
-		Color(0.26, 0.27, 0.29)
+		Color(0.26, 0.27, 0.29),
+		"res://assets/icons/handdrawn/cardIcons/exclamationmark.png"
 	), "res://data/cards/tech_debt.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.consumable.coffee",
@@ -90,7 +98,8 @@ func _save_cards() -> int:
 		PackedStringArray(["coffee", "consumable"]),
 		"Beschleunigt ein Arbeits-Recipe",
 		Color(0.92, 0.68, 0.52),
-		Color(0.50, 0.25, 0.12)
+		Color(0.50, 0.25, 0.12),
+		"res://assets/icons/handdrawn/cardIcons/coffee.png"
 	), "res://data/cards/coffee.tres"))
 	var booster_pack_card: CardDefinition = _create_card(
 		"card.resource.booster_pack",
@@ -99,7 +108,8 @@ func _save_cards() -> int:
 		PackedStringArray(["booster", "pack"]),
 		"Oeffnet neue Karten",
 		Color(0.78, 0.67, 0.90),
-		Color(0.36, 0.28, 0.48)
+		Color(0.36, 0.28, 0.48),
+		"res://assets/icons/handdrawn/cardIcons/star.png"
 	)
 	booster_pack_card.base_values = {"booster_definition_id": "booster.founder.test_pack"}
 	exit_code = max(exit_code, _save_resource(booster_pack_card, "res://data/cards/booster_pack.tres"))
@@ -110,7 +120,8 @@ func _save_cards() -> int:
 		PackedStringArray(["shop", "booster_slot"]),
 		"Kauft ein Pack",
 		Color(0.64, 0.76, 0.88),
-		Color(0.18, 0.33, 0.48)
+		Color(0.18, 0.33, 0.48),
+		"res://assets/icons/handdrawn/cardIcons/money.png"
 	), "res://data/cards/booster_slot.tres"))
 	return exit_code
 
@@ -283,12 +294,19 @@ func _create_card(
 	tags: PackedStringArray,
 	short_text: String,
 	background_color: Color,
-	accent_color: Color
+	accent_color: Color,
+	icon_path: String = ""
 ) -> CardDefinition:
 	var visual: CardVisualDefinition = CardVisualDefinition.new()
 	visual.background_color = background_color
 	visual.accent_color = accent_color
 	visual.text_color = Color(0.06, 0.055, 0.05)
+	if not icon_path.is_empty():
+		visual.icon_texture = ResourceLoader.load(icon_path) as Texture2D
+	visual.icon_color = visual.text_color
+	visual.icon_size = Vector2(78.0, 78.0)
+	visual.icon_offset = Vector2.ZERO
+	visual.icon_recolor_alpha_mask = true
 	visual.marker_text = ""
 
 	var card: CardDefinition = CardDefinition.new()
