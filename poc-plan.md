@@ -330,7 +330,7 @@ Codex:
 
 - [x] Booster-Slot als Presentation/Application-Interaktion anbinden.
 - [x] `Geld + Booster-Slot -> Boosterpack` als Recipe/Command abbilden.
-- [x] `Geld + Boosterpack -> 3 Karten aus Pool` ueber `OpenBoosterEffect` implementieren.
+- [x] Boosterpack per Klick oeffnen: ein Klick zieht eine Karte, nach drei Klicks verschwindet das Pack.
 - [x] Booster-Ziehungen ueber Run-RNG deterministisch machen.
 - [x] Minimal-Booster-Pool fuer PoC pflegen: Idee, Kaffee, Geld, ggf. Bugfix-Patch.
 - [x] Tests fuer deterministische Booster-Ziehung schreiben.
@@ -344,7 +344,7 @@ Marco:
 Definition of Done:
 
 - [x] Spieler kann mit Geld einen Booster erzeugen.
-- [x] Spieler kann Booster oeffnen und 3 Karten erhalten.
+- [x] Spieler kann Booster per Klick oeffnen und 3 Karten einzeln erhalten.
 - [x] Gleicher RNG-State erzeugt gleiche Booster-Ziehung.
 
 ## Phase 10 - Save/Load fuer frozen Runs
@@ -421,11 +421,12 @@ Entscheidungen waehrend der Umsetzung hier festhalten:
 - [x] Phase 7 nutzt vorerst das bestehende Dev-Overlay fuer Timer, Pause, Auto-Pay und `Sprint N+1 starten`; finaler UI-Aufbau/Styling bleibt Editor-Arbeit.
 - [x] Bezahlphase erlaubt ab Phase 7 weiterhin normale Kartenbewegung, damit gemischte Stacks vor manueller Bezahlung getrennt werden koennen. Processing bleibt trotzdem eingefroren.
 - [x] Phase 8 macht Bug, Prod-Crash und Tech Debt bereits per Entwickler bearbeitbar. Labels sind datengetrieben: `Debugging...`, `Hotfixing...`, `Aufräumen...`.
-- [x] Phase 9 modelliert den Booster-Slot als normale Karte im Start-Run. Kaufen und Oeffnen laufen ueber Recipes; nur das gewichtete Ziehen ist ein eigener `open_booster`-Effect.
+- [x] Phase 9 modelliert den Booster-Slot als normale Karte im Start-Run. Kaufen laeuft ueber Recipe; Oeffnen laeuft ab Phase 11 per Klick-Command und zieht gespeicherte Booster-Inhalte einzeln.
 - [x] Phase 10 speichert PoC-Saves als JSON unter `user://scope_creep_poc_slot_1.json`; der 64-bit-`rng_state` wird als String gespeichert, damit JSON ihn nicht rundet.
 - [x] Phase 11 buendelt Validator und Headless-Tests in `tools/check_poc.sh`; Godot-Pfad ist ueber `GODOT_BIN` ueberschreibbar.
 - [x] Das Phase-7-HUD bleibt fuer den PoC als Dev-Overlay erhalten und ist ueber `MainApplication.show_dev_overlay` abschaltbar.
+- [x] Card-Sounds und gestaffelte Spawn-/Remove-Visuals liegen in der Presentation. Headless-Tests fuehren dieselben Simulation-Events ohne Audio/Timer-Stagger aus.
 
 Bekannte technische Schulden hier festhalten:
 
-- [ ] PoC-Dauern fuer `Bug + Entwickler` und `Tech Debt + Entwickler` sind noch Balancing-Platzhalter; `Prod-Crash + Entwickler` nutzt bereits die GDD-Dauer 45s.
+- [x] PoC-Dauern fuer `Bug + Entwickler` und `Tech Debt + Entwickler` sind noch Balancing-Platzhalter; `Prod-Crash + Entwickler` nutzt bereits die GDD-Dauer 45s.

@@ -24,10 +24,14 @@ const PROGRESS_CORNER_RADIUS: int = 7
 const PROGRESS_BACKGROUND_COLOR: Color = Color(0.99, 0.985, 0.955, 1.0)
 const PROGRESS_FILL_COLOR: Color = Color(0.56, 0.78, 0.90, 1.0)
 const PROGRESS_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
+const CLICK_DRAG_THRESHOLD: float = 8.0
+const VISUAL_EVENT_STEP_SECONDS: float = 0.12
+const BoardAudioPlayerScript: GDScript = preload("res://scripts/presentation/board_audio_player.gd")
 
 signal move_stack_requested(stack_id: String, position: Vector2)
 signal move_card_to_stack_requested(card_id: String, target_stack_id: String)
 signal split_stack_requested(card_id: String, position: Vector2)
+signal card_clicked(card_id: String)
 
 @export var card_view_scene: PackedScene
 @export var card_size: Vector2 = Vector2(144.0, 196.0)
@@ -48,6 +52,11 @@ var _dragging_card_id: String = ""
 var _drag_start_stack_id: String = ""
 var _drag_start_card_index: int = -1
 var _drag_pointer_offset: Vector2 = Vector2.ZERO
+var _pending_click_card_id: String = ""
+var _pending_click_position: Vector2 = Vector2.ZERO
+var _queued_visual_events: Array[SimulationEvent] = []
+var _is_processing_visual_events: bool = false
+var _audio: Node = null
 
 func _ready() -> void:
 	set_process_unhandled_input(true)
@@ -98,11 +107,30 @@ func _unhandled_input(event: InputEvent) -> void:
 			var hit_card_id: String = _find_card_at_board_position(board_position)
 			if hit_card_id.is_empty():
 				return
+			if _is_click_openable_card(hit_card_id):
+				_pending_click_card_id = hit_card_id
+				_pending_click_position = board_position
+				_mark_input_as_handled()
+				return
 			_begin_drag(hit_card_id, board_position)
+			_mark_input_as_handled()
+		elif not _pending_click_card_id.is_empty():
+			card_clicked.emit(_pending_click_card_id)
+			_pending_click_card_id = ""
 			_mark_input_as_handled()
 		elif not _dragging_card_id.is_empty():
 			_finish_drag(board_position)
 			_mark_input_as_handled()
+
+	if event is InputEventMouseMotion and not _pending_click_card_id.is_empty():
+		var pending_motion_event: InputEventMouseMotion = event as InputEventMouseMotion
+		var pending_position: Vector2 = _viewport_position_to_board(pending_motion_event.position)
+		if pending_position.distance_to(_pending_click_position) >= CLICK_DRAG_THRESHOLD:
+			var pending_card_id: String = _pending_click_card_id
+			_pending_click_card_id = ""
+			_begin_drag(pending_card_id, _pending_click_position)
+			_update_drag_preview(pending_position)
+		_mark_input_as_handled()
 
 	if event is InputEventMouseMotion and not _dragging_card_id.is_empty():
 		var motion_event: InputEventMouseMotion = event as InputEventMouseMotion
@@ -123,9 +151,15 @@ func apply_events(events: Array[SimulationEvent]) -> void:
 	for event: SimulationEvent in events:
 		match event.type:
 			ScopeEnums.SimulationEventType.CARD_REMOVED:
-				_remove_card_view(event.card_id)
+				_queue_visual_event(event)
 			ScopeEnums.SimulationEventType.CARD_SPAWNED:
-				_ensure_card_view(event.card_id)
+				if _card_views.has(event.card_id):
+					_update_stack(event.stack_id)
+				else:
+					var spawned_view: CardView = _ensure_card_view(event.card_id)
+					spawned_view.visible = false
+					_update_stack(event.stack_id)
+					_queue_visual_event(event)
 			ScopeEnums.SimulationEventType.STACK_CHANGED, \
 			ScopeEnums.SimulationEventType.RECIPE_STARTED, \
 			ScopeEnums.SimulationEventType.RECIPE_CANCELLED, \
@@ -168,7 +202,7 @@ func find_snap_stack(card_id: String, board_position: Vector2) -> StackState:
 
 func _rebuild() -> void:
 	for child: Node in get_children():
-		if child != _drag_layer:
+		if child != _drag_layer and child != _audio:
 			child.queue_free()
 	_card_views.clear()
 	_stack_progress_views.clear()
@@ -250,6 +284,7 @@ func _begin_drag(card_id: String, board_position: Vector2) -> void:
 	_drag_preview_card_ids = preview_card_ids
 	_move_drag_views_to_layer()
 	_bring_stack_to_front(card.stack_id)
+	_play_audio("play_drag_started")
 	_update_drag_preview(board_position)
 
 func _update_drag_preview(board_position: Vector2) -> void:
@@ -291,6 +326,7 @@ func _finish_drag(board_position: Vector2) -> void:
 	_restore_drag_views_to_board()
 	if not target_stack_id.is_empty():
 		_bring_stack_to_front(target_stack_id)
+	_play_audio("play_card_dropped")
 	_dragging_card_id = ""
 	_drag_start_stack_id = ""
 	_drag_start_card_index = -1
@@ -338,6 +374,66 @@ func _ensure_drag_layer() -> void:
 	_drag_layer.name = "DragLayer"
 	_drag_layer.z_index = DRAG_LAYER_Z
 	add_child(_drag_layer)
+
+func _ensure_audio() -> void:
+	if _audio != null and is_instance_valid(_audio):
+		return
+	_audio = BoardAudioPlayerScript.new()
+	_audio.name = "BoardAudioPlayer"
+	add_child(_audio, false, Node.INTERNAL_MODE_BACK)
+
+func _play_audio(method_name: String) -> void:
+	if not _should_use_presentation_effects():
+		return
+	_ensure_audio()
+	_audio.call(method_name)
+
+func _is_click_openable_card(card_id: String) -> bool:
+	if state == null or content == null:
+		return false
+	var card: CardInstance = state.get_card(card_id)
+	if card == null:
+		return false
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition != null and definition.tags.has("booster") and definition.tags.has("pack")
+
+func _queue_visual_event(event: SimulationEvent) -> void:
+	if not _should_use_presentation_effects():
+		_apply_visual_event(event, false)
+		return
+	_queued_visual_events.append(event)
+	if not _is_processing_visual_events:
+		_process_visual_event_queue()
+
+func _process_visual_event_queue() -> void:
+	_is_processing_visual_events = true
+	_ensure_audio()
+	while not _queued_visual_events.is_empty():
+		var event: SimulationEvent = _queued_visual_events.pop_front() as SimulationEvent
+		_apply_visual_event(event, true)
+		await get_tree().create_timer(VISUAL_EVENT_STEP_SECONDS).timeout
+	_is_processing_visual_events = false
+
+func _apply_visual_event(event: SimulationEvent, with_effects: bool) -> void:
+	match event.type:
+		ScopeEnums.SimulationEventType.CARD_REMOVED:
+			if with_effects:
+				_audio.call("play_card_destroyed")
+			_remove_card_view(event.card_id)
+		ScopeEnums.SimulationEventType.CARD_SPAWNED:
+			var view: CardView = _ensure_card_view(event.card_id)
+			_update_stack(event.stack_id)
+			if view != null:
+				view.visible = true
+				if with_effects:
+					view.play_spawn_pop()
+			if with_effects:
+				_audio.call("play_card_spawned")
+		_:
+			pass
+
+func _should_use_presentation_effects() -> bool:
+	return DisplayServer.get_name() != "headless"
 
 func _find_card_at_board_position(board_position: Vector2) -> String:
 	var best_card_id: String = ""

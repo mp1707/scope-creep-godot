@@ -155,6 +155,15 @@ func _connect_board_signals() -> void:
 		_board_view.move_card_to_stack_requested.connect(request_move_card_to_stack)
 	if not _board_view.split_stack_requested.is_connected(request_split_stack):
 		_board_view.split_stack_requested.connect(request_split_stack)
+	if not _board_view.card_clicked.is_connected(request_card_clicked):
+		_board_view.card_clicked.connect(request_card_clicked)
+
+func request_card_clicked(card_id: String) -> void:
+	if controller == null:
+		return
+	controller.open_booster_pack_step(card_id)
+	_apply_pending_events()
+	_update_debug_overlay()
 
 func _apply_pending_events() -> void:
 	if controller == null or _board_view == null:

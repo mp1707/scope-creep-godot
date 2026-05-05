@@ -7,6 +7,9 @@ const SPAWN_GAP: float = 36.0
 const START_LAYOUT_ORIGIN: Vector2 = Vector2(600.0, 322.0)
 const START_LAYOUT_COLUMNS: int = 4
 const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
+const DEFAULT_BOOSTER_DEFINITION_ID: String = "booster.founder.test_pack"
+const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
+const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
 const TechDebtModifierServiceScript: GDScript = preload("res://scripts/simulation/tech_debt_modifier_service.gd")
 const RunSaveSerializerScript: GDScript = preload("res://scripts/save/run_save_serializer.gd")
 const START_CARD_IDS: Array[String] = [
@@ -238,6 +241,32 @@ func can_auto_pay() -> bool:
 		return false
 	return _get_money_card_ids().size() >= unpaid_employee_ids.size()
 
+func open_booster_pack_step(card_id: String) -> bool:
+	_require_state()
+	if not _can_interact_with_board():
+		return false
+
+	var booster_pack: CardInstance = state.get_card(card_id)
+	if booster_pack == null or not _is_booster_pack_card(booster_pack):
+		return false
+
+	var remaining_card_ids: PackedStringArray = _get_or_create_booster_remaining_card_ids(booster_pack)
+	if remaining_card_ids.is_empty():
+		_remove_card_instance(booster_pack.instance_id)
+		return false
+
+	var spawned_card_definition_id: String = remaining_card_ids[0]
+	remaining_card_ids.remove_at(0)
+	booster_pack.values[BOOSTER_REMAINING_CARD_IDS_VALUE] = remaining_card_ids
+	_set_booster_pack_marker(booster_pack, remaining_card_ids.size())
+
+	_spawn_card_as_new_stack(spawned_card_definition_id, _get_spawn_position_near_stack(booster_pack.stack_id, 0))
+	if remaining_card_ids.is_empty():
+		_remove_card_instance(booster_pack.instance_id)
+	else:
+		_emit(SimulationEvent.stack_changed(booster_pack.stack_id))
+	return true
+
 func start_next_sprint() -> void:
 	_require_state()
 	if state.phase != ScopeEnums.RunPhase.PAYMENT:
@@ -453,6 +482,63 @@ func _is_money_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
 	return definition != null and definition.tags.has("money")
 
+func _is_booster_pack_card(card: CardInstance) -> bool:
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition != null and definition.tags.has("booster") and definition.tags.has("pack")
+
+func _get_or_create_booster_remaining_card_ids(booster_pack: CardInstance) -> PackedStringArray:
+	if booster_pack.values.has(BOOSTER_REMAINING_CARD_IDS_VALUE):
+		return _variant_to_packed_string_array(booster_pack.values[BOOSTER_REMAINING_CARD_IDS_VALUE])
+
+	var booster_id: String = booster_pack.values.get(BOOSTER_DEFINITION_ID_VALUE, DEFAULT_BOOSTER_DEFINITION_ID) as String
+	var booster: BoosterDefinition = content.get_booster_definition(booster_id)
+	if booster == null:
+		push_error("Missing booster definition: %s" % booster_id)
+		return PackedStringArray()
+
+	_rng.state = state.rng_state
+	var drawn_card_ids: PackedStringArray = PackedStringArray()
+	for _draw_index: int in booster.draw_count:
+		var card_definition_id: String = _draw_card_from_booster(booster)
+		if not card_definition_id.is_empty():
+			drawn_card_ids.append(card_definition_id)
+	state.rng_state = _rng.state
+
+	booster_pack.values[BOOSTER_DEFINITION_ID_VALUE] = booster_id
+	booster_pack.values[BOOSTER_REMAINING_CARD_IDS_VALUE] = drawn_card_ids
+	_set_booster_pack_marker(booster_pack, drawn_card_ids.size())
+	return drawn_card_ids
+
+func _draw_card_from_booster(booster: BoosterDefinition) -> String:
+	var total_weight: int = 0
+	for entry: BoosterPoolEntry in booster.pool_entries:
+		if entry != null:
+			total_weight += maxi(entry.weight, 0)
+	if total_weight <= 0:
+		return ""
+
+	var roll: int = _rng.randi_range(1, total_weight)
+	var running_weight: int = 0
+	for entry: BoosterPoolEntry in booster.pool_entries:
+		if entry == null:
+			continue
+		running_weight += maxi(entry.weight, 0)
+		if roll <= running_weight:
+			return entry.card_definition_id
+	return ""
+
+func _variant_to_packed_string_array(value: Variant) -> PackedStringArray:
+	if value is PackedStringArray:
+		return value as PackedStringArray
+	var result: PackedStringArray = PackedStringArray()
+	if value is Array:
+		for item: Variant in value as Array:
+			result.append(str(item))
+	return result
+
+func _set_booster_pack_marker(booster_pack: CardInstance, remaining_count: int) -> void:
+	booster_pack.state.markers = PackedStringArray([str(remaining_count)])
+
 func _emit_all_stacks_changed() -> void:
 	for stack_id: String in state.stacks.keys():
 		_emit(SimulationEvent.stack_changed(stack_id))
@@ -536,6 +622,9 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 	card.stack_id = stack.stack_id
 	card.position = position
 	card.created_at_sprint = state.sprint_index
+	var definition: CardDefinition = content.get_card_definition(card_definition_id)
+	if definition != null:
+		card.values = definition.base_values.duplicate(true)
 	stack.card_ids.append(card.instance_id)
 	state.cards[card.instance_id] = card
 

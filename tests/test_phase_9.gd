@@ -7,7 +7,8 @@ func _init() -> void:
 
 func _run() -> void:
 	_test_money_on_booster_slot_creates_pack()
-	_test_money_on_booster_pack_opens_three_pool_cards()
+	_test_booster_pack_clicks_open_three_pool_cards()
+	_test_money_on_booster_pack_does_not_open_pack()
 	_test_booster_draws_are_deterministic()
 
 	if _failed:
@@ -33,15 +34,32 @@ func _test_money_on_booster_slot_creates_pack() -> void:
 	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 1, "Buying should spawn one booster pack.")
 	_assert_equal(_count_cards_by_definition(state, "card.shop.booster_slot"), 1, "Booster slot should stay on the board.")
 
-func _test_money_on_booster_pack_opens_three_pool_cards() -> void:
+func _test_booster_pack_clicks_open_three_pool_cards() -> void:
 	var result: Dictionary = _open_founder_booster_and_get_result(21)
 	var drawn_definitions: Array[String] = result["drawn_definitions"] as Array[String]
 	var state: RunState = result["state"] as RunState
 
-	_assert_equal(drawn_definitions.size(), 3, "Opening a booster should draw three cards.")
-	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 0, "Opening should consume the booster pack.")
+	_assert_equal(drawn_definitions.size(), 3, "Click-opening a booster should draw three cards.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 0, "Third click should consume the booster pack.")
 	for definition_id: String in drawn_definitions:
 		_assert_true(_is_founder_pool_card(definition_id), "Drawn card should come from the founder booster pool: %s" % definition_id)
+
+func _test_money_on_booster_pack_does_not_open_pack() -> void:
+	var controller: RunController = _create_controller()
+	var state: RunState = controller.start_new_run(22)
+	var booster_slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot")
+	var buy_money: CardInstance = _find_card_by_definition(state, "card.resource.money")
+
+	controller.move_card_to_stack(buy_money.instance_id, booster_slot.stack_id)
+	controller.advance_time(1.0)
+
+	var booster_pack: CardInstance = _find_card_by_definition(state, "card.resource.booster_pack")
+	var money: CardInstance = _find_card_by_definition(state, "card.resource.money")
+	controller.move_card_to_stack(money.instance_id, booster_pack.stack_id)
+	var stack: StackState = state.get_stack(booster_pack.stack_id)
+
+	_assert_equal(stack.processing_state.active_recipe_id, "", "Money + booster pack should stay neutral; packs open by click.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 1, "Money dropped on booster pack should not consume the pack.")
 
 func _test_booster_draws_are_deterministic() -> void:
 	var first: Dictionary = _open_founder_booster_and_get_result(44)
@@ -60,15 +78,15 @@ func _open_founder_booster_and_get_result(run_seed: int) -> Dictionary:
 	controller.advance_time(1.0)
 
 	var booster_pack: CardInstance = _find_card_by_definition(state, "card.resource.booster_pack")
-	var open_money: CardInstance = _find_card_by_definition(state, "card.resource.money")
 	var existing_card_ids: Dictionary = {}
 	for card_id: String in state.cards.keys():
 		existing_card_ids[card_id] = true
 
-	controller.move_card_to_stack(open_money.instance_id, booster_pack.stack_id)
-	var stack: StackState = state.get_stack(booster_pack.stack_id)
-	_assert_equal(stack.processing_state.active_recipe_id, "recipe.open_founder_booster.pack", "Money + booster pack should start the open recipe.")
-	controller.advance_time(1.0)
+	_assert_true(controller.open_booster_pack_step(booster_pack.instance_id), "First click should draw one booster card.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 1, "Booster pack should remain after the first click.")
+	_assert_true(controller.open_booster_pack_step(booster_pack.instance_id), "Second click should draw one booster card.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 1, "Booster pack should remain after the second click.")
+	_assert_true(controller.open_booster_pack_step(booster_pack.instance_id), "Third click should draw the final booster card.")
 
 	var new_card_ids: Array[String] = []
 	for card_id: String in state.cards.keys():

@@ -14,7 +14,7 @@ Der Vertical Slice startet mit Software, Entwickler, Idee, Kaffee, Booster-Slot 
 - Funktion auf Software ziehen, um Geld zu erzeugen. Dabei kann ein Bug entstehen.
 - Geld auf Entwickler ziehen, um ihn in der Bezahlphase zu bezahlen.
 - In der Bezahlphase `Sprint N starten` klicken, um Sprintstart-Effekte auszufuehren.
-- Geld auf Booster-Slot ziehen, dann Geld auf Boosterpack ziehen, um drei Karten zu ziehen.
+- Geld auf Booster-Slot ziehen, dann Boosterpack dreimal anklicken, um die Karten einzeln zu ziehen.
 - Leertaste pausiert nur waehrend der Sprint-Phase.
 - Speichern ist nur in Pause oder Bezahlphase erlaubt.
 

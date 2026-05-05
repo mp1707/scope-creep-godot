@@ -92,7 +92,7 @@ func _save_cards() -> int:
 		Color(0.92, 0.68, 0.52),
 		Color(0.50, 0.25, 0.12)
 	), "res://data/cards/coffee.tres"))
-	exit_code = max(exit_code, _save_resource(_create_card(
+	var booster_pack_card: CardDefinition = _create_card(
 		"card.resource.booster_pack",
 		"Boosterpack",
 		ScopeEnums.CardType.RESOURCE,
@@ -100,7 +100,9 @@ func _save_cards() -> int:
 		"Oeffnet neue Karten",
 		Color(0.78, 0.67, 0.90),
 		Color(0.36, 0.28, 0.48)
-	), "res://data/cards/booster_pack.tres"))
+	)
+	booster_pack_card.base_values = {"booster_definition_id": "booster.founder.test_pack"}
+	exit_code = max(exit_code, _save_resource(booster_pack_card, "res://data/cards/booster_pack.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.shop.booster_slot",
 		"Booster-Slot",
@@ -187,23 +189,6 @@ func _save_recipes() -> int:
 		_create_effect("effect.spawn_card.booster_pack", "spawn_card", {"card_definition_id": "card.resource.booster_pack", "count": 1}),
 	]
 	exit_code = max(exit_code, _save_resource(booster_buy, "res://data/recipes/booster_pack_from_money_slot.tres"))
-
-	var booster_open: RecipeDefinition = RecipeDefinition.new()
-	booster_open.id = "recipe.open_founder_booster.pack"
-	booster_open.display_text = "Booster oeffnen"
-	booster_open.inputs = [
-		_create_input("card.resource.money"),
-		_create_input("card.resource.booster_pack"),
-	]
-	booster_open.duration = _create_duration(1.0)
-	booster_open.priority = 10
-	booster_open.specificity_score = 2
-	booster_open.effects_on_complete = [
-		_create_effect("effect.consume_input.money.booster_open", "consume_input", {"card_definition_id": "card.resource.money"}),
-		_create_effect("effect.open_booster.founder_test_pack", "open_booster", {"booster_definition_id": "booster.founder.test_pack"}),
-		_create_effect("effect.consume_input.booster_pack", "consume_input", {"card_definition_id": "card.resource.booster_pack"}),
-	]
-	exit_code = max(exit_code, _save_resource(booster_open, "res://data/recipes/open_founder_booster_pack.tres"))
 
 	var debug_bug: RecipeDefinition = RecipeDefinition.new()
 	debug_bug.id = "recipe.debug_bug.developer"

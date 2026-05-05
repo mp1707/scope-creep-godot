@@ -61,6 +61,13 @@ func set_elevated(elevated: bool) -> void:
 	_resolve_or_create_nodes()
 	_shadow.visible = elevated
 
+func play_spawn_pop() -> void:
+	pivot_offset = DEFAULT_CARD_SIZE * 0.5
+	scale = Vector2(0.84, 0.84)
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "scale", Vector2(1.06, 1.06), 0.08)
+	tween.tween_property(self, "scale", Vector2.ONE, 0.07)
+
 func _resolve_or_create_nodes() -> void:
 	if _background == null:
 		_background = get_node_or_null(background_path) as Control

@@ -686,7 +686,7 @@ Beispiele:
 ```text
 Geld + Entwickler → bezahlt
 Geld + Shop-Karte → neue Karte
-Geld + Boosterpack → 3 Karten aus dem Pack-Pool
+Klick auf Boosterpack → 1 Karte aus dem Pack-Pool; nach 3 Klicks verschwindet das Pack
 ```
 
 ### Budget
@@ -1132,7 +1132,7 @@ Es gibt **keine eigene Shop-Phase**. Alle Käufe finden **live während der Spri
 
 ```text
 Geld + Booster-Slot → Boosterpack erscheint
-Geld + Boosterpack → 3 zufällige Karten aus dem Pack-Pool
+Klick auf Boosterpack → 1 zufällige Karte aus dem Pack-Pool; nach 3 Klicks verschwindet das Pack
 ```
 
 Spieler darf alle 3 Karten aus einem geöffneten Pack behalten. Boosterpacks sind die zentrale Quelle für seltene/situative Karten — vor allem für Consumables wie Stressbewältigungskurs.
@@ -1157,7 +1157,7 @@ Daneben gibt es weiterhin Einzelkarten zum Festpreis (Mitarbeiter-Hire, Idee-Kar
 
 ```text
 Geld + Shop-Karte → gekaufte Karte
-Geld + Boosterpack → 3 Karten aus Pack-Pool
+Klick auf Boosterpack → 1 Karte aus Pack-Pool; nach 3 Klicks verschwindet das Pack
 ```
 
 Auch Kauf und Bezahlung bleiben kartig.
@@ -1451,7 +1451,7 @@ Kaffeemaschine → 1× Kaffee pro Sprintstart
 Kunde → 1 Kundenwunsch pro Sprintstart (ab Sprint 2)
 Auftrag + passende Funktion → großer Geldbonus, Auftrag verbraucht
 Geld + Booster-Slot → Boosterpack erscheint
-Geld + Boosterpack → 3 Karten aus Pack-Pool
+Klick auf Boosterpack → 1 Karte aus Pack-Pool; nach 3 Klicks verschwindet das Pack
 Geld + Mitarbeiter (Bezahlphase) → bezahlt
 ```
 

@@ -154,14 +154,13 @@ func _test_dev_buttons_do_not_keep_keyboard_focus() -> void:
 func _open_existing_booster_and_get_result(controller: RunController) -> Dictionary:
 	var state: RunState = controller.state
 	var booster_pack: CardInstance = _find_card_by_definition(state, "card.resource.booster_pack")
-	var open_money: CardInstance = _find_card_by_definition(state, "card.resource.money")
 	var existing_card_ids: Dictionary = {}
 	for card_id: String in state.cards.keys():
 		existing_card_ids[card_id] = true
 
-	controller.move_card_to_stack(open_money.instance_id, booster_pack.stack_id)
-	controller.set_paused(false)
-	controller.advance_time(1.0)
+	controller.open_booster_pack_step(booster_pack.instance_id)
+	controller.open_booster_pack_step(booster_pack.instance_id)
+	controller.open_booster_pack_step(booster_pack.instance_id)
 
 	var new_card_ids: Array[String] = []
 	for card_id: String in state.cards.keys():
