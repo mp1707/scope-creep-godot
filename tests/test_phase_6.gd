@@ -19,6 +19,8 @@ func _run() -> void:
 	_test_dropped_card_draws_above_target_card()
 	_test_dropped_stack_draws_above_all_other_cards()
 	_test_repeated_drags_keep_drag_layer_above_board_cards()
+	await _test_board_audio_player_uses_imported_stream_resources()
+	_test_board_view_preserves_editor_audio_child_on_rebuild()
 	_test_editor_pipeline_updates_progress_and_spawns_feature()
 	_test_feature_release_spawns_money_without_covering_stack()
 
@@ -254,6 +256,34 @@ func _test_repeated_drags_keep_drag_layer_above_board_cards() -> void:
 		max_board_z = maxi(max_board_z, view.z_index)
 	_assert_true(max_board_z < 4090, "Board card z-indices should remain below the DragLayer after many drags.")
 	app.queue_free()
+
+func _test_board_audio_player_uses_imported_stream_resources() -> void:
+	var audio: BoardAudioPlayer = BoardAudioPlayer.new()
+	get_root().add_child(audio)
+	await process_frame
+
+	_assert_true(audio.drag_start_stream != null, "BoardAudioPlayer should use the imported drag-start AudioStream resource.")
+	_assert_true(audio.card_flip_stream != null, "BoardAudioPlayer should use the imported card-flip AudioStream resource.")
+	_assert_true(audio.card_destroy_stream != null, "BoardAudioPlayer should use the imported card-destroy AudioStream resource.")
+	_assert_equal(audio.get_child_count(), 6, "BoardAudioPlayer should create a small polyphonic player pool.")
+
+	audio.queue_free()
+	await process_frame
+
+func _test_board_view_preserves_editor_audio_child_on_rebuild() -> void:
+	var catalog: ContentCatalog = ContentCatalog.new()
+	_assert_true(catalog.load_default_content(), "Default content should load for editor audio child rebuild test.")
+	var controller: RunController = RunController.new(catalog)
+	var state: RunState = controller.start_new_run(6)
+	var board: BoardView = BoardView.new()
+	var audio: BoardAudioPlayer = BoardAudioPlayer.new()
+	audio.name = "BoardAudioPlayer"
+	board.add_child(audio)
+
+	board.bind_run(state, catalog)
+
+	_assert_equal(board.get_node_or_null("BoardAudioPlayer"), audio, "BoardView rebuild should preserve an editor-authored BoardAudioPlayer child.")
+	board.queue_free()
 
 func _test_editor_pipeline_updates_progress_and_spawns_feature() -> void:
 	var app: Node = _create_app()

@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://b5is11hjvcojl" path="res://scripts/presentation/board_view.gd" id="1_elqb8"]
 [ext_resource type="Script" uid="uid://eqsd0qqb0py0" path="res://scripts/application/main_application.gd" id="1_v00px"]
 [ext_resource type="Script" uid="uid://dm5tc2d2ujqsc" path="res://scripts/presentation/board_camera.gd" id="3_q8r2a"]
+[ext_resource type="Script" uid="uid://bxgdeoish6jpn" path="res://scripts/presentation/board_audio_player.gd" id="3_u1y2g"]
 
 [node name="Main" type="Node" unique_id=1075243361]
 script = ExtResource("1_v00px")
@@ -10,6 +11,10 @@ script = ExtResource("1_v00px")
 [node name="BoardView" type="Node2D" parent="." unique_id=1196725594]
 script = ExtResource("1_elqb8")
 metadata/_custom_type_script = "uid://b5is11hjvcojl"
+
+[node name="BoardAudioPlayer" type="Node" parent="BoardView" unique_id=1964672903]
+script = ExtResource("3_u1y2g")
+metadata/_custom_type_script = "uid://bxgdeoish6jpn"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=221388809]
 position = Vector2(960, 540)

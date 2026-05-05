@@ -10,8 +10,6 @@ const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
 const DEFAULT_BOOSTER_DEFINITION_ID: String = "booster.founder.test_pack"
 const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
 const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
-const TechDebtModifierServiceScript: GDScript = preload("res://scripts/simulation/tech_debt_modifier_service.gd")
-const RunSaveSerializerScript: GDScript = preload("res://scripts/save/run_save_serializer.gd")
 const START_CARD_IDS: Array[String] = [
 	"card.product.software",
 	"card.employee.developer",
@@ -29,8 +27,8 @@ var pending_events: Array[SimulationEvent] = []
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _recipe_engine: RecipeEngine = RecipeEngine.new()
 var _effect_pipeline: EffectPipeline = EffectPipeline.new()
-var _tech_debt_modifiers: RefCounted = TechDebtModifierServiceScript.new()
-var _save_serializer: RefCounted = RunSaveSerializerScript.new()
+var _tech_debt_modifiers: TechDebtModifierService = TechDebtModifierService.new()
+var _save_serializer: RunSaveSerializer = RunSaveSerializer.new()
 var _next_card_index: int = 1
 var _next_stack_index: int = 1
 
