@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BoosterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/booster_pool_entry.gd" id="1_entry"]
+[ext_resource type="Script" path="res://scripts/data/booster_definition.gd" id="2_booster"]
+
+[sub_resource type="Resource" id="Entry_customer"]
+script = ExtResource("1_entry")
+card_definition_id = "card.value_source.customer"
+weight = 2
+
+[sub_resource type="Resource" id="Entry_customer_request"]
+script = ExtResource("1_entry")
+card_definition_id = "card.input.customer_request"
+weight = 4
+
+[sub_resource type="Resource" id="Entry_order"]
+script = ExtResource("1_entry")
+card_definition_id = "card.value_source.order"
+weight = 3
+
+[sub_resource type="Resource" id="Entry_idea"]
+script = ExtResource("1_entry")
+card_definition_id = "card.input.idea"
+weight = 3
+
+[resource]
+script = ExtResource("2_booster")
+id = "booster.customer_chaos"
+display_name = "Kundenchaos"
+cost_money_cards = 1
+draw_count = 3
+pool_entries = Array[ExtResource("1_entry")]([SubResource("Entry_customer"), SubResource("Entry_customer_request"), SubResource("Entry_order"), SubResource("Entry_idea")])

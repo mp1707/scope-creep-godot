@@ -98,7 +98,7 @@ func _test_loaded_run_keeps_rng_deterministic_and_runtime_ids_unique() -> void:
 
 	_assert_equal(first_result["drawn_definitions"], second_result["drawn_definitions"], "Loaded runs with the same RNG state should draw the same booster cards.")
 	_assert_equal(first_result["rng_state"], second_result["rng_state"], "Loaded runs should end with the same RNG state after identical draws.")
-	_assert_true((first_result["new_card_ids"] as Array[String]).has("card_0010"), "Loaded controller should continue card ids after the saved cards.")
+	_assert_true((first_result["new_card_ids"] as Array[String]).has("card_0014"), "Loaded controller should continue card ids after the saved cards.")
 
 func _test_presentation_rebuilds_board_view_after_load() -> void:
 	var controller: RunController = _create_controller(60.0)

@@ -137,7 +137,7 @@ func _test_empty_board_drop_uses_free_preview_position() -> void:
 	var idea_view: CardView = board.get_card_view(idea.instance_id)
 
 	var press_position: Vector2 = idea_view.position + Vector2(22.0, 35.0)
-	var release_position: Vector2 = Vector2(1460.0, 700.0)
+	var release_position: Vector2 = Vector2(1700.0, 850.0)
 	var expected_drop_position: Vector2 = release_position - Vector2(22.0, 35.0)
 	_send_mouse_button(board, press_position, true)
 	_send_mouse_motion(board, release_position)

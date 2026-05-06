@@ -23,6 +23,7 @@ id = "effect.spawn_card.booster_pack"
 effect_type = "spawn_card"
 parameters = {
 "card_definition_id": "card.resource.booster_pack",
+"copy_values_from_card_tag": "booster_slot",
 "count": 1
 }
 
@@ -33,8 +34,7 @@ required_tags = PackedStringArray()
 
 [sub_resource type="Resource" id="Resource_hk85b"]
 script = ExtResource("1_s5v6k")
-card_definition_id = "card.shop.booster_slot"
-required_tags = PackedStringArray()
+required_tags = PackedStringArray("booster_slot")
 
 [resource]
 script = ExtResource("4_dgq1w")

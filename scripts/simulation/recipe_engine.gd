@@ -38,6 +38,11 @@ func _recipe_matches_stack(recipe: RecipeDefinition, stack: StackState, state: R
 				return false
 			used_card_ids[card_id] = true
 
+	if not _constraints_match(recipe, stack, state, content, used_card_ids):
+		return false
+	if _has_blocked_employee_input(recipe, state, content, used_card_ids):
+		return false
+
 	for card_id: String in stack.card_ids:
 		if used_card_ids.has(card_id):
 			continue
@@ -88,6 +93,120 @@ func _card_matches_input(card_id: String, input: RecipeInputMatcher, state: RunS
 			return false
 
 	return true
+
+func _constraints_match(
+	recipe: RecipeDefinition,
+	stack: StackState,
+	state: RunState,
+	content: ContentCatalog,
+	used_card_ids: Dictionary
+) -> bool:
+	for constraint: RecipeConstraintDefinition in recipe.constraints:
+		if constraint == null:
+			continue
+		match constraint.constraint_type:
+			"attached_card":
+				if not _attached_card_constraint_matches(constraint, stack, state, content, used_card_ids):
+					return false
+			_:
+				push_warning("Unknown recipe constraint '%s' on recipe '%s'." % [constraint.constraint_type, recipe.id])
+	return true
+
+func _attached_card_constraint_matches(
+	constraint: RecipeConstraintDefinition,
+	stack: StackState,
+	state: RunState,
+	content: ContentCatalog,
+	used_card_ids: Dictionary
+) -> bool:
+	var parent_card_id: String = _find_used_card_for_constraint(
+		constraint.parameters.get("parent_card_definition_id", "") as String,
+		constraint.parameters.get("parent_required_tag", "") as String,
+		state,
+		content,
+		used_card_ids
+	)
+	if parent_card_id.is_empty():
+		return false
+
+	var attachment_card_id: String = _find_used_card_for_constraint(
+		constraint.parameters.get("attachment_card_definition_id", "") as String,
+		constraint.parameters.get("attachment_required_tag", "") as String,
+		state,
+		content,
+		used_card_ids
+	)
+	if attachment_card_id.is_empty() or not stack.card_ids.has(attachment_card_id):
+		return false
+
+	var attachment: CardInstance = state.get_card(attachment_card_id)
+	if attachment == null or attachment.parent_card_id != parent_card_id:
+		return false
+
+	var required_slot: String = constraint.parameters.get("attachment_slot", "") as String
+	return required_slot.is_empty() or attachment.attachment_slot == required_slot
+
+func _find_used_card_for_constraint(
+	card_definition_id: String,
+	required_tag: String,
+	state: RunState,
+	content: ContentCatalog,
+	used_card_ids: Dictionary
+) -> String:
+	for card_id: String in used_card_ids.keys():
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			continue
+		if not card_definition_id.is_empty() and card.definition_id != card_definition_id:
+			continue
+		if not required_tag.is_empty():
+			var definition: CardDefinition = content.get_card_definition(card.definition_id)
+			if definition == null or not definition.tags.has(required_tag):
+				continue
+		return card_id
+	return ""
+
+func _has_blocked_employee_input(
+	recipe: RecipeDefinition,
+	state: RunState,
+	content: ContentCatalog,
+	used_card_ids: Dictionary
+) -> bool:
+	if _recipe_uses_burnout(recipe, state, content, used_card_ids):
+		return false
+
+	for card_id: String in used_card_ids.keys():
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has("employee") and _has_burnout_attachment(card.instance_id, state, content):
+			return true
+	return false
+
+func _recipe_uses_burnout(
+	_recipe: RecipeDefinition,
+	state: RunState,
+	content: ContentCatalog,
+	used_card_ids: Dictionary
+) -> bool:
+	for card_id: String in used_card_ids.keys():
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has("burnout"):
+			return true
+	return false
+
+func _has_burnout_attachment(parent_card_id: String, state: RunState, content: ContentCatalog) -> bool:
+	for card: CardInstance in state.cards.values():
+		if card.parent_card_id != parent_card_id:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has("burnout"):
+			return true
+	return false
 
 func _compare_recipe_rank(left: RecipeDefinition, right: RecipeDefinition) -> bool:
 	if left.specificity_score != right.specificity_score:

@@ -142,6 +142,12 @@ func _get_spawn_count(effect: EffectDefinition, context: EffectContext) -> int:
 		if source_card != null:
 			return maxi(0, int(source_card.values.get(value_key, 0)))
 
+	var count_key: String = effect.parameters.get("count_key", "") as String
+	if context.content.balance != null:
+		match count_key:
+			"order_bonus_money_cards":
+				return maxi(0, context.content.balance.order_bonus_money_cards)
+
 	return maxi(0, effect.parameters.get("count", 1) as int)
 
 func _apply_spawn_parameters(spawned_card: CardInstance, effect: EffectDefinition, context: EffectContext) -> void:
@@ -154,6 +160,13 @@ func _apply_spawn_parameters(spawned_card: CardInstance, effect: EffectDefinitio
 		if source_card != null:
 			for key: Variant in source_card.values.keys():
 				spawned_card.values[key] = source_card.values[key]
+
+	var source_card_tag: String = effect.parameters.get("copy_values_from_card_tag", "") as String
+	if not source_card_tag.is_empty():
+		var source_card_by_tag: CardInstance = _find_card_in_stack_by_tag(source_card_tag, context)
+		if source_card_by_tag != null:
+			for key: Variant in source_card_by_tag.values.keys():
+				spawned_card.values[key] = source_card_by_tag.values[key]
 
 	if effect.parameters.has("values"):
 		var values: Dictionary = effect.parameters["values"] as Dictionary
@@ -171,6 +184,20 @@ func _find_card_in_stack(card_definition_id: String, context: EffectContext) -> 
 	for card_id: String in context.stack.card_ids:
 		var card: CardInstance = context.state.get_card(card_id)
 		if card != null and card.definition_id == card_definition_id:
+			return card
+
+	return null
+
+func _find_card_in_stack_by_tag(tag: String, context: EffectContext) -> CardInstance:
+	if tag.is_empty():
+		return null
+
+	for card_id: String in context.stack.card_ids:
+		var card: CardInstance = context.state.get_card(card_id)
+		if card == null:
+			continue
+		var definition: CardDefinition = context.content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has(tag):
 			return card
 
 	return null

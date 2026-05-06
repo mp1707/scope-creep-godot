@@ -1,7 +1,7 @@
 class_name IdValidator
 extends RefCounted
 
-const MIN_SEGMENT_COUNT: int = 3
+const MIN_SEGMENT_COUNT: int = 2
 
 static func is_valid_domain_id(value: String) -> bool:
 	if value.is_empty():
@@ -27,7 +27,7 @@ static func get_domain_id_error(value: String) -> String:
 	if value.is_empty():
 		return "ID must not be empty."
 	if value.split(".").size() < MIN_SEGMENT_COUNT:
-		return "ID must use a domain prefix, for example card.employee.developer."
+		return "ID must use a domain prefix, for example booster.talent_pool or card.employee.developer."
 	return "ID segments must be snake_case and contain only lowercase letters, numbers, and underscores."
 
 static func _contains_only_id_characters(value: String) -> bool:

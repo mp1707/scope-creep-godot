@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_matcher"]
+[ext_resource type="Script" path="res://scripts/data/recipe_constraint_definition.gd" id="2_constraint"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="3_duration"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="4_effect"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="5_recipe"]
+
+[sub_resource type="Resource" id="Duration_recovery"]
+script = ExtResource("3_duration")
+base_seconds = 0.1
+affected_by_global_modifiers = false
+
+[sub_resource type="Resource" id="Constraint_attached_burnout"]
+script = ExtResource("2_constraint")
+constraint_type = "attached_card"
+parameters = {
+"attachment_card_definition_id": "card.problem.burnout",
+"attachment_slot": "burnout",
+"parent_required_tag": "employee"
+}
+
+[sub_resource type="Resource" id="Effect_remove_burnout"]
+script = ExtResource("4_effect")
+id = "effect.remove_card.burnout"
+effect_type = "remove_card"
+parameters = {
+"card_definition_id": "card.problem.burnout"
+}
+
+[sub_resource type="Resource" id="Effect_consume_stress_course"]
+script = ExtResource("4_effect")
+id = "effect.consume_input.stress_course"
+effect_type = "consume_input"
+parameters = {
+"card_definition_id": "card.consumable.stress_course"
+}
+
+[sub_resource type="Resource" id="Input_employee"]
+script = ExtResource("1_matcher")
+required_tags = PackedStringArray("employee")
+
+[sub_resource type="Resource" id="Input_burnout"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.problem.burnout"
+
+[sub_resource type="Resource" id="Input_stress_course"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.consumable.stress_course"
+
+[resource]
+script = ExtResource("5_recipe")
+id = "recipe.burnout_recovery.stress_course"
+display_text = "Stresskurs..."
+inputs = Array[ExtResource("1_matcher")]([SubResource("Input_employee"), SubResource("Input_burnout"), SubResource("Input_stress_course")])
+constraints = Array[ExtResource("2_constraint")]([SubResource("Constraint_attached_burnout")])
+duration = SubResource("Duration_recovery")
+priority = 40
+specificity_score = 3
+effects_on_complete = Array[ExtResource("4_effect")]([SubResource("Effect_remove_burnout"), SubResource("Effect_consume_stress_course")])

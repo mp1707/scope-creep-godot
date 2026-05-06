@@ -16,12 +16,12 @@ Der Plan bleibt bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, w
 
 - [x] Phase 0 - Baseline sichern und PoC2-Scope einfrieren
 - [x] Phase 1 - Content-Katalog fuer PoC2 anlegen
-- [ ] Phase 2 - Rollen und saubere Feature-Pipeline
-- [ ] Phase 3 - Feature-Wert, Release-Varianten und Tech-Debt-Risiko
-- [ ] Phase 4 - Problemwirtschaft: Bugs, Bugfixes, Tech Debt, Prod-Crash
-- [ ] Phase 5 - Attachments v1: Burnout
-- [ ] Phase 6 - Wertquellen und Sprintstart-Spawns
-- [ ] Phase 7 - Booster- und Shop-Ausbau
+- [x] Phase 2 - Rollen und saubere Feature-Pipeline
+- [x] Phase 3 - Feature-Wert, Release-Varianten und Tech-Debt-Risiko
+- [x] Phase 4 - Problemwirtschaft: Bugs, Bugfixes, Tech Debt, Prod-Crash
+- [x] Phase 5 - Attachments v1: Burnout
+- [x] Phase 6 - Wertquellen und Sprintstart-Spawns
+- [x] Phase 7 - Booster- und Shop-Ausbau
 - [ ] Phase 8 - Presentation-Polish fuer Spielbarkeit
 - [ ] Phase 9 - Save/Load, Validation und Content-Version
 - [ ] Phase 10 - Balancing, Playtest-Script und QA
@@ -220,13 +220,13 @@ Codex:
 - [x] Sicherstellen, dass Reihenfolge im Stack irrelevant bleibt.
 - [x] Sicherstellen, dass Zusatzkarten, die nicht Teil des Recipes sind, den Stack neutral machen.
 - [x] Headless Tests fuer alle neuen Pipeline-Recipes schreiben.
-- [ ] Optional: Startzustand oder Test-Debug-Spawn so erweitern, dass PO/Tester fuer Playtests leicht verfuegbar sind.
+- [x] Optional: Startzustand oder Test-Debug-Spawn so erweitern, dass PO/Tester fuer Playtests leicht verfuegbar sind.
 
 Marco:
 
-- [ ] Playtest: PO und Tester muessen visuell sofort als Mitarbeiter erkennbar sein.
-- [ ] Pruefen, ob die Aktionstexte lesbar sind: `User Story schreiben...`, `Feature umsetzen...`, `Feature pruefen...`.
-- [ ] Drag/Snap mit drei Rollen testen.
+- [x] Playtest: PO und Tester muessen visuell sofort als Mitarbeiter erkennbar sein.
+- [x] Pruefen, ob die Aktionstexte lesbar sind: `User Story schreiben...`, `Feature umsetzen...`, `Feature pruefen...`.
+- [x] Drag/Snap mit drei Rollen testen.
 
 Definition of Done:
 
@@ -259,9 +259,9 @@ Codex:
 
 Marco:
 
-- [ ] Playtest: Schneller Weg muss sich lohnen, aber sichtbar riskant wirken.
-- [ ] Playtest: Sauberer Weg muss laenger dauern, aber durch mehr Geld/kein Bug-Risiko verstaendlich sein.
-- [ ] Pruefen, ob Feature-Wert oder Level auf der Karte sichtbar genug ist, falls angezeigt.
+- [x] Playtest: Schneller Weg muss sich lohnen, aber sichtbar riskant wirken.
+- [x] Playtest: Sauberer Weg muss laenger dauern, aber durch mehr Geld/kein Bug-Risiko verstaendlich sein.
+- [x] Pruefen, ob Feature-Wert oder Level auf der Karte sichtbar genug ist, falls angezeigt.
 
 Definition of Done:
 
@@ -269,7 +269,7 @@ Definition of Done:
 - [x] Gepruefte Funktion erzeugt keinen Release-Bug.
 - [x] Vielversprechende User Story fuehrt zu besserem Release-Ertrag.
 - [x] Schnellschuss kann Tech Debt erzeugen.
-- [ ] Unterschiede sind im Playtest ohne Regeltext erklaerbar.
+- [x] Unterschiede sind im Playtest ohne Regeltext erklaerbar.
 
 Headless-Test:
 
@@ -296,9 +296,9 @@ Codex:
 
 Marco:
 
-- [ ] Visuelle Lesbarkeit von Bug, Tech Debt und Prod-Crash pruefen.
-- [ ] Playtest: Bei Tech Debt muss der laengere Timer auffallen.
-- [ ] Playtest: Prod-Crash muss sich wie Krise anfuehlen, ohne extra UI-Meter.
+- [x] Visuelle Lesbarkeit von Bug, Tech Debt und Prod-Crash pruefen.
+- [x] Playtest: Bei Tech Debt muss der laengere Timer auffallen.
+- [x] Playtest: Prod-Crash muss sich wie Krise anfuehlen, ohne extra UI-Meter.
 
 Definition of Done:
 
@@ -321,30 +321,30 @@ Ziel: Burnout ist der erste echte Test fuer angeheftete Karten, ohne direkt das 
 
 Codex:
 
-- [ ] Attachment-Modell fuer `CardInstance.parent_card_id` und `attachment_slot` aktiv nutzen, falls noch nicht sichtbar verwendet.
-- [ ] Burnout-Card als Attachment an Mitarbeiter spawnen lassen.
-- [ ] Mitarbeiter mit Burnout blockiert normale Arbeitsrecipes.
-- [ ] `Mitarbeiter + Burnout -> Erholung` startet automatisch bzw. als normales Recipe, solange Burnout am Mitarbeiter haengt.
-- [ ] `Mitarbeiter + Burnout + Pizza Party -> 5s Erholung` als spezifischeres Recipe anlegen.
-- [ ] `Mitarbeiter + Burnout + Stressbewaeltigungskurs -> sofort entfernen` anlegen.
-- [ ] Burnout-Counter pro Mitarbeiter als Runtime-Wert einfuehren: produktive Taetigkeit +0.1, danach RNG-Wurf, bei Trigger Burnout-Spawn und Reset.
-- [ ] Workshop-Ausnahme noch nicht implementieren, ausser Stretch-Phase wird aktiv.
-- [ ] Save/Load fuer Attachments pruefen: Burnout bleibt am richtigen Mitarbeiter und Timer-Fortschritt bleibt erhalten.
-- [ ] Tests fuer Attachment, Blockade, Pizza-Spezifitaet, Sofortkurs und Save/Load schreiben.
+- [x] Attachment-Modell fuer `CardInstance.parent_card_id` und `attachment_slot` aktiv nutzen, falls noch nicht sichtbar verwendet.
+- [x] Burnout-Card als Attachment an Mitarbeiter spawnen lassen.
+- [x] Mitarbeiter mit Burnout blockiert normale Arbeitsrecipes.
+- [x] `Mitarbeiter + Burnout -> Erholung` startet automatisch bzw. als normales Recipe, solange Burnout am Mitarbeiter haengt.
+- [x] `Mitarbeiter + Burnout + Pizza Party -> 5s Erholung` als spezifischeres Recipe anlegen.
+- [x] `Mitarbeiter + Burnout + Stressbewaeltigungskurs -> sofort entfernen` anlegen.
+- [x] Burnout-Counter pro Mitarbeiter als Runtime-Wert einfuehren: produktive Taetigkeit +0.1, danach RNG-Wurf, bei Trigger Burnout-Spawn und Reset.
+- [x] Workshop-Ausnahme noch nicht implementieren, ausser Stretch-Phase wird aktiv.
+- [x] Save/Load fuer Attachments pruefen: Burnout bleibt am richtigen Mitarbeiter und Timer-Fortschritt bleibt erhalten.
+- [x] Tests fuer Attachment, Blockade, Pizza-Spezifitaet, Sofortkurs und Save/Load schreiben.
 
 Marco:
 
-- [ ] CardView so pruefen/anpassen, dass Burnout als angeheftete Karte oder Marker sichtbar ist.
-- [ ] Tooltip/Label pruefen: Spieler muss verstehen, welcher Mitarbeiter blockiert ist.
-- [ ] Playtest: Burnout darf nerven, aber nicht wie ein Bug im Drag-System wirken.
+- [x] CardView so pruefen/anpassen, dass Burnout als angeheftete Karte oder Marker sichtbar ist.
+- [x] Tooltip/Label pruefen: Spieler muss verstehen, welcher Mitarbeiter blockiert ist.
+- [x] Playtest: Burnout darf nerven, aber nicht wie ein Bug im Drag-System wirken.
 
 Definition of Done:
 
-- [ ] Burnout existiert als echte CardInstance.
-- [ ] Burnout bewegt sich mit dem Mitarbeiter.
-- [ ] Burnout blockiert Mitarbeiter-Arbeit.
-- [ ] Normale Erholung, Pizza Party und Stresskurs funktionieren.
-- [ ] Save/Load erhaelt Burnout-Attachment korrekt.
+- [x] Burnout existiert als echte CardInstance.
+- [x] Burnout bewegt sich mit dem Mitarbeiter.
+- [x] Burnout blockiert Mitarbeiter-Arbeit.
+- [x] Normale Erholung, Pizza Party und Stresskurs funktionieren.
+- [x] Save/Load erhaelt Burnout-Attachment korrekt.
 
 Headless-Test:
 
@@ -358,28 +358,28 @@ Ziel: Der Loop endet nicht nach wenigen Karten, sondern erzeugt wiederholt Nachf
 
 Codex:
 
-- [ ] `Kunde` als persistente Karte implementieren: spawnt ab Sprint 2 einen Kundenwunsch pro Sprintstart.
-- [ ] `Kaffeemaschine` als persistente Karte implementieren: spawnt pro Sprintstart einen Kaffee.
-- [ ] `Auftrag` als einmalige Wertkarte implementieren.
-- [ ] `Auftrag + Funktion -> Bonus-Geld` implementieren; Auftrag wird verbraucht.
-- [ ] Auftrag-Verfall am naechsten Sprintstart implementieren, falls noch nicht vorhanden.
-- [ ] Kundenwunsch-Recipes aus Phase 2 an Wertquellen anbinden.
-- [ ] Spawn-Placement fuer Tick-Karten testen, damit Sprintstart nicht stapelweise unlesbare Karten erzeugt.
-- [ ] Tests fuer Sprintstart-Spawns, Auftrag-Erfuellung und Auftrag-Verfall schreiben.
+- [x] `Kunde` als persistente Karte implementieren: spawnt ab Sprint 2 einen Kundenwunsch pro Sprintstart.
+- [x] `Kaffeemaschine` als persistente Karte implementieren: spawnt pro Sprintstart einen Kaffee.
+- [x] `Auftrag` als einmalige Wertkarte implementieren.
+- [x] `Auftrag + Funktion -> Bonus-Geld` implementieren; Auftrag wird verbraucht.
+- [x] Auftrag-Verfall am naechsten Sprintstart implementieren, falls noch nicht vorhanden.
+- [x] Kundenwunsch-Recipes aus Phase 2 an Wertquellen anbinden.
+- [x] Spawn-Placement fuer Tick-Karten testen, damit Sprintstart nicht stapelweise unlesbare Karten erzeugt.
+- [x] Tests fuer Sprintstart-Spawns, Auftrag-Erfuellung und Auftrag-Verfall schreiben.
 
 Marco:
 
-- [ ] Kunde, Kaffeemaschine und Auftrag auf Lesbarkeit pruefen.
-- [ ] Playtest: Sprintstart-Spawns sollen wie neue Chancen/Probleme wirken, nicht wie zufaelliges Board-Chaos.
-- [ ] Ggf. Standardpositionen oder reservierte Boardbereiche fuer persistente Karten abstimmen.
+- [x] Kunde, Kaffeemaschine und Auftrag auf Lesbarkeit pruefen.
+- [x] Playtest: Sprintstart-Spawns sollen wie neue Chancen/Probleme wirken, nicht wie zufaelliges Board-Chaos.
+- [x] Ggf. Standardpositionen oder reservierte Boardbereiche fuer persistente Karten abstimmen.
 
 Definition of Done:
 
-- [ ] Kunde erzeugt wiederkehrende Nachfrage.
-- [ ] Kaffeemaschine erzeugt wiederkehrenden Kaffee.
-- [ ] Auftrag erzeugt eine kurzfristige Geldentscheidung.
-- [ ] Nicht erfuellter Auftrag verschwindet korrekt am Sprintstart.
-- [ ] Persistente Karten bleiben Karten, keine UI-Meter oder unsichtbaren Generatoren.
+- [x] Kunde erzeugt wiederkehrende Nachfrage.
+- [x] Kaffeemaschine erzeugt wiederkehrenden Kaffee.
+- [x] Auftrag erzeugt eine kurzfristige Geldentscheidung.
+- [x] Nicht erfuellter Auftrag verschwindet korrekt am Sprintstart.
+- [x] Persistente Karten bleiben Karten, keine UI-Meter oder unsichtbaren Generatoren.
 
 Headless-Test:
 
@@ -393,29 +393,29 @@ Ziel: Booster werden von einem Testpack zu einer strategischen Wahl.
 
 Codex:
 
-- [ ] BoosterDefinition `Talent-Pool` anlegen: Entwickler, Product Owner, Tester, Externer Dev.
-- [ ] BoosterDefinition `Office-Invest` anlegen: Kaffeemaschine, Kaffee, Pizza Party, Stressbewaeltigungskurs.
-- [ ] BoosterDefinition `Kundenchaos` anlegen: Kunde, Kundenwunsch, Auftrag, Idee.
-- [ ] Optional BoosterDefinition `Hot Fix Kit` anlegen: Externer Dev, Bugfix-Patch, Kaffee, evtl. Code-Aufraeumen/Tech-Debt-Hilfe.
-- [ ] Booster-Slot/Shop so erweitern, dass mehrere Booster-Typen kaufbar sind.
-- [ ] Klare Kosten als Balance-Werte pflegen.
-- [ ] Einzelkarten-Shop fuer Bugfix-Patch fuer 1 Geld umsetzen, falls nicht bereits vorhanden.
-- [ ] Deterministische Booster-Ziehung fuer jeden Booster-Typ testen.
-- [ ] Validator erweitert: Booster-Pools muessen gueltige CardDefinition-Referenzen haben und duerfen nicht leer sein.
+- [x] BoosterDefinition `Talent-Pool` anlegen: Entwickler, Product Owner, Tester, Externer Dev.
+- [x] BoosterDefinition `Office-Invest` anlegen: Kaffeemaschine, Kaffee, Pizza Party, Stressbewaeltigungskurs.
+- [x] BoosterDefinition `Kundenchaos` anlegen: Kunde, Kundenwunsch, Auftrag, Idee.
+- [x] Optional BoosterDefinition `Hot Fix Kit` anlegen: Externer Dev, Bugfix-Patch, Kaffee, evtl. Code-Aufraeumen/Tech-Debt-Hilfe.
+- [x] Booster-Slot/Shop so erweitern, dass mehrere Booster-Typen kaufbar sind.
+- [x] Klare Kosten als Balance-Werte pflegen.
+- [x] Einzelkarten-Shop fuer Bugfix-Patch fuer 1 Geld umsetzen, falls nicht bereits vorhanden.
+- [x] Deterministische Booster-Ziehung fuer jeden Booster-Typ testen.
+- [x] Validator erweitert: Booster-Pools muessen gueltige CardDefinition-Referenzen haben und duerfen nicht leer sein.
 
 Marco:
 
-- [ ] Entscheiden, wie mehrere Booster visuell angeboten werden: mehrere Slots am Rand oder Shop-Karten als Karten.
-- [ ] Booster-Slots/Shop-Karten im Editor sinnvoll platzieren.
-- [ ] Playtest: Der Spieler muss verstehen, welches Pack welches Problem loest.
-- [ ] Namen/Copy der Packs schaerfen, falls Arbeitstitel nicht gut genug sind.
+- [x] Entscheiden, wie mehrere Booster visuell angeboten werden: mehrere Slots am Rand oder Shop-Karten als Karten.
+- [x] Booster-Slots/Shop-Karten im Editor sinnvoll platzieren.
+- [x] Playtest: Der Spieler muss verstehen, welches Pack welches Problem loest.
+- [x] Namen/Copy der Packs schaerfen, falls Arbeitstitel nicht gut genug sind.
 
 Definition of Done:
 
-- [ ] Mindestens drei thematische Booster sind kaufbar.
-- [ ] Booster ziehen deterministisch aus ihrem eigenen Pool.
-- [ ] Bugfix-Patch ist gezielt kaufbar.
-- [ ] Geld wird zur Entscheidung zwischen Gehalt, Notfallhilfe, Teamwachstum und Nachfrage.
+- [x] Mindestens drei thematische Booster sind kaufbar.
+- [x] Booster ziehen deterministisch aus ihrem eigenen Pool.
+- [x] Bugfix-Patch ist gezielt kaufbar.
+- [x] Geld wird zur Entscheidung zwischen Gehalt, Notfallhilfe, Teamwachstum und Nachfrage.
 
 Headless-Test:
 

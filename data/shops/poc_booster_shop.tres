@@ -11,7 +11,38 @@ cost_money_cards = 1
 card_definition_id = "card.resource.booster_pack"
 booster_definition_id = "booster.founder.test_pack"
 
+[sub_resource type="Resource" id="Resource_talent_pool"]
+script = ExtResource("1_x90nf")
+id = "shop_entry.booster.talent_pool"
+display_name = "Talent-Pool"
+cost_money_cards = 1
+card_definition_id = "card.resource.booster_pack"
+booster_definition_id = "booster.talent_pool"
+
+[sub_resource type="Resource" id="Resource_office_invest"]
+script = ExtResource("1_x90nf")
+id = "shop_entry.booster.office_invest"
+display_name = "Office-Invest"
+cost_money_cards = 1
+card_definition_id = "card.resource.booster_pack"
+booster_definition_id = "booster.office_invest"
+
+[sub_resource type="Resource" id="Resource_customer_chaos"]
+script = ExtResource("1_x90nf")
+id = "shop_entry.booster.customer_chaos"
+display_name = "Kundenchaos"
+cost_money_cards = 1
+card_definition_id = "card.resource.booster_pack"
+booster_definition_id = "booster.customer_chaos"
+
+[sub_resource type="Resource" id="Resource_bugfix_patch"]
+script = ExtResource("1_x90nf")
+id = "shop_entry.card.bugfix_patch"
+display_name = "Bugfix-Patch"
+cost_money_cards = 1
+card_definition_id = "card.consumable.bugfix_patch"
+
 [resource]
 script = ExtResource("2_g36yp")
 id = "shop.poc.boosters"
-entries = Array[ExtResource("1_x90nf")]([SubResource("Resource_t84vb")])
+entries = Array[ExtResource("1_x90nf")]([SubResource("Resource_t84vb"), SubResource("Resource_talent_pool"), SubResource("Resource_office_invest"), SubResource("Resource_customer_chaos"), SubResource("Resource_bugfix_patch")])

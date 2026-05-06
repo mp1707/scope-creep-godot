@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BoosterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/booster_pool_entry.gd" id="1_entry"]
+[ext_resource type="Script" path="res://scripts/data/booster_definition.gd" id="2_booster"]
+
+[sub_resource type="Resource" id="Entry_coffee_machine"]
+script = ExtResource("1_entry")
+card_definition_id = "card.value_source.coffee_machine"
+weight = 2
+
+[sub_resource type="Resource" id="Entry_coffee"]
+script = ExtResource("1_entry")
+card_definition_id = "card.consumable.coffee"
+weight = 4
+
+[sub_resource type="Resource" id="Entry_pizza"]
+script = ExtResource("1_entry")
+card_definition_id = "card.consumable.pizza_party"
+weight = 3
+
+[sub_resource type="Resource" id="Entry_stress_course"]
+script = ExtResource("1_entry")
+card_definition_id = "card.consumable.stress_course"
+weight = 2
+
+[resource]
+script = ExtResource("2_booster")
+id = "booster.office_invest"
+display_name = "Office-Invest"
+cost_money_cards = 1
+draw_count = 3
+pool_entries = Array[ExtResource("1_entry")]([SubResource("Entry_coffee_machine"), SubResource("Entry_coffee"), SubResource("Entry_pizza"), SubResource("Entry_stress_course")])

@@ -15,7 +15,10 @@ script = ExtResource("1_card")
 id = "card.value_source.customer"
 display_name = "Kunde"
 type = 7
-tags = PackedStringArray("value_source", "customer")
+tags = PackedStringArray("value_source", "customer", "sprint_tick_spawner")
 short_text = "Spawnt Kundenwuensche"
 tooltip_text = "Erzeugt ab Sprint 2 am Sprintstart einen Kundenwunsch."
 visual = SubResource("Resource_visual")
+base_values = {
+"sprint_tick_spawn_card_id": "card.input.customer_request"
+}

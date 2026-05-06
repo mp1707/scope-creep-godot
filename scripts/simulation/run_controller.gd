@@ -4,18 +4,24 @@ extends RefCounted
 const SPRINT_TIMER_ID: String = "sprint_remaining_seconds"
 const SPAWN_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
 const SPAWN_GAP: float = 36.0
-const START_LAYOUT_ORIGIN: Vector2 = Vector2(600.0, 322.0)
-const START_LAYOUT_COLUMNS: int = 4
+const START_LAYOUT_ORIGIN: Vector2 = Vector2(420.0, 322.0)
+const START_LAYOUT_COLUMNS: int = 6
 const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
 const DEFAULT_BOOSTER_DEFINITION_ID: String = "booster.founder.test_pack"
 const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
 const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
+const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
+const BURNOUT_PROGRESS_VALUE: String = "burnout_progress"
 const START_CARD_IDS: Array[String] = [
 	"card.product.software",
 	"card.employee.developer",
 	"card.input.idea",
 	"card.consumable.coffee",
 	"card.shop.booster_slot",
+	"card.shop.booster_slot.talent_pool",
+	"card.shop.booster_slot.office_invest",
+	"card.shop.booster_slot.customer_chaos",
+	"card.shop.bugfix_patch_slot",
 	"card.resource.money",
 	"card.resource.money",
 	"card.resource.money",
@@ -92,6 +98,7 @@ func load_run(loaded_state: RunState) -> void:
 	_rng.seed = state.rng_seed
 	_rng.state = state.rng_state
 	_sync_next_runtime_ids()
+	_refresh_attachment_runtime_states()
 	_emit(SimulationEvent.phase_changed(state.phase))
 	_emit(SimulationEvent.pause_changed(state.is_paused))
 	_emit(SimulationEvent.timer_updated(SPRINT_TIMER_ID, state.active_timers.get(SPRINT_TIMER_ID, 0.0) as float))
@@ -155,6 +162,8 @@ func move_stack(stack_id: String, position: Vector2) -> void:
 func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 	_require_state()
 	var card: CardInstance = _get_existing_card(card_id)
+	if not card.parent_card_id.is_empty():
+		return
 	var source_stack: StackState = _get_existing_stack(card.stack_id)
 	var target_stack: StackState = _get_existing_stack(target_stack_id)
 	if source_stack.stack_id == target_stack.stack_id:
@@ -177,6 +186,7 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 		moving_card.stack_id = target_stack.stack_id
 		moving_card.position = target_stack.base_position
 
+	_refresh_attachment_runtime_states()
 	_emit(SimulationEvent.stack_changed(source_stack.stack_id))
 	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
 	_delete_stack_if_empty(source_stack)
@@ -186,6 +196,8 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 func split_stack_from_card(card_id: String, new_position: Vector2) -> StackState:
 	_require_state()
 	var card: CardInstance = _get_existing_card(card_id)
+	if not card.parent_card_id.is_empty():
+		return null
 	var source_stack: StackState = _get_existing_stack(card.stack_id)
 	var start_index: int = source_stack.card_ids.find(card_id)
 	if start_index < 0:
@@ -205,6 +217,7 @@ func split_stack_from_card(card_id: String, new_position: Vector2) -> StackState
 		moving_card.stack_id = new_stack.stack_id
 		moving_card.position = new_position
 
+	_refresh_attachment_runtime_states()
 	_emit(SimulationEvent.stack_changed(source_stack.stack_id))
 	_emit(SimulationEvent.stack_changed(new_stack.stack_id))
 	_delete_stack_if_empty(source_stack)
@@ -461,12 +474,14 @@ func _refresh_payment_card_states() -> void:
 		card.state.is_locked = false
 		card.state.is_paid = is_employee and state.paid_employee_ids.has(card.instance_id)
 		card.state.is_payment_target = state.phase == ScopeEnums.RunPhase.PAYMENT and is_employee and not card.state.is_paid
+	_refresh_attachment_runtime_states()
 
 func _clear_payment_card_states() -> void:
 	for card: CardInstance in state.cards.values():
 		card.state.is_locked = false
 		card.state.is_paid = false
 		card.state.is_payment_target = false
+	_refresh_attachment_runtime_states()
 
 func _is_employee_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
@@ -578,12 +593,14 @@ func _cancel_processing(stack: StackState) -> void:
 
 func _complete_processing(stack: StackState) -> void:
 	var recipe: RecipeDefinition = content.get_recipe_definition(stack.processing_state.active_recipe_id)
+	var productive_employee_ids: PackedStringArray = _get_productive_employee_ids(stack, recipe)
 	_clear_processing(stack)
 	if recipe == null:
 		_emit(SimulationEvent.stack_changed(stack.stack_id))
 		return
 
 	_execute_effects(recipe.effects_on_complete, stack, recipe)
+	_apply_burnout_risk(productive_employee_ids)
 	_emit(SimulationEvent.recipe_completed(stack.stack_id))
 	if state.stacks.has(stack.stack_id):
 		_delete_stack_if_empty(stack)
@@ -607,6 +624,7 @@ func _execute_effects(effects: Array[EffectDefinition], stack: StackState, recip
 	context.remove_card = Callable(self, "_remove_card_instance")
 	context.get_spawn_position = Callable(self, "_get_spawn_position_near_stack")
 	_effect_pipeline.execute(effects, context)
+	state.rng_state = _rng.state
 
 func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> CardInstance:
 	if not content.has_card_definition(card_definition_id):
@@ -630,10 +648,53 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 	_emit(SimulationEvent.stack_changed(stack.stack_id))
 	return card
 
+func _spawn_attached_card(parent_card_id: String, card_definition_id: String, attachment_slot: String) -> CardInstance:
+	if not content.has_card_definition(card_definition_id):
+		push_error("Missing card definition: %s" % card_definition_id)
+		return null
+
+	var parent_card: CardInstance = state.get_card(parent_card_id)
+	if parent_card == null:
+		return null
+
+	var existing_attachment: CardInstance = _find_attachment(parent_card_id, attachment_slot)
+	if existing_attachment != null:
+		return existing_attachment
+
+	var stack: StackState = _get_existing_stack(parent_card.stack_id)
+	var card: CardInstance = CardInstance.new()
+	card.instance_id = _create_card_instance_id()
+	card.definition_id = card_definition_id
+	card.stack_id = stack.stack_id
+	card.parent_card_id = parent_card_id
+	card.attachment_slot = attachment_slot
+	card.position = parent_card.position
+	card.created_at_sprint = state.sprint_index
+	var definition: CardDefinition = content.get_card_definition(card_definition_id)
+	if definition != null:
+		card.values = definition.base_values.duplicate(true)
+
+	var parent_index: int = stack.card_ids.find(parent_card_id)
+	if parent_index < 0 or parent_index == stack.card_ids.size() - 1:
+		stack.card_ids.append(card.instance_id)
+	else:
+		stack.card_ids.insert(parent_index + 1, card.instance_id)
+	state.cards[card.instance_id] = card
+	_refresh_attachment_runtime_states()
+
+	_emit(SimulationEvent.card_spawned(card.instance_id, stack.stack_id))
+	_emit(SimulationEvent.stack_changed(stack.stack_id))
+	_refresh_stack_recipe_if_present(stack.stack_id)
+	return card
+
 func _remove_card_instance(card_id: String) -> void:
 	var card: CardInstance = state.get_card(card_id)
 	if card == null:
 		return
+
+	var attached_card_ids: PackedStringArray = _get_attachment_ids(card_id)
+	for attached_card_id: String in attached_card_ids:
+		_remove_card_instance(attached_card_id)
 
 	var stack_id: String = card.stack_id
 	if state.stacks.has(stack_id):
@@ -643,11 +704,89 @@ func _remove_card_instance(card_id: String) -> void:
 		_delete_stack_if_empty(stack)
 
 	state.cards.erase(card_id)
+	_refresh_attachment_runtime_states()
 	var event: SimulationEvent = SimulationEvent.new()
 	event.type = ScopeEnums.SimulationEventType.CARD_REMOVED
 	event.card_id = card_id
 	event.stack_id = stack_id
 	_emit(event)
+
+func _get_productive_employee_ids(stack: StackState, recipe: RecipeDefinition) -> PackedStringArray:
+	var employee_ids: PackedStringArray = PackedStringArray()
+	if recipe == null or _recipe_uses_burnout(recipe):
+		return employee_ids
+
+	for card_id: String in stack.card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has("employee"):
+			employee_ids.append(card.instance_id)
+	return employee_ids
+
+func _recipe_uses_burnout(recipe: RecipeDefinition) -> bool:
+	for input: RecipeInputMatcher in recipe.inputs:
+		if input.card_definition_id == "card.problem.burnout" or input.required_tags.has("burnout"):
+			return true
+	return false
+
+func _apply_burnout_risk(employee_ids: PackedStringArray) -> void:
+	if employee_ids.is_empty():
+		return
+	var increment: float = _get_burnout_increment()
+	if increment <= 0.0:
+		return
+
+	_rng.state = state.rng_state
+	for employee_id: String in employee_ids:
+		var employee: CardInstance = state.get_card(employee_id)
+		if employee == null or _has_attachment(employee.instance_id, BURNOUT_ATTACHMENT_SLOT):
+			continue
+		var burnout_progress: float = clampf(float(employee.values.get(BURNOUT_PROGRESS_VALUE, 0.0)) + increment, 0.0, 1.0)
+		employee.values[BURNOUT_PROGRESS_VALUE] = burnout_progress
+		if _rng.randf() <= burnout_progress:
+			employee.values[BURNOUT_PROGRESS_VALUE] = 0.0
+			_spawn_attached_card(employee.instance_id, "card.problem.burnout", BURNOUT_ATTACHMENT_SLOT)
+	state.rng_state = _rng.state
+	_refresh_attachment_runtime_states()
+
+func _get_burnout_increment() -> float:
+	if content.balance == null:
+		return 0.1
+	return content.balance.burnout_increment_per_completed_work
+
+func _find_attachment(parent_card_id: String, attachment_slot: String) -> CardInstance:
+	for card: CardInstance in state.cards.values():
+		if card.parent_card_id == parent_card_id and card.attachment_slot == attachment_slot:
+			return card
+	return null
+
+func _has_attachment(parent_card_id: String, attachment_slot: String) -> bool:
+	return _find_attachment(parent_card_id, attachment_slot) != null
+
+func _get_attachment_ids(parent_card_id: String) -> PackedStringArray:
+	var attachment_ids: PackedStringArray = PackedStringArray()
+	for card: CardInstance in state.cards.values():
+		if card.parent_card_id == parent_card_id:
+			attachment_ids.append(card.instance_id)
+	return attachment_ids
+
+func _refresh_attachment_runtime_states() -> void:
+	for card: CardInstance in state.cards.values():
+		if card.state == null:
+			card.state = CardRuntimeState.new()
+		if not card.parent_card_id.is_empty():
+			card.state.is_locked = true
+			continue
+		if card.state.is_locked:
+			card.state.is_locked = false
+		if not _is_employee_card(card):
+			continue
+		var markers: PackedStringArray = PackedStringArray()
+		if _has_attachment(card.instance_id, BURNOUT_ATTACHMENT_SLOT):
+			markers.append("BO")
+		card.state.markers = markers
 
 func _create_stack(position: Vector2) -> StackState:
 	var stack: StackState = StackState.new()

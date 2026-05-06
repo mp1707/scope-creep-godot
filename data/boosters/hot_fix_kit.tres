@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="BoosterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/booster_pool_entry.gd" id="1_entry"]
+[ext_resource type="Script" path="res://scripts/data/booster_definition.gd" id="2_booster"]
+
+[sub_resource type="Resource" id="Entry_external_dev"]
+script = ExtResource("1_entry")
+card_definition_id = "card.employee.external_dev"
+weight = 2
+
+[sub_resource type="Resource" id="Entry_bugfix_patch"]
+script = ExtResource("1_entry")
+card_definition_id = "card.consumable.bugfix_patch"
+weight = 4
+
+[sub_resource type="Resource" id="Entry_coffee"]
+script = ExtResource("1_entry")
+card_definition_id = "card.consumable.coffee"
+weight = 2
+
+[resource]
+script = ExtResource("2_booster")
+id = "booster.hot_fix_kit"
+display_name = "Hot Fix Kit"
+cost_money_cards = 1
+draw_count = 3
+pool_entries = Array[ExtResource("1_entry")]([SubResource("Entry_external_dev"), SubResource("Entry_bugfix_patch"), SubResource("Entry_coffee")])

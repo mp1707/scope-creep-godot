@@ -5,20 +5,20 @@
 
 [sub_resource type="Resource" id="Resource_visual"]
 script = ExtResource("2_visual")
-background_color = Color(0.62, 0.66, 0.66, 1)
-accent_color = Color(0.20, 0.24, 0.24, 1)
+background_color = Color(0.70, 0.84, 0.66, 1)
+accent_color = Color(0.20, 0.46, 0.24, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
-marker_text = "CM"
+marker_text = "TP"
 
 [resource]
 script = ExtResource("1_card")
-id = "card.value_source.coffee_machine"
-display_name = "Kaffeemaschine"
-type = 7
-tags = PackedStringArray("value_source", "coffee_machine", "sprint_tick_spawner")
-short_text = "Spawnt Kaffee"
-tooltip_text = "Erzeugt am Sprintstart einen Kaffee."
+id = "card.shop.booster_slot.talent_pool"
+display_name = "Talent-Pool"
+type = 6
+tags = PackedStringArray("shop", "booster_slot")
+short_text = "Team-Pack"
+tooltip_text = "Lege 1 Geld auf den Slot, um ein Talent-Pool-Pack zu kaufen."
 visual = SubResource("Resource_visual")
 base_values = {
-"sprint_tick_spawn_card_id": "card.consumable.coffee"
+"booster_definition_id": "booster.talent_pool"
 }
