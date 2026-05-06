@@ -7,6 +7,10 @@ const CARD_BORDER_WIDTH: int = 5
 const HEADER_HEIGHT: float = 34.0
 const CARD_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
 const DRAG_SHADOW_COLOR: Color = Color(0.18, 0.17, 0.15, 1.0)
+const STATUS_BADGE_TEXT_COLOR: Color = Color(0.98, 0.955, 0.88, 1.0)
+const STATUS_BADGE_COLOR: Color = Color(0.055, 0.052, 0.047, 0.92)
+const STATUS_BADGE_ALERT_COLOR: Color = Color(0.42, 0.07, 0.10, 0.95)
+const STATUS_BADGE_PAID_COLOR: Color = Color(0.13, 0.36, 0.20, 0.95)
 const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
 const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 108.0)
 const ICON_MASK_SHADER_CODE: String = "shader_type canvas_item;\nuniform vec4 icon_color : source_color = vec4(0.06, 0.055, 0.05, 1.0);\nvoid fragment() {\n\tvec4 texture_color = texture(TEXTURE, UV);\n\tCOLOR = vec4(icon_color.rgb, texture_color.a * icon_color.a);\n}\n"
@@ -48,14 +52,16 @@ func setup(card: CardInstance, definition: CardDefinition, stack: StackState) ->
 	stack_id = card.stack_id
 	_resolve_or_create_nodes()
 	_apply_definition(definition)
-	update_runtime(card, stack)
+	update_runtime(card, stack, definition)
 
-func update_runtime(card: CardInstance, stack: StackState) -> void:
+func update_runtime(card: CardInstance, stack: StackState, definition: CardDefinition = null) -> void:
 	card_id = card.instance_id
 	stack_id = card.stack_id
 	_update_progress(stack)
-	_update_runtime_marker(card)
+	_update_runtime_marker(card, definition)
 	_update_runtime_tint(card)
+	if definition != null:
+		_update_tooltip(card, definition)
 
 func set_drag_preview_position(board_position: Vector2) -> void:
 	position = board_position
@@ -212,6 +218,8 @@ func _apply_default_layout() -> void:
 	_marker_label.position = Vector2(98.0, 42.0)
 	_marker_label.size = Vector2(34.0, 24.0)
 	_marker_label.visible = false
+	_marker_label.add_theme_font_size_override("font_size", 17)
+	_marker_label.add_theme_color_override("font_color", STATUS_BADGE_TEXT_COLOR)
 	_set_top_left_layout(_short_text_label)
 	_short_text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_short_text_label.position = Vector2(12.0, 74.0)
@@ -245,8 +253,10 @@ func _apply_definition(definition: CardDefinition) -> void:
 	_marker_label.text = visual.marker_text
 	_default_marker_text = visual.marker_text
 	_apply_icon_style(visual)
+	_short_text_label.visible = false
 	for label: Label in [_title_label, _short_text_label, _marker_label, _action_label]:
 		label.add_theme_color_override("font_color", visual.text_color)
+	_marker_label.add_theme_color_override("font_color", STATUS_BADGE_TEXT_COLOR)
 
 	if _background is ColorRect:
 		(_background as ColorRect).color = visual.background_color
@@ -326,26 +336,75 @@ func _update_progress(_stack: StackState) -> void:
 	_action_label.visible = false
 	_action_label.text = ""
 
-func _update_runtime_marker(card: CardInstance) -> void:
+func _update_runtime_marker(card: CardInstance, definition: CardDefinition) -> void:
 	if card.state == null:
 		return
+	var marker_text: String = _get_runtime_marker_text(card, definition)
+	_marker_label.text = marker_text
+	_marker_label.visible = false
+	_apply_marker_style(card, marker_text)
+
+func _get_runtime_marker_text(card: CardInstance, definition: CardDefinition) -> String:
 	if card.state.is_paid:
-		_marker_label.text = "OK"
-		return
+		return "OK"
 	if card.state.is_payment_target:
-		_marker_label.text = "$"
+		return "$"
+	if not card.state.markers.is_empty():
+		return card.state.markers[0]
+	if definition != null and definition.tags.has("feature"):
+		var value: int = int(card.values.get("feature_value", 1))
+		if bool(card.values.get("is_checked", false)) or definition.tags.has("checked"):
+			return "OK%d" % value
+		return "W%d" % value
+	if not card.parent_card_id.is_empty():
+		return "AN"
+	return _default_marker_text
+
+func _apply_marker_style(card: CardInstance, marker_text: String) -> void:
+	if marker_text.is_empty():
 		return
-	if card.state.markers.is_empty():
-		_marker_label.text = _default_marker_text
-		return
-	_marker_label.text = card.state.markers[0]
+	var style_box: StyleBoxFlat = StyleBoxFlat.new()
+	if card.state != null and card.state.is_paid:
+		style_box.bg_color = STATUS_BADGE_PAID_COLOR
+	elif marker_text == "BO" or marker_text == "!!!" or marker_text == "$":
+		style_box.bg_color = STATUS_BADGE_ALERT_COLOR
+	else:
+		style_box.bg_color = STATUS_BADGE_COLOR
+	style_box.corner_radius_bottom_left = 6
+	style_box.corner_radius_bottom_right = 6
+	style_box.corner_radius_top_left = 6
+	style_box.corner_radius_top_right = 6
+	_marker_label.add_theme_stylebox_override("normal", style_box)
+
+func _update_tooltip(card: CardInstance, definition: CardDefinition) -> void:
+	var details: PackedStringArray = PackedStringArray()
+	var base_text: String = definition.tooltip_text if not definition.tooltip_text.is_empty() else definition.short_text
+	if definition.tags.has("feature"):
+		details.append("Wert: %d" % int(card.values.get("feature_value", 1)))
+		if bool(card.values.get("is_checked", false)) or definition.tags.has("checked"):
+			details.append("Status: geprueft")
+	if card.state != null and card.state.is_paid:
+		details.append("Bezahlt fuer den naechsten Sprint")
+	elif card.state != null and card.state.is_payment_target:
+		details.append("Gehalt offen: 1 Geldkarte")
+	if not card.parent_card_id.is_empty():
+		details.append("Angeheftet an: %s" % card.parent_card_id)
+	if definition.tags.has("burnout"):
+		details.append("Blockiert normale Arbeit des Mitarbeiters")
+
+	if details.is_empty():
+		tooltip_text = base_text
+	elif base_text.is_empty():
+		tooltip_text = "\n".join(details)
+	else:
+		tooltip_text = "%s\n%s" % [base_text, "\n".join(details)]
 
 func _update_runtime_tint(card: CardInstance) -> void:
 	if card.state == null:
 		modulate = Color.WHITE
 		return
-	if card.state.is_locked:
-		modulate = Color(0.55, 0.55, 0.55, 0.72)
+	if card.state.is_locked and card.parent_card_id.is_empty():
+		modulate = Color(0.68, 0.68, 0.68, 1.0)
 	elif card.state.is_paid:
 		modulate = Color(0.68, 0.86, 0.68, 0.88)
 	elif card.state.is_payment_target:

@@ -4,10 +4,14 @@ extends RefCounted
 const SPRINT_TIMER_ID: String = "sprint_remaining_seconds"
 const SPAWN_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
 const SPAWN_GAP: float = 36.0
+const SPAWN_BOARD_MARGIN: float = 56.0
+const SPAWN_SEARCH_RINGS: int = 7
+const INVALID_SPAWN_POSITION: Vector2 = Vector2(100000000.0, 100000000.0)
 const START_LAYOUT_ORIGIN: Vector2 = Vector2(420.0, 322.0)
 const START_LAYOUT_COLUMNS: int = 6
 const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
 const DEFAULT_BOOSTER_DEFINITION_ID: String = "booster.founder.test_pack"
+const CONTENT_VERSION: String = "poc2"
 const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
 const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
 const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
@@ -57,7 +61,7 @@ func start_new_run(run_seed: int = 1) -> RunState:
 	state.rng_seed = run_seed
 	_rng.seed = run_seed
 	state.rng_state = _rng.state
-	state.content_version = "poc"
+	state.content_version = CONTENT_VERSION
 	state.active_timers[SPRINT_TIMER_ID] = _get_sprint_duration()
 
 	for index: int in START_CARD_IDS.size():
@@ -811,40 +815,93 @@ func _get_spawn_position_near_stack(source_stack_id: String, spawn_index: int = 
 
 	var step_x: float = SPAWN_CARD_SIZE.x + SPAWN_GAP
 	var step_y: float = SPAWN_CARD_SIZE.y + SPAWN_GAP
-	var index_bias: Vector2 = Vector2(float(spawn_index) * step_x, 0.0)
-	var candidates: Array[Vector2] = [
-		source_position + Vector2(step_x, 0.0) + index_bias,
-		source_position + Vector2(0.0, step_y),
-		source_position + Vector2(-step_x, 0.0),
-		source_position + Vector2(0.0, -step_y),
-		source_position + Vector2(step_x, step_y),
-		source_position + Vector2(-step_x, step_y),
-		source_position + Vector2(step_x, -step_y),
-		source_position + Vector2(-step_x, -step_y),
+	var candidates: Array[Vector2] = []
+	var directions: Array[Vector2] = [
+		Vector2.RIGHT,
+		Vector2.DOWN,
+		Vector2.LEFT,
+		Vector2.UP,
+		Vector2(1.0, 1.0),
+		Vector2(-1.0, 1.0),
+		Vector2(1.0, -1.0),
+		Vector2(-1.0, -1.0),
 	]
 
 	var radius: float = 160.0
 	if content.balance != null:
 		radius = maxf(radius, content.balance.spawn_placement_radius)
-	for ring: int in 4:
-		for direction: Vector2 in [Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT, Vector2.UP]:
-			candidates.append(source_position + direction * (radius + float(ring) * step_x) + index_bias)
+	for ring: int in SPAWN_SEARCH_RINGS:
+		var ring_distance: Vector2 = Vector2(radius + float(ring) * step_x, radius + float(ring) * step_y)
+		for direction: Vector2 in directions:
+			candidates.append(source_position + Vector2(direction.x * ring_distance.x, direction.y * ring_distance.y))
+
+	var spawn_row: int = floori(float(spawn_index) / 4.0)
+	var spawn_column: int = spawn_index % 4
+	if spawn_index > 0:
+		candidates.append(source_position + Vector2(float(spawn_column + 1) * step_x, float(spawn_row) * step_y))
 
 	for candidate: Vector2 in candidates:
 		if not _does_spawn_overlap(candidate):
 			state.board.spawn_history.append(candidate)
 			return candidate
 
-	var fallback: Vector2 = source_position + Vector2(step_x * float(state.board.spawn_history.size() + 1), step_y)
+	var grid_position: Vector2 = _find_free_spawn_grid_position(source_position)
+	if grid_position != INVALID_SPAWN_POSITION:
+		state.board.spawn_history.append(grid_position)
+		return grid_position
+
+	var fallback: Vector2 = _clamp_spawn_position_to_board(source_position + Vector2(step_x * float(spawn_index + 1), step_y))
 	state.board.spawn_history.append(fallback)
 	return fallback
 
 func _does_spawn_overlap(position: Vector2) -> bool:
 	var spawn_rect: Rect2 = Rect2(position, SPAWN_CARD_SIZE)
+	if not _get_spawn_bounds().encloses(spawn_rect):
+		return true
+	for reserved_area: Rect2 in state.board.reserved_areas:
+		if spawn_rect.intersects(reserved_area):
+			return true
+	for previous_position: Vector2 in state.board.spawn_history:
+		if spawn_rect.intersects(Rect2(previous_position, SPAWN_CARD_SIZE)):
+			return true
 	for stack: StackState in state.stacks.values():
 		if spawn_rect.intersects(_get_stack_rect(stack)):
 			return true
 	return false
+
+func _get_spawn_bounds() -> Rect2:
+	var board_size: Vector2 = state.board.size
+	var available_size: Vector2 = Vector2(
+		maxf(SPAWN_CARD_SIZE.x, board_size.x - SPAWN_BOARD_MARGIN * 2.0),
+		maxf(SPAWN_CARD_SIZE.y, board_size.y - SPAWN_BOARD_MARGIN * 2.0)
+	)
+	return Rect2(Vector2(SPAWN_BOARD_MARGIN, SPAWN_BOARD_MARGIN), available_size)
+
+func _clamp_spawn_position_to_board(position: Vector2) -> Vector2:
+	var bounds: Rect2 = _get_spawn_bounds()
+	return Vector2(
+		clampf(position.x, bounds.position.x, bounds.end.x - SPAWN_CARD_SIZE.x),
+		clampf(position.y, bounds.position.y, bounds.end.y - SPAWN_CARD_SIZE.y)
+	)
+
+func _find_free_spawn_grid_position(source_position: Vector2) -> Vector2:
+	var bounds: Rect2 = _get_spawn_bounds()
+	var step: Vector2 = SPAWN_CARD_SIZE + Vector2(SPAWN_GAP, SPAWN_GAP)
+	var column_count: int = maxi(1, floori((bounds.size.x - SPAWN_CARD_SIZE.x) / step.x) + 1)
+	var row_count: int = maxi(1, floori((bounds.size.y - SPAWN_CARD_SIZE.y) / step.y) + 1)
+	var candidates: Array[Vector2] = []
+	for row: int in row_count:
+		for column: int in column_count:
+			candidates.append(bounds.position + Vector2(float(column) * step.x, float(row) * step.y))
+
+	candidates.sort_custom(func(left: Vector2, right: Vector2) -> bool:
+		return left.distance_squared_to(source_position) < right.distance_squared_to(source_position)
+	)
+
+	for candidate: Vector2 in candidates:
+		if not _does_spawn_overlap(candidate):
+			return candidate
+	return INVALID_SPAWN_POSITION
 
 func _get_stack_rect(stack: StackState) -> Rect2:
 	if stack.card_ids.is_empty():

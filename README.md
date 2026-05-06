@@ -18,6 +18,18 @@ Der Vertical Slice startet mit Software, Entwickler, Idee, Kaffee, Booster-Slot 
 - Leertaste pausiert nur waehrend der Sprint-Phase.
 - Speichern ist nur in Pause oder Bezahlphase erlaubt.
 
+## PoC2-Playtest
+
+PoC2 ist ohne Debug-Spawns spielbar. Product Owner, Tester, Externer Dev, Kunde, Kaffeemaschine, Auftraege, Office-Consumables und Bugfix-Patch kommen ueber die Shop-Slots am Board ins Spiel.
+
+Empfohlene Testlaeufe:
+
+1. Schnellschuss: Idee + Entwickler direkt zu Funktion bauen, ungeprueft releasen, Bugs/Tech Debt nur behandeln, wenn sie stoeren.
+2. Saubere Pipeline: Talent-Pool kaufen, Product Owner und Tester nutzen, User Story -> Funktion -> Gepruefte Funktion -> Software spielen.
+3. Eskalation: Bugs bewusst liegen lassen, bis Sprintstart aus drei Bugs einen Prod-Crash bildet.
+4. Office-Invest: Office-Invest kaufen, Kaffeemaschine/Kaffee und Burnout-Heilung mit Pizza Party oder Stressbewaeltigungskurs testen.
+5. Kundenchaos: Kunde/Auftrag/Kundenwunsch nutzen und pruefen, ob genug Druck fuer die laengere Pipeline entsteht.
+
 ## Checks
 
 Alle PoC-Kernchecks laufen ueber:

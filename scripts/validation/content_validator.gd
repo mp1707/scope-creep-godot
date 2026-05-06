@@ -24,6 +24,26 @@ const POC2_REQUIRED_CARD_TAGS: Dictionary = {
 	"card.value_source.coffee_machine": ["value_source", "coffee_machine"],
 	"card.value_source.order": ["value_source", "order"],
 }
+const POC2_REQUIRED_RECIPE_INPUTS: Dictionary = {
+	"recipe.feature_from_idea.developer": ["card.input.idea", "card.employee.developer"],
+	"recipe.user_story_from_idea.product_owner": ["card.input.idea", "card.employee.product_owner"],
+	"recipe.promising_user_story_from_customer_request.product_owner": ["card.input.customer_request", "card.employee.product_owner"],
+	"recipe.feature_from_user_story.developer": ["card.task.user_story", "card.employee.developer"],
+	"recipe.feature_from_promising_user_story.developer": ["card.task.promising_user_story", "card.employee.developer"],
+	"recipe.checked_feature_from_feature.tester": ["card.output.feature", "card.employee.tester"],
+	"recipe.money_from_feature.software": ["card.output.feature", "card.product.software"],
+	"recipe.money_from_checked_feature.software": ["card.output.checked_feature", "card.product.software"],
+	"recipe.debug_bug.developer": ["card.problem.bug", "card.employee.developer"],
+	"recipe.debug_bug.tester": ["card.problem.bug", "card.employee.tester"],
+	"recipe.debug_bug.external_dev": ["card.problem.bug", "card.employee.external_dev"],
+	"recipe.debug_bug.bugfix_patch": ["card.problem.bug", "card.consumable.bugfix_patch"],
+	"recipe.cleanup_tech_debt.developer": ["card.problem.tech_debt", "card.employee.developer"],
+	"recipe.hotfix_prod_crash.developer": ["card.problem.prod_crash", "card.employee.developer"],
+	"recipe.burnout_recovery.employee": ["card.problem.burnout", "tag:employee"],
+	"recipe.burnout_recovery.pizza": ["card.problem.burnout", "card.consumable.pizza_party"],
+	"recipe.burnout_recovery.stress_course": ["card.problem.burnout", "card.consumable.stress_course"],
+	"recipe.money_from_order.feature": ["card.value_source.order", "tag:feature"],
+}
 
 var _errors: PackedStringArray = PackedStringArray()
 var _seen_ids: Dictionary = {}
@@ -44,6 +64,7 @@ func validate_content() -> PackedStringArray:
 
 	for card_resource: Resource in cards:
 		_validate_card(card_resource as CardDefinition)
+	_validate_poc2_cross_card_rules(cards)
 	for booster_resource: Resource in boosters:
 		var booster: BoosterDefinition = booster_resource as BoosterDefinition
 		_booster_ids[booster.id] = booster.resource_path
@@ -51,6 +72,7 @@ func validate_content() -> PackedStringArray:
 	for recipe_resource: Resource in recipes:
 		_validate_recipe(recipe_resource as RecipeDefinition)
 	_validate_ambiguous_recipes(recipes)
+	_validate_poc2_recipe_patterns(recipes)
 
 	for booster_resource: Resource in boosters:
 		_validate_booster(booster_resource as BoosterDefinition)
@@ -143,6 +165,17 @@ func _validate_poc2_visual_minimum(card: CardDefinition) -> void:
 	if card.visual.marker_text.strip_edges().is_empty():
 		_errors.append("%s: PoC2 card '%s' needs visual.marker_text." % [card.resource_path, card.id])
 
+func _validate_poc2_cross_card_rules(cards: Array) -> void:
+	for card_resource: Resource in cards:
+		var card: CardDefinition = card_resource as CardDefinition
+		if card == null or not card.tags.has("sprint_tick_spawner"):
+			continue
+		var spawned_card_id: String = card.base_values.get("sprint_tick_spawn_card_id", "") as String
+		if spawned_card_id.is_empty():
+			_errors.append("%s: Sprint tick spawner '%s' needs base_values.sprint_tick_spawn_card_id." % [card.resource_path, card.id])
+		elif not _card_ids.has(spawned_card_id):
+			_errors.append("%s: Sprint tick spawner '%s' references missing card '%s'." % [card.resource_path, card.id, spawned_card_id])
+
 func _validate_recipe(recipe: RecipeDefinition) -> void:
 	var path: String = recipe.resource_path
 	if recipe.display_text.strip_edges().is_empty():
@@ -176,6 +209,51 @@ func _validate_ambiguous_recipes(recipes: Array) -> void:
 			"%s: Recipe '%s' is ambiguous with '%s'. Matching inputs, specificity, and priority must not tie."
 			% [recipe.resource_path, recipe.id, other_recipe.id]
 		)
+
+func _validate_poc2_recipe_patterns(recipes: Array) -> void:
+	var recipes_by_id: Dictionary = {}
+	for recipe_resource: Resource in recipes:
+		var recipe: RecipeDefinition = recipe_resource as RecipeDefinition
+		if recipe != null:
+			recipes_by_id[recipe.id] = recipe
+
+	for recipe_id: String in POC2_REQUIRED_RECIPE_INPUTS.keys():
+		if not recipes_by_id.has(recipe_id):
+			_errors.append("PoC2 requires recipe '%s'." % recipe_id)
+			continue
+		var recipe: RecipeDefinition = recipes_by_id[recipe_id] as RecipeDefinition
+		var required_card_ids: Array = POC2_REQUIRED_RECIPE_INPUTS[recipe_id] as Array
+		for required_input: String in required_card_ids:
+			if not _recipe_has_required_input(recipe, required_input):
+				_errors.append("%s: PoC2 recipe '%s' needs input '%s'." % [recipe.resource_path, recipe.id, required_input])
+
+	if recipes_by_id.has("recipe.burnout_recovery.employee") and recipes_by_id.has("recipe.burnout_recovery.pizza"):
+		var normal: RecipeDefinition = recipes_by_id["recipe.burnout_recovery.employee"] as RecipeDefinition
+		var pizza: RecipeDefinition = recipes_by_id["recipe.burnout_recovery.pizza"] as RecipeDefinition
+		if pizza.specificity_score <= normal.specificity_score:
+			_errors.append("%s: Pizza burnout recovery must be more specific than normal recovery." % pizza.resource_path)
+	if recipes_by_id.has("recipe.burnout_recovery.pizza") and recipes_by_id.has("recipe.burnout_recovery.stress_course"):
+		var pizza_recipe: RecipeDefinition = recipes_by_id["recipe.burnout_recovery.pizza"] as RecipeDefinition
+		var stress_recipe: RecipeDefinition = recipes_by_id["recipe.burnout_recovery.stress_course"] as RecipeDefinition
+		if stress_recipe.specificity_score < pizza_recipe.specificity_score:
+			_errors.append("%s: Stress course recovery must be at least as specific as pizza recovery." % stress_recipe.resource_path)
+
+func _recipe_has_required_input(recipe: RecipeDefinition, required_input: String) -> bool:
+	if required_input.begins_with("tag:"):
+		return _recipe_has_tag_input(recipe, required_input.trim_prefix("tag:"))
+	return _recipe_has_card_input(recipe, required_input)
+
+func _recipe_has_card_input(recipe: RecipeDefinition, card_definition_id: String) -> bool:
+	for input: RecipeInputMatcher in recipe.inputs:
+		if input != null and input.card_definition_id == card_definition_id:
+			return true
+	return false
+
+func _recipe_has_tag_input(recipe: RecipeDefinition, tag: String) -> bool:
+	for input: RecipeInputMatcher in recipe.inputs:
+		if input != null and input.required_tags.has(tag):
+			return true
+	return false
 
 func _get_recipe_ambiguity_signature(recipe: RecipeDefinition) -> String:
 	var input_signatures: PackedStringArray = PackedStringArray()

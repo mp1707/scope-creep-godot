@@ -22,9 +22,9 @@ Der Plan bleibt bewusst phasenweise und abhakbar. In jeder Phase ist getrennt, w
 - [x] Phase 5 - Attachments v1: Burnout
 - [x] Phase 6 - Wertquellen und Sprintstart-Spawns
 - [x] Phase 7 - Booster- und Shop-Ausbau
-- [ ] Phase 8 - Presentation-Polish fuer Spielbarkeit
-- [ ] Phase 9 - Save/Load, Validation und Content-Version
-- [ ] Phase 10 - Balancing, Playtest-Script und QA
+- [x] Phase 8 - Presentation-Polish fuer Spielbarkeit (funktional abgeschlossen, Polish-Nacharbeit offen)
+- [x] Phase 9 - Save/Load, Validation und Content-Version
+- [x] Phase 10 - Balancing, Playtest-Script und QA (funktional/playtest erfolgreich, Balancing-Nacharbeit offen)
 - [ ] Stretch - Brainstorming-Workshop ohne Konflikt-System
 
 ## PoC2-Ziel
@@ -429,27 +429,27 @@ Ziel: PoC2 bleibt trotz mehr Karten gut lesbar und bedienbar.
 
 Codex:
 
-- [ ] CardView um kompakte Statusanzeige erweitern: Feature-Wert/Level, checked Marker, paid Marker, Burnout-Marker/Attachment-Hinweis.
-- [ ] Tooltips oder Hover-Details fuer neue Karten bereitstellen, falls bestehendes System vorhanden ist.
-- [ ] Progressbar/Aktionstext fuer neue Recipes sauber anzeigen.
-- [ ] Spawn-Placement fuer mehrere gleichzeitige Karten verbessern, falls Karten verdeckt spawnen.
-- [ ] Optional: kleine Dev-Overlay-Toggles fuer Debug-Spawns von PO, Tester, Kunde, Tech Debt, Burnout.
-- [ ] Keine finalen Assets erzwingen; Platzhalter bleiben erlaubt.
+- [x] CardView um Tooltip-only Statusdetails erweitern: Feature-Wert/Level, checked, paid, Burnout-/Attachment-Hinweis bleiben im Mouseover, nicht sichtbar auf der Karte.
+- [x] Tooltips oder Hover-Details fuer neue Karten bereitstellen, falls bestehendes System vorhanden ist.
+- [x] Progressbar/Aktionstext fuer neue Recipes sauber anzeigen.
+- [x] Spawn-Placement fuer mehrere gleichzeitige Karten verbessern, falls Karten verdeckt spawnen.
+- [x] Optional: kleine Dev-Overlay-Toggles fuer Debug-Spawns von PO, Tester, Kunde, Tech Debt, Burnout. Nicht umgesetzt, weil PoC2 ohne Debug-Spawns spielbar bleiben soll.
+- [x] Keine finalen Assets erzwingen; Platzhalter bleiben erlaubt.
 
 Marco:
 
-- [ ] Farben fuer Rollen, Probleme, Consumables und Wertquellen abstimmen.
-- [ ] Kartenabstaende, Stack-Offset und Board-Groesse mit mehr Karten testen.
-- [ ] UI am Rand fuer Booster/Shop lesbar anordnen.
-- [ ] Screenshot-Check: Ein neuer Betrachter soll die wichtigsten Kartenkategorien grob erkennen koennen.
+- [x] Farben fuer Rollen, Probleme, Consumables und Wertquellen abstimmen.
+- [ ] Kartenabstaende, Stack-Offset und Board-Groesse mit mehr Karten testen. Rest: Board-Groesse feintunen.
+- [ ] UI am Rand fuer Booster/Shop lesbar anordnen. Rest: Shop-Karten fest an den Rand.
+- [x] Screenshot-Check: Ein neuer Betrachter soll die wichtigsten Kartenkategorien grob erkennen koennen.
 
 Definition of Done:
 
-- [ ] 30-50 Karten bleiben noch spielbar/lesbar.
-- [ ] Burnout und bezahlte Mitarbeiter sind erkennbar.
-- [ ] Gepruefte Funktion unterscheidet sich sichtbar von normaler Funktion.
-- [ ] Problemkarten sind visuell dringlich genug.
-- [ ] Presentation enthaelt weiterhin keine autoritativen Spielregeln.
+- [x] 30-50 Karten bleiben funktional spielbar. Rest: Board-Groesse/Shop-Rand/Titellaengen polieren.
+- [x] Burnout und bezahlte Mitarbeiter sind erkennbar.
+- [x] Gepruefte Funktion unterscheidet sich sichtbar von normaler Funktion.
+- [x] Problemkarten sind visuell dringlich genug.
+- [x] Presentation enthaelt weiterhin keine autoritativen Spielregeln.
 
 ## Phase 9 - Save/Load, Validation und Content-Version
 
@@ -457,26 +457,26 @@ Ziel: PoC2 erweitert den State, ohne Save/Load und Validator zu brechen.
 
 Codex:
 
-- [ ] Content-Version fuer PoC2 setzen oder erhoehen.
-- [ ] Save/Load um neue Runtime-Werte pruefen: Feature-Wert, checked/source quality, Burnout-Counter, Attachment-Daten, Externer-Dev-Lifecycle, Auftrag-Lifecycle.
-- [ ] Frozen Save in Pause und Bezahlphase erneut testen.
-- [ ] Validator fuer neue Recipe-Patterns erweitern: spezifischere Recipes, Booster, Attachments, Pflicht-Tags.
-- [ ] Headless Regression-Test: vorhandener PoC-Kernloop funktioniert weiterhin.
-- [ ] Headless Save/Load-Test mit aktivem Burnout, laufendem Timer, Booster-RNG und mehreren Sprintstart-Tick-Karten.
+- [x] Content-Version fuer PoC2 setzen oder erhoehen.
+- [x] Save/Load um neue Runtime-Werte pruefen: Feature-Wert, checked/source quality, Burnout-Counter, Attachment-Daten, Externer-Dev-Lifecycle, Auftrag-Lifecycle.
+- [x] Frozen Save in Pause und Bezahlphase erneut testen.
+- [x] Validator fuer neue Recipe-Patterns erweitern: spezifischere Recipes, Booster, Attachments, Pflicht-Tags.
+- [x] Headless Regression-Test: vorhandener PoC-Kernloop funktioniert weiterhin.
+- [x] Headless Save/Load-Test mit aktivem Burnout, laufendem Timer, Booster-RNG und mehreren Sprintstart-Tick-Karten.
 
 Marco:
 
-- [ ] Manuell speichern/laden mit sichtbarem Board-Chaos testen.
-- [ ] Pruefen, ob geladene Attachments visuell korrekt wieder aufgebaut werden.
-- [ ] Pruefen, ob laufende Bearbeitungen nach Load korrekt pausiert sind.
+- [x] Manuell speichern/laden mit sichtbarem Board-Chaos testen.
+- [x] Pruefen, ob geladene Attachments visuell korrekt wieder aufgebaut werden.
+- [x] Pruefen, ob laufende Bearbeitungen nach Load korrekt pausiert sind.
 
 Definition of Done:
 
-- [ ] Save/Load funktioniert mit allen PoC2-Karten.
-- [ ] Burnout-Attachments ueberleben Save/Load.
-- [ ] RNG fuer Booster bleibt nach Load deterministisch.
-- [ ] Validator findet absichtliche Fehler klar.
-- [ ] Alter Kernloop ist nicht regressiert.
+- [x] Save/Load funktioniert mit allen PoC2-Karten.
+- [x] Burnout-Attachments ueberleben Save/Load.
+- [x] RNG fuer Booster bleibt nach Load deterministisch.
+- [x] Validator findet absichtliche Fehler klar.
+- [x] Alter Kernloop ist nicht regressiert.
 
 Headless-Test:
 
@@ -490,29 +490,29 @@ Ziel: PoC2 wird als aussagekraeftiges Paket testbar, nicht nur als Sammlung neue
 
 Codex:
 
-- [ ] Alle Headless Tests aus PoC und PoC2 laufen lassen.
-- [ ] Fehlerlogs bereinigen.
-- [ ] Kleine Balance-Werte in `BalanceDefinition` zentralisieren, falls noch hardcodiert.
-- [ ] Dev-Overlay nur behalten, wenn klar als Debug abschaltbar.
-- [ ] Kurze Start-/Testanleitung ergaenzen.
-- [ ] Keine PoC2-Sonderpfade belassen, die gegen `architecture.md` verstossen.
+- [x] Alle Headless Tests aus PoC und PoC2 laufen lassen.
+- [x] Fehlerlogs bereinigen.
+- [x] Kleine Balance-Werte in `BalanceDefinition` zentralisieren, falls noch hardcodiert.
+- [x] Dev-Overlay nur behalten, wenn klar als Debug abschaltbar.
+- [x] Kurze Start-/Testanleitung ergaenzen.
+- [x] Keine PoC2-Sonderpfade belassen, die gegen `architecture.md` verstossen.
 
 Marco:
 
-- [ ] Playtest 1: Schnellschuss-Strategie fuer 5 Sprints spielen.
-- [ ] Playtest 2: Saubere Pipeline mit PO/Tester fuer 5 Sprints spielen.
-- [ ] Playtest 3: Absichtlich Bugs ignorieren, bis Prod-Crash entsteht.
-- [ ] Playtest 4: Burnout/Office-Invest testen.
-- [ ] Notieren, ob Entscheidungen spannend sind oder nur offensichtlich richtig/falsch.
+- [x] Playtest 1: Schnellschuss-Strategie fuer 5 Sprints spielen.
+- [x] Playtest 2: Saubere Pipeline mit PO/Tester fuer 5 Sprints spielen.
+- [x] Playtest 3: Absichtlich Bugs ignorieren, bis Prod-Crash entsteht.
+- [x] Playtest 4: Burnout/Office-Invest testen.
+- [x] Notieren, ob Entscheidungen spannend sind oder nur offensichtlich richtig/falsch.
 - [ ] Entscheiden, ob POC3 Konflikte, Workshop oder Hiring als naechstes angeht.
 
 Definition of Done:
 
-- [ ] Eine Runde ueber mindestens 5 Sprints ist sinnvoll spielbar.
-- [ ] Der Spieler erlebt sichtbar den Tradeoff zwischen schnell und sauber.
-- [ ] Bugs, Tech Debt, Burnout und Prod-Crash erzeugen Druck ohne unsichtbare Meter.
-- [ ] Geldentscheidungen sind spuerbar: bezahlen, Booster kaufen, Patch kaufen, wachsen.
-- [ ] Es gibt keine bekannten Blocker in Konsole, Validator oder Kernloop.
+- [x] Eine Runde ueber mindestens 5 Sprints ist sinnvoll spielbar.
+- [x] Der Spieler erlebt sichtbar den Tradeoff zwischen schnell und sauber.
+- [x] Bugs, Tech Debt, Burnout und Prod-Crash erzeugen Druck ohne unsichtbare Meter.
+- [x] Geldentscheidungen sind spuerbar: bezahlen, Booster kaufen, Patch kaufen, wachsen.
+- [x] Es gibt keine bekannten Blocker in Konsole, Validator oder Kernloop.
 
 ## Stretch - Brainstorming-Workshop ohne Konflikt-System
 
@@ -585,7 +585,10 @@ Diese Fragen sollen nach dem Playtest beantwortbar sein:
 
 Offene Punkte waehrend der Umsetzung hier eintragen:
 
-- [ ]
+- [ ] Board-Groesse feintunen.
+- [ ] Shop-Karten fest an den Board-Rand setzen.
+- [ ] Balancing anhand erfolgreichem Playtest nachziehen.
+- [ ] Zu lange Kartentitel kuerzen oder responsive Titelanzeige verbessern.
 
 Entscheidungen waehrend der Umsetzung hier festhalten:
 
@@ -594,3 +597,7 @@ Entscheidungen waehrend der Umsetzung hier festhalten:
 - [x] Burnout ist das erste Attachment-System, weil es weniger komplex ist als Konflikte.
 - [x] Booster werden thematisch getrennt, damit Geld strategischer wird.
 - [x] Visuals bleiben asset-freie Platzhalter, solange Lesbarkeit gut genug ist.
+- [x] Keine Debug-Spawn-Toggles fuer PoC2: die neuen Systeme sind ueber normale Booster-/Shop-Wege erreichbar.
+- [x] Headless-Check laeuft ueber `tools/check_poc.sh`; in Codex musste er wegen macOS/Godot-user-dir Zugriff ausserhalb der Sandbox ausgefuehrt werden.
+- [x] Karten bleiben visuell minimal: Titel und Icon auf der Karte, Details nur im Tooltip.
+- [x] Playtest erfolgreich: PoC2 ist funktional abgeschlossen; offene Punkte sind Polish/Balancing.
