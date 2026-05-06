@@ -25,3 +25,8 @@ tags = PackedStringArray("feature", "output")
 short_text = "Erzeugt Wert in Software"
 tooltip_text = "Erzeugt Wert in Software"
 visual = SubResource("Resource_cfqru")
+base_values = {
+"feature_value": 1,
+"is_checked": false,
+"source_quality": "quick"
+}

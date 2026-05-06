@@ -23,7 +23,13 @@ id = "effect.spawn_card.feature"
 effect_type = "spawn_card"
 parameters = {
 "card_definition_id": "card.output.feature",
-"count": 1
+"count": 1,
+"marker_value_key": "feature_value",
+"values": {
+"feature_value": 2,
+"is_checked": false,
+"source_quality": "promising"
+}
 }
 
 [sub_resource type="Resource" id="Input_promising_user_story"]

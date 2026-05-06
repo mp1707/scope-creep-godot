@@ -32,7 +32,23 @@ id = "effect.spawn_card.feature"
 effect_type = "spawn_card"
 parameters = {
 "card_definition_id": "card.output.feature",
-"count": 1
+"count": 1,
+"marker_value_key": "feature_value",
+"values": {
+"feature_value": 1,
+"is_checked": false,
+"source_quality": "quick"
+}
+}
+
+[sub_resource type="Resource" id="Resource_tech_debt_roll"]
+script = ExtResource("4_hvdyn")
+id = "effect.roll_tech_debt_chance"
+effect_type = "roll_chance"
+parameters = {
+"card_definition_id": "card.problem.tech_debt",
+"chance_key": "tech_debt_chance",
+"spawn_index": 1
 }
 
 [sub_resource type="Resource" id="Resource_vcn83"]
@@ -58,5 +74,5 @@ inputs = Array[ExtResource("1_djbw0")]([SubResource("Resource_vcn83"), SubResour
 duration = SubResource("Resource_krnir")
 priority = 20
 specificity_score = 3
-effects_on_complete = Array[ExtResource("4_hvdyn")]([SubResource("Resource_eoyne"), SubResource("Resource_jw2ry"), SubResource("Resource_lyfdo")])
+effects_on_complete = Array[ExtResource("4_hvdyn")]([SubResource("Resource_eoyne"), SubResource("Resource_jw2ry"), SubResource("Resource_lyfdo"), SubResource("Resource_tech_debt_roll")])
 duration_modifier_tags = PackedStringArray("feature_work")

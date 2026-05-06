@@ -14,6 +14,8 @@ func execute(effects: Array[EffectDefinition], context: EffectContext) -> void:
 				_spawn_money(effect, context)
 			"roll_chance":
 				_roll_chance(effect, context)
+			"set_card_value":
+				_set_card_value(effect, context)
 			"open_booster":
 				_open_booster(effect, context)
 			_:
@@ -42,12 +44,13 @@ func _spawn_card(effect: EffectDefinition, context: EffectContext) -> void:
 	var card_definition_id: String = effect.parameters.get("card_definition_id", "") as String
 	var count: int = effect.parameters.get("count", 1) as int
 	for index: int in count:
-		context.spawn_card.call(card_definition_id, _get_spawn_position(context, index))
+		var spawned_card: CardInstance = context.spawn_card.call(card_definition_id, _get_spawn_position(context, index)) as CardInstance
+		_apply_spawn_parameters(spawned_card, effect, context)
 
 func _spawn_money(effect: EffectDefinition, context: EffectContext) -> void:
 	if _should_skip_effect(effect, context):
 		return
-	var count: int = effect.parameters.get("count", 1) as int
+	var count: int = _get_spawn_count(effect, context)
 	for index: int in count:
 		context.spawn_card.call("card.resource.money", _get_spawn_position(context, index))
 
@@ -59,8 +62,21 @@ func _roll_chance(effect: EffectDefinition, context: EffectContext) -> void:
 
 	var card_definition_id: String = effect.parameters.get("card_definition_id", "") as String
 	if not card_definition_id.is_empty():
-		context.spawn_card.call(card_definition_id, _get_spawn_position(context, 0))
+		var spawn_index: int = effect.parameters.get("spawn_index", 0) as int
+		var spawned_card: CardInstance = context.spawn_card.call(card_definition_id, _get_spawn_position(context, spawn_index)) as CardInstance
+		_apply_spawn_parameters(spawned_card, effect, context)
 	context.state.rng_state = context.rng.state
+
+func _set_card_value(effect: EffectDefinition, context: EffectContext) -> void:
+	var card_definition_id: String = effect.parameters.get("card_definition_id", "") as String
+	var card: CardInstance = _find_card_in_stack(card_definition_id, context)
+	if card == null:
+		return
+
+	var key: String = effect.parameters.get("key", "") as String
+	if key.is_empty():
+		return
+	card.values[key] = effect.parameters.get("value", null)
 
 func _open_booster(effect: EffectDefinition, context: EffectContext) -> void:
 	var booster_id: String = effect.parameters.get("booster_definition_id", "") as String
@@ -109,10 +125,44 @@ func _get_chance(effect: EffectDefinition, context: EffectContext) -> float:
 		return clampf(effect.parameters["chance"] as float, 0.0, 1.0)
 
 	var chance_key: String = effect.parameters.get("chance_key", "") as String
-	if context.content.balance != null and chance_key == "bug_chance":
-		return clampf(context.content.balance.bug_chance, 0.0, 1.0)
+	if context.content.balance != null:
+		match chance_key:
+			"bug_chance":
+				return clampf(context.content.balance.bug_chance, 0.0, 1.0)
+			"tech_debt_chance":
+				return clampf(context.content.balance.tech_debt_chance, 0.0, 1.0)
 
 	return 0.0
+
+func _get_spawn_count(effect: EffectDefinition, context: EffectContext) -> int:
+	var source_card_definition_id: String = effect.parameters.get("count_from_card_definition_id", "") as String
+	var value_key: String = effect.parameters.get("count_value_key", "") as String
+	if not source_card_definition_id.is_empty() and not value_key.is_empty():
+		var source_card: CardInstance = _find_card_in_stack(source_card_definition_id, context)
+		if source_card != null:
+			return maxi(0, int(source_card.values.get(value_key, 0)))
+
+	return maxi(0, effect.parameters.get("count", 1) as int)
+
+func _apply_spawn_parameters(spawned_card: CardInstance, effect: EffectDefinition, context: EffectContext) -> void:
+	if spawned_card == null:
+		return
+
+	var source_card_definition_id: String = effect.parameters.get("copy_values_from_card_definition_id", "") as String
+	if not source_card_definition_id.is_empty():
+		var source_card: CardInstance = _find_card_in_stack(source_card_definition_id, context)
+		if source_card != null:
+			for key: Variant in source_card.values.keys():
+				spawned_card.values[key] = source_card.values[key]
+
+	if effect.parameters.has("values"):
+		var values: Dictionary = effect.parameters["values"] as Dictionary
+		for key: Variant in values.keys():
+			spawned_card.values[key] = values[key]
+
+	var marker_value_key: String = effect.parameters.get("marker_value_key", "") as String
+	if not marker_value_key.is_empty() and spawned_card.values.has(marker_value_key):
+		spawned_card.state.markers = PackedStringArray([str(spawned_card.values[marker_value_key])])
 
 func _find_card_in_stack(card_definition_id: String, context: EffectContext) -> CardInstance:
 	if card_definition_id.is_empty():

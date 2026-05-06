@@ -215,7 +215,7 @@ Codex:
 - [x] Recipes anlegen: `Idee + Product Owner -> User Story`.
 - [x] Recipes anlegen: `Kundenwunsch + Product Owner -> Vielversprechende User Story`.
 - [x] Recipes anlegen: `User Story + Entwickler -> Funktion`.
-- [ ] Recipes anlegen: `Vielversprechende User Story + Entwickler -> Funktion` mit hoeherem Funktionswert oder Runtime-Wert `feature_value`.
+- [x] Recipes anlegen: `Vielversprechende User Story + Entwickler -> Funktion` mit hoeherem Funktionswert oder Runtime-Wert `feature_value`.
 - [x] Recipes anlegen: `Funktion + Tester -> Gepruefte Funktion`.
 - [x] Sicherstellen, dass Reihenfolge im Stack irrelevant bleibt.
 - [x] Sicherstellen, dass Zusatzkarten, die nicht Teil des Recipes sind, den Stack neutral machen.
@@ -248,14 +248,14 @@ Ziel: Der direkte Weg und der saubere Weg erzeugen spuerbar unterschiedliche Erg
 
 Codex:
 
-- [ ] `Funktion` Runtime-Werte einfuehren oder finalisieren, z. B. `feature_value`, `is_checked`, `source_quality`.
-- [ ] Direktes `Idee + Entwickler -> Funktion` als Schnellschuss-Recipe markieren: normales Geld, Bug-Risiko beim Release, Tech-Debt-Risiko bei Erstellung.
-- [ ] `Vielversprechende User Story + Entwickler -> Funktion` erzeugt eine Funktion mit hoeherem `feature_value`.
-- [ ] `Funktion + Tester -> Gepruefte Funktion` uebertraegt den Feature-Wert und setzt `is_checked` bzw. erzeugt eine eigene checked Definition.
-- [ ] Release-Recipe trennen oder parametrisieren: ungepruefte Funktion erzeugt Geld plus Bug-Chance; Gepruefte Funktion erzeugt Geld ohne Bug-Chance.
-- [ ] Tech-Debt-Risiko bei Schnellschuss einfuehren, z. B. `RollChanceEffect` auf `card.problem.tech_debt`.
-- [ ] Spawn-Placement fuer parallel gespawnte Karten pruefen: Geld plus Bug/Tech Debt duerfen nicht verdeckt spawnen.
-- [ ] Tests fuer Geldmenge, Bug-Chance-Pfad und Tech-Debt-Risiko mit deterministischem RNG schreiben.
+- [x] `Funktion` Runtime-Werte einfuehren oder finalisieren, z. B. `feature_value`, `is_checked`, `source_quality`.
+- [x] Direktes `Idee + Entwickler -> Funktion` als Schnellschuss-Recipe markieren: normales Geld, Bug-Risiko beim Release, Tech-Debt-Risiko bei Erstellung.
+- [x] `Vielversprechende User Story + Entwickler -> Funktion` erzeugt eine Funktion mit hoeherem `feature_value`.
+- [x] `Funktion + Tester -> Gepruefte Funktion` uebertraegt den Feature-Wert und setzt `is_checked` bzw. erzeugt eine eigene checked Definition.
+- [x] Release-Recipe trennen oder parametrisieren: ungepruefte Funktion erzeugt Geld plus Bug-Chance; Gepruefte Funktion erzeugt Geld ohne Bug-Chance.
+- [x] Tech-Debt-Risiko bei Schnellschuss einfuehren, z. B. `RollChanceEffect` auf `card.problem.tech_debt`.
+- [x] Spawn-Placement fuer parallel gespawnte Karten pruefen: Geld plus Bug/Tech Debt duerfen nicht verdeckt spawnen.
+- [x] Tests fuer Geldmenge, Bug-Chance-Pfad und Tech-Debt-Risiko mit deterministischem RNG schreiben.
 
 Marco:
 
@@ -265,10 +265,10 @@ Marco:
 
 Definition of Done:
 
-- [ ] Ungepruefte Funktion kann Bug erzeugen.
-- [ ] Gepruefte Funktion erzeugt keinen Release-Bug.
-- [ ] Vielversprechende User Story fuehrt zu besserem Release-Ertrag.
-- [ ] Schnellschuss kann Tech Debt erzeugen.
+- [x] Ungepruefte Funktion kann Bug erzeugen.
+- [x] Gepruefte Funktion erzeugt keinen Release-Bug.
+- [x] Vielversprechende User Story fuehrt zu besserem Release-Ertrag.
+- [x] Schnellschuss kann Tech Debt erzeugen.
 - [ ] Unterschiede sind im Playtest ohne Regeltext erklaerbar.
 
 Headless-Test:
@@ -283,16 +283,16 @@ Ziel: Probleme sind nicht nur visuelle Nebenprodukte, sondern erzeugen echte Opp
 
 Codex:
 
-- [ ] `Bug + Entwickler -> Bug entfernen` finalisieren oder ergaenzen.
-- [ ] `Bug + Tester -> Bug entfernen` als langsamere Alternative ergaenzen.
-- [ ] `Bug + Externer Dev -> Bug entfernen` als schnelle Alternative ergaenzen.
-- [ ] `Bug + Bugfix-Patch -> Bug sofort entfernen` als Sofort-Recipe/Effect anlegen.
-- [ ] `Technische Schulden + Entwickler -> Tech Debt entfernen` finalisieren.
-- [ ] RuleQuery/Modifier aktivieren: jede Tech-Debt-Karte auf dem Board addiert Zeit auf Feature- und Bugfix-Recipes.
-- [ ] `Prod-Crash + Entwickler -> Prod-Crash entfernen` mit langer Dauer finalisieren.
-- [ ] Prod-Crash blockiert Einnahmen aus Releases, solange mindestens ein Prod-Crash auf dem Board existiert.
-- [ ] Sprintstart-Reihenfolge erneut absichern: Bug-Formation vor Bug-Verdopplung, neue Bugs crashen erst naechsten Sprint.
-- [ ] Tests fuer Tech-Debt-Zeitaufschlag, Prod-Crash-Einnahmenblockade und Bugfix-Alternativen schreiben.
+- [x] `Bug + Entwickler -> Bug entfernen` finalisieren oder ergaenzen.
+- [x] `Bug + Tester -> Bug entfernen` als langsamere Alternative ergaenzen.
+- [x] `Bug + Externer Dev -> Bug entfernen` als schnelle Alternative ergaenzen.
+- [x] `Bug + Bugfix-Patch -> Bug sofort entfernen` als Sofort-Recipe/Effect anlegen.
+- [x] `Technische Schulden + Entwickler -> Tech Debt entfernen` finalisieren.
+- [x] RuleQuery/Modifier aktivieren: jede Tech-Debt-Karte auf dem Board addiert Zeit auf Feature- und Bugfix-Recipes.
+- [x] `Prod-Crash + Entwickler -> Prod-Crash entfernen` mit langer Dauer finalisieren.
+- [x] Prod-Crash blockiert Einnahmen aus Releases, solange mindestens ein Prod-Crash auf dem Board existiert.
+- [x] Sprintstart-Reihenfolge erneut absichern: Bug-Formation vor Bug-Verdopplung, neue Bugs crashen erst naechsten Sprint.
+- [x] Tests fuer Tech-Debt-Zeitaufschlag, Prod-Crash-Einnahmenblockade und Bugfix-Alternativen schreiben.
 
 Marco:
 
@@ -302,12 +302,12 @@ Marco:
 
 Definition of Done:
 
-- [ ] Bugfixes funktionieren mit Entwickler, Tester, Externer Dev und Bugfix-Patch.
-- [ ] Tech Debt verlaengert passende Recipes sichtbar.
-- [ ] Tech Debt kann entfernt werden.
-- [ ] Prod-Crash verhindert Geldgewinn durch Releases.
-- [ ] Prod-Crash kann entfernt werden.
-- [ ] Alle Regeln bleiben in Simulation/Data, nicht in CardView/BoardView.
+- [x] Bugfixes funktionieren mit Entwickler, Tester, Externer Dev und Bugfix-Patch.
+- [x] Tech Debt verlaengert passende Recipes sichtbar.
+- [x] Tech Debt kann entfernt werden.
+- [x] Prod-Crash verhindert Geldgewinn durch Releases.
+- [x] Prod-Crash kann entfernt werden.
+- [x] Alle Regeln bleiben in Simulation/Data, nicht in CardView/BoardView.
 
 Headless-Test:
 

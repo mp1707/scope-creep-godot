@@ -23,7 +23,13 @@ id = "effect.spawn_card.checked_feature"
 effect_type = "spawn_card"
 parameters = {
 "card_definition_id": "card.output.checked_feature",
-"count": 1
+"copy_values_from_card_definition_id": "card.output.feature",
+"count": 1,
+"marker_value_key": "feature_value",
+"values": {
+"is_checked": true,
+"source_quality": "checked"
+}
 }
 
 [sub_resource type="Resource" id="Input_feature"]
@@ -42,5 +48,5 @@ inputs = Array[ExtResource("1_matcher")]([SubResource("Input_feature"), SubResou
 duration = SubResource("Duration_test_feature")
 priority = 20
 specificity_score = 2
-effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_consume_feature"), SubResource("Effect_spawn_checked_feature")])
+effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_spawn_checked_feature"), SubResource("Effect_consume_feature")])
 duration_modifier_tags = PackedStringArray("test_work")

@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_matcher"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="2_duration"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_effect"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_recipe"]
+
+[sub_resource type="Resource" id="Duration_bugfix_external_dev"]
+script = ExtResource("2_duration")
+base_seconds = 6.0
+
+[sub_resource type="Resource" id="Effect_remove_bug"]
+script = ExtResource("3_effect")
+id = "effect.remove_card.bug"
+effect_type = "remove_card"
+parameters = {
+"card_definition_id": "card.problem.bug"
+}
+
+[sub_resource type="Resource" id="Effect_mark_external_completed"]
+script = ExtResource("3_effect")
+id = "effect.set_external_dev_completed"
+effect_type = "set_card_value"
+parameters = {
+"card_definition_id": "card.employee.external_dev",
+"key": "completed_task",
+"value": true
+}
+
+[sub_resource type="Resource" id="Input_bug"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.problem.bug"
+
+[sub_resource type="Resource" id="Input_external_dev"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.employee.external_dev"
+
+[resource]
+script = ExtResource("4_recipe")
+id = "recipe.debug_bug.external_dev"
+display_text = "Extern debuggen..."
+inputs = Array[ExtResource("1_matcher")]([SubResource("Input_bug"), SubResource("Input_external_dev")])
+duration = SubResource("Duration_bugfix_external_dev")
+priority = 10
+specificity_score = 2
+effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_remove_bug"), SubResource("Effect_mark_external_completed")])
+duration_modifier_tags = PackedStringArray("bugfix_work")

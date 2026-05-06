@@ -19,3 +19,8 @@ tags = PackedStringArray("output", "feature", "checked")
 short_text = "Release ohne Bug-Risiko"
 tooltip_text = "Erzeugt beim Release mehr Wert und kein Bug-Risiko."
 visual = SubResource("Resource_visual")
+base_values = {
+"feature_value": 1,
+"is_checked": true,
+"source_quality": "checked"
+}
