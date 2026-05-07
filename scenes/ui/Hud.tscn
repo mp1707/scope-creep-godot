@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://b8ng174af7u4u"]
+
+[ext_resource type="Script" uid="uid://bdbkcrdrcv13i" path="res://scripts/ui/hud_view.gd" id="1_yd51v"]
+
+[node name="Hud" type="Control" unique_id=766744580]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 153.0
+offset_top = -105.0
+offset_right = 153.0
+offset_bottom = -105.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_yd51v")
+status_label_path = NodePath("StatusLabel")
+auto_pay_button_path = NodePath("ButtonRow/AutoPayButton")
+next_sprint_button_path = NodePath("ButtonRow/NextSprintButton")
+save_button_path = NodePath("ButtonRow/SaveButton")
+load_button_path = NodePath("ButtonRow/LoadButton")
+
+[node name="StatusLabel" type="Label" parent="." unique_id=1559119331]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -140.0
+offset_top = 1147.0
+offset_right = -160.0
+offset_bottom = 1174.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.055, 0.052, 0.047, 1)
+theme_override_font_sizes/font_size = 19
+text = "Sprint 1 · Sprint · 0.0s"
+clip_text = true
+
+[node name="ButtonRow" type="HBoxContainer" parent="." unique_id=897245725]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 1154.0
+offset_top = 1140.0
+offset_right = -167.0
+offset_bottom = 1172.0
+grow_horizontal = 2
+theme_override_constants/separation = 12
+alignment = 2
+metadata/_edit_group_ = true
+
+[node name="AutoPayButton" type="Button" parent="ButtonRow" unique_id=1433960731]
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 16
+text = "Auto-Pay"
+
+[node name="NextSprintButton" type="Button" parent="ButtonRow" unique_id=1385815046]
+custom_minimum_size = Vector2(190, 32)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 16
+text = "Sprint 2 starten"
+
+[node name="SaveButton" type="Button" parent="ButtonRow" unique_id=967650294]
+custom_minimum_size = Vector2(104, 32)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 16
+text = "Speichern"
+
+[node name="LoadButton" type="Button" parent="ButtonRow" unique_id=1170909697]
+custom_minimum_size = Vector2(86, 32)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 16
+text = "Laden"

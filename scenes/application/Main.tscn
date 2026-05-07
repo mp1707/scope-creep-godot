@@ -1,9 +1,10 @@
-[gd_scene format=3 uid="uid://dnrupx5g5thqf"]
+[gd_scene load_steps=6 format=3 uid="uid://dnrupx5g5thqf"]
 
 [ext_resource type="Script" uid="uid://b5is11hjvcojl" path="res://scripts/presentation/board_view.gd" id="1_elqb8"]
 [ext_resource type="Script" uid="uid://eqsd0qqb0py0" path="res://scripts/application/main_application.gd" id="1_v00px"]
 [ext_resource type="Script" uid="uid://dm5tc2d2ujqsc" path="res://scripts/presentation/board_camera.gd" id="3_q8r2a"]
 [ext_resource type="Script" uid="uid://bxgdeoish6jpn" path="res://scripts/presentation/board_audio_player.gd" id="3_u1y2g"]
+[ext_resource type="PackedScene" path="res://scenes/ui/Hud.tscn" id="5_qwri1"]
 
 [node name="Main" type="Node" unique_id=1075243361]
 script = ExtResource("1_v00px")
@@ -20,4 +21,7 @@ metadata/_custom_type_script = "uid://bxgdeoish6jpn"
 position = Vector2(960, 540)
 script = ExtResource("3_q8r2a")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="Camera2D" unique_id=56301651]
+[node name="UiLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="Hud" parent="UiLayer" instance=ExtResource("5_qwri1")]
