@@ -11,6 +11,11 @@ func _run() -> void:
 	_test_attached_burnout_stays_opaque()
 	_test_board_view_uses_recipe_action_text()
 	_test_spawn_placement_spreads_multiple_cards()
+	_test_board_is_four_times_initial_viewport_area()
+	_test_board_camera_clamps_and_zooms_to_full_board()
+	_test_trackpad_pan_gesture_zooms_camera()
+	_test_trackpad_magnify_gesture_zooms_camera()
+	_test_empty_board_drag_requests_camera_pan()
 
 	if _failed:
 		quit(1)
@@ -112,6 +117,75 @@ func _test_spawn_placement_spreads_multiple_cards() -> void:
 			_assert_true(not rect.intersects(previous_rect), "Spawn placement should avoid previous spawn positions.")
 		placed_rects.append(rect)
 
+func _test_board_is_four_times_initial_viewport_area() -> void:
+	var controller: RunController = _create_controller(803)
+	var state: RunState = controller.start_new_run(803)
+	_assert_equal(state.board.size, BoardState.INITIAL_VIEWPORT_SIZE * 2.0, "Board should be twice as wide and high as the initial viewport.")
+	_assert_equal(state.board.size.x * state.board.size.y, BoardState.INITIAL_VIEWPORT_SIZE.x * BoardState.INITIAL_VIEWPORT_SIZE.y * 4.0, "Board area should be four times the initial viewport area.")
+
+func _test_board_camera_clamps_and_zooms_to_full_board() -> void:
+	var board_state: BoardState = BoardState.new()
+	var camera: BoardCamera = BoardCamera.new()
+	get_root().add_child(camera)
+	camera.bind_board(board_state)
+
+	camera.call("_apply_zoom", 0.1)
+	_assert_equal(camera.zoom, Vector2(0.5, 0.5), "Camera should zoom out far enough to show the whole default board.")
+
+	camera.position = Vector2(-1000.0, -1000.0)
+	camera.call("_clamp_and_persist")
+	_assert_equal(camera.position, board_state.size * 0.5, "Zoomed-out camera should clamp to the board center when the full board is visible.")
+	_assert_equal(board_state.camera_position, camera.position, "Camera should persist its position into BoardState.")
+	_assert_equal(board_state.camera_zoom, camera.zoom, "Camera should persist its zoom into BoardState.")
+
+	camera.queue_free()
+
+func _test_trackpad_pan_gesture_zooms_camera() -> void:
+	var board_state: BoardState = BoardState.new()
+	var camera: BoardCamera = BoardCamera.new()
+	get_root().add_child(camera)
+	camera.bind_board(board_state)
+
+	var pan_event: InputEventPanGesture = InputEventPanGesture.new()
+	pan_event.delta = Vector2(0.0, 4.0)
+	camera._unhandled_input(pan_event)
+
+	_assert_true(camera.zoom.x < 1.0, "Trackpad pan gesture with positive vertical delta should zoom out.")
+	_assert_equal(board_state.camera_zoom, camera.zoom, "Trackpad zoom should persist into BoardState.")
+
+	camera.queue_free()
+
+func _test_trackpad_magnify_gesture_zooms_camera() -> void:
+	var board_state: BoardState = BoardState.new()
+	var camera: BoardCamera = BoardCamera.new()
+	get_root().add_child(camera)
+	camera.bind_board(board_state)
+
+	var magnify_event: InputEventMagnifyGesture = InputEventMagnifyGesture.new()
+	magnify_event.factor = 1.2
+	camera._unhandled_input(magnify_event)
+
+	_assert_true(camera.zoom.x > 1.0, "Trackpad magnify gesture above 1 should zoom in.")
+	_assert_true(camera.zoom.x <= 1.06, "Trackpad magnify gesture should stay deliberately low sensitivity.")
+	_assert_equal(board_state.camera_zoom, camera.zoom, "Trackpad magnify zoom should persist into BoardState.")
+
+	camera.queue_free()
+
+func _test_empty_board_drag_requests_camera_pan() -> void:
+	var board: BoardView = BoardView.new()
+	get_root().add_child(board)
+	var pan_result: Dictionary = {"relative": Vector2.ZERO}
+	board.board_pan_requested.connect(func(relative: Vector2) -> void:
+		pan_result["relative"] = relative
+	)
+
+	_send_viewport_mouse_button(board, Vector2(1700.0, 920.0), true)
+	_send_viewport_mouse_motion(board, Vector2(1680.0, 912.0))
+	_send_viewport_mouse_button(board, Vector2(1680.0, 912.0), false)
+
+	_assert_equal(pan_result["relative"], Vector2(-20.0, -8.0), "Dragging empty board should request camera pan with viewport-relative movement.")
+	board.queue_free()
+
 func _setup_card_view(card: CardInstance, definition: CardDefinition, stack: StackState) -> CardView:
 	var view: CardView = CardView.new()
 	get_root().add_child(view)
@@ -150,6 +224,18 @@ func _find_card_by_definition(state: RunState, definition_id: String) -> CardIns
 			return card
 	_assert_true(false, "Missing card with definition '%s'." % definition_id)
 	return null
+
+func _send_viewport_mouse_button(board: BoardView, viewport_position: Vector2, pressed: bool) -> void:
+	var event: InputEventMouseButton = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = pressed
+	event.position = viewport_position
+	board._unhandled_input(event)
+
+func _send_viewport_mouse_motion(board: BoardView, viewport_position: Vector2) -> void:
+	var event: InputEventMouseMotion = InputEventMouseMotion.new()
+	event.position = viewport_position
+	board._unhandled_input(event)
 
 func _assert_true(value: bool, message: String) -> void:
 	if value:

@@ -15,6 +15,7 @@ const HUD_ORIGIN: Vector2 = Vector2(116.0, 116.0)
 const HUD_BUTTON_Y_OFFSET: float = 34.0
 
 @export var board_view_path: NodePath = NodePath("BoardView")
+@export var board_camera_path: NodePath = NodePath("Camera2D")
 @export var debug_layer_path: NodePath = NodePath("Camera2D/CanvasLayer")
 @export var show_dev_overlay: bool = true
 
@@ -23,6 +24,7 @@ var controller: RunController = null
 var run_state: RunState = null
 
 var _board_view: BoardView = null
+var _board_camera: BoardCamera = null
 var _debug_panel: Panel = null
 var _debug_label: Label = null
 var _next_sprint_button: Button = null
@@ -36,6 +38,7 @@ func _ready() -> void:
 	if _board_view == null:
 		push_error("MainApplication needs a BoardView at '%s'." % board_view_path)
 		return
+	_board_camera = get_node_or_null(board_camera_path) as BoardCamera
 
 	content = ContentCatalog.new()
 	if not content.load_default_content():
@@ -46,6 +49,7 @@ func _ready() -> void:
 	run_state = controller.start_new_run(1)
 
 	_apply_board_defaults()
+	_bind_board_camera()
 	_connect_board_signals()
 	_board_view.bind_run(run_state, content)
 	_apply_pending_events()
@@ -133,6 +137,7 @@ func request_load_saved_run() -> bool:
 			push_warning(error)
 		return false
 	run_state = controller.state
+	_bind_board_camera()
 	_board_view.bind_run(run_state, content)
 	_apply_pending_events()
 	_update_debug_overlay()
@@ -148,6 +153,11 @@ func _apply_board_defaults() -> void:
 		_board_view.stack_offset = content.balance.stack_offset
 		_board_view.snap_distance = content.balance.board_snap_distance
 
+func _bind_board_camera() -> void:
+	if _board_camera == null or run_state == null:
+		return
+	_board_camera.bind_board(run_state.board)
+
 func _connect_board_signals() -> void:
 	if not _board_view.move_stack_requested.is_connected(request_move_stack):
 		_board_view.move_stack_requested.connect(request_move_stack)
@@ -157,6 +167,8 @@ func _connect_board_signals() -> void:
 		_board_view.split_stack_requested.connect(request_split_stack)
 	if not _board_view.card_clicked.is_connected(request_card_clicked):
 		_board_view.card_clicked.connect(request_card_clicked)
+	if _board_camera != null and not _board_view.board_pan_requested.is_connected(_board_camera.pan_by_viewport_delta):
+		_board_view.board_pan_requested.connect(_board_camera.pan_by_viewport_delta)
 
 func request_card_clicked(card_id: String) -> void:
 	if controller == null:

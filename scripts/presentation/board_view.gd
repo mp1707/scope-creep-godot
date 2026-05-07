@@ -5,8 +5,10 @@ const DRAG_LAYER_Z: int = 4090
 const STACK_Z_STEP: int = 8
 const STACK_PROGRESS_Z_OFFSET: int = 4
 const MAX_STACK_LAYER: int = 360
-const BOARD_RECT: Rect2 = Rect2(Vector2(72.0, 96.0), Vector2(1776.0, 888.0))
-const BOARD_OUTER_RECT: Rect2 = Rect2(Vector2(56.0, 80.0), Vector2(1808.0, 920.0))
+const BOARD_RECT_POSITION: Vector2 = Vector2(72.0, 96.0)
+const BOARD_RECT_END_MARGIN: Vector2 = Vector2(72.0, 96.0)
+const BOARD_OUTER_RECT_POSITION: Vector2 = Vector2(56.0, 80.0)
+const BOARD_OUTER_RECT_END_MARGIN: Vector2 = Vector2(56.0, 80.0)
 const BOARD_BACKGROUND_COLOR: Color = Color(0.955, 0.948, 0.918, 1.0)
 const BOARD_OUTER_COLOR: Color = Color(0.99, 0.985, 0.955, 1.0)
 const BOARD_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
@@ -31,6 +33,7 @@ signal move_stack_requested(stack_id: String, position: Vector2)
 signal move_card_to_stack_requested(card_id: String, target_stack_id: String)
 signal split_stack_requested(card_id: String, position: Vector2)
 signal card_clicked(card_id: String)
+signal board_pan_requested(relative: Vector2)
 
 @export var card_view_scene: PackedScene
 @export var card_size: Vector2 = Vector2(144.0, 196.0)
@@ -53,15 +56,29 @@ var _drag_start_card_index: int = -1
 var _drag_pointer_offset: Vector2 = Vector2.ZERO
 var _pending_click_card_id: String = ""
 var _pending_click_position: Vector2 = Vector2.ZERO
+var _is_board_panning: bool = false
+var _last_board_pan_viewport_position: Vector2 = Vector2.ZERO
 var _queued_visual_events: Array[SimulationEvent] = []
 var _is_processing_visual_events: bool = false
 var _audio: BoardAudioPlayer = null
 
 func _ready() -> void:
 	set_process_unhandled_input(true)
+	set_process(true)
 	queue_redraw()
 
+func _process(_delta: float) -> void:
+	if _dragging_card_id.is_empty():
+		return
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return
+	_update_drag_preview(_viewport_position_to_board(viewport.get_mouse_position()))
+
 func _draw() -> void:
+	var board_rect: Rect2 = _get_board_rect()
+	var board_outer_rect: Rect2 = _get_board_outer_rect()
+
 	var outer_style: StyleBoxFlat = StyleBoxFlat.new()
 	outer_style.bg_color = BOARD_OUTER_COLOR
 	outer_style.border_color = BOARD_OUTER_COLOR
@@ -69,7 +86,7 @@ func _draw() -> void:
 	outer_style.corner_radius_bottom_right = BOARD_CORNER_RADIUS + 8
 	outer_style.corner_radius_top_left = BOARD_CORNER_RADIUS + 8
 	outer_style.corner_radius_top_right = BOARD_CORNER_RADIUS + 8
-	draw_style_box(outer_style, BOARD_OUTER_RECT)
+	draw_style_box(outer_style, board_outer_rect)
 
 	var board_style: StyleBoxFlat = StyleBoxFlat.new()
 	board_style.bg_color = BOARD_BACKGROUND_COLOR
@@ -82,19 +99,19 @@ func _draw() -> void:
 	board_style.corner_radius_bottom_right = BOARD_CORNER_RADIUS
 	board_style.corner_radius_top_left = BOARD_CORNER_RADIUS
 	board_style.corner_radius_top_right = BOARD_CORNER_RADIUS
-	draw_style_box(board_style, BOARD_RECT)
+	draw_style_box(board_style, board_rect)
 
-	for x_index: int in range(int(BOARD_RECT.position.x) + 96, int(BOARD_RECT.end.x), 160):
+	for x_index: int in range(int(board_rect.position.x) + 96, int(board_rect.end.x), 160):
 		var x: float = float(x_index)
-		draw_line(Vector2(x, BOARD_RECT.position.y + 16.0), Vector2(x, BOARD_RECT.end.y - 16.0), BOARD_GRID_COLOR, 1.0)
-	for y_index: int in range(int(BOARD_RECT.position.y) + 96, int(BOARD_RECT.end.y), 160):
+		draw_line(Vector2(x, board_rect.position.y + 16.0), Vector2(x, board_rect.end.y - 16.0), BOARD_GRID_COLOR, 1.0)
+	for y_index: int in range(int(board_rect.position.y) + 96, int(board_rect.end.y), 160):
 		var y: float = float(y_index)
-		draw_line(Vector2(BOARD_RECT.position.x + 16.0, y), Vector2(BOARD_RECT.end.x - 16.0, y), BOARD_GRID_COLOR, 1.0)
+		draw_line(Vector2(board_rect.position.x + 16.0, y), Vector2(board_rect.end.x - 16.0, y), BOARD_GRID_COLOR, 1.0)
 
 	draw_arc(Vector2(350.0, 845.0), 34.0, 0.15, 2.8, 16, BOARD_NOTE_COLOR, 2.0)
-	draw_arc(Vector2(1510.0, 795.0), 42.0, 3.5, 5.9, 16, BOARD_NOTE_COLOR, 2.0)
-	draw_line(Vector2(1440.0, 190.0), Vector2(1502.0, 190.0), BOARD_NOTE_COLOR, 2.0)
-	draw_line(Vector2(1440.0, 214.0), Vector2(1536.0, 214.0), BOARD_NOTE_COLOR, 2.0)
+	draw_arc(board_rect.end - Vector2(338.0, 193.0), 42.0, 3.5, 5.9, 16, BOARD_NOTE_COLOR, 2.0)
+	draw_line(board_rect.position + Vector2(board_rect.size.x - 408.0, 94.0), board_rect.position + Vector2(board_rect.size.x - 346.0, 94.0), BOARD_NOTE_COLOR, 2.0)
+	draw_line(board_rect.position + Vector2(board_rect.size.x - 408.0, 118.0), board_rect.position + Vector2(board_rect.size.x - 312.0, 118.0), BOARD_NOTE_COLOR, 2.0)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -105,6 +122,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if mouse_event.pressed:
 			var hit_card_id: String = _find_card_at_board_position(board_position)
 			if hit_card_id.is_empty():
+				_is_board_panning = true
+				_last_board_pan_viewport_position = mouse_event.position
+				_mark_input_as_handled()
 				return
 			if _is_click_openable_card(hit_card_id):
 				_pending_click_card_id = hit_card_id
@@ -120,6 +140,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif not _dragging_card_id.is_empty():
 			_finish_drag(board_position)
 			_mark_input_as_handled()
+		elif _is_board_panning:
+			_is_board_panning = false
+			_mark_input_as_handled()
+
+	if event is InputEventMouseMotion and _is_board_panning:
+		var board_pan_motion_event: InputEventMouseMotion = event as InputEventMouseMotion
+		var relative: Vector2 = board_pan_motion_event.position - _last_board_pan_viewport_position
+		_last_board_pan_viewport_position = board_pan_motion_event.position
+		board_pan_requested.emit(relative)
+		_mark_input_as_handled()
 
 	if event is InputEventMouseMotion and not _pending_click_card_id.is_empty():
 		var pending_motion_event: InputEventMouseMotion = event as InputEventMouseMotion
@@ -145,6 +175,7 @@ func bind_run(run_state: RunState, content_catalog: ContentCatalog) -> void:
 	_layout.card_size = card_size
 	_layout.stack_offset = stack_offset
 	_rebuild()
+	queue_redraw()
 
 func apply_events(events: Array[SimulationEvent]) -> void:
 	for event: SimulationEvent in events:
@@ -614,3 +645,24 @@ func _get_stack_action_text(stack: StackState) -> String:
 	if recipe == null:
 		return ""
 	return recipe.display_text
+
+func _get_board_rect() -> Rect2:
+	var board_size: Vector2 = _get_board_size()
+	var rect_size: Vector2 = Vector2(
+		maxf(0.0, board_size.x - BOARD_RECT_POSITION.x - BOARD_RECT_END_MARGIN.x),
+		maxf(0.0, board_size.y - BOARD_RECT_POSITION.y - BOARD_RECT_END_MARGIN.y)
+	)
+	return Rect2(BOARD_RECT_POSITION, rect_size)
+
+func _get_board_outer_rect() -> Rect2:
+	var board_size: Vector2 = _get_board_size()
+	var rect_size: Vector2 = Vector2(
+		maxf(0.0, board_size.x - BOARD_OUTER_RECT_POSITION.x - BOARD_OUTER_RECT_END_MARGIN.x),
+		maxf(0.0, board_size.y - BOARD_OUTER_RECT_POSITION.y - BOARD_OUTER_RECT_END_MARGIN.y)
+	)
+	return Rect2(BOARD_OUTER_RECT_POSITION, rect_size)
+
+func _get_board_size() -> Vector2:
+	if state != null and state.board != null:
+		return state.board.size
+	return BoardState.DEFAULT_SIZE
