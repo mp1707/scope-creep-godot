@@ -16,6 +16,9 @@ func _run() -> void:
 	_test_trackpad_pan_gesture_zooms_camera()
 	_test_trackpad_magnify_gesture_zooms_camera()
 	_test_empty_board_drag_requests_camera_pan()
+	_test_shop_cards_are_docked_and_not_rendered_on_board()
+	_test_board_drag_can_drop_money_on_shop_dock()
+	_test_application_drag_overlay_sits_above_shop_dock()
 
 	if _failed:
 		quit(1)
@@ -186,11 +189,102 @@ func _test_empty_board_drag_requests_camera_pan() -> void:
 	_assert_equal(pan_result["relative"], Vector2(-20.0, -8.0), "Dragging empty board should request camera pan with viewport-relative movement.")
 	board.queue_free()
 
+func _test_shop_cards_are_docked_and_not_rendered_on_board() -> void:
+	var controller: RunController = _create_controller(804)
+	var state: RunState = controller.start_new_run(804)
+	var shop_card: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.talent_pool")
+	var money: CardInstance = _find_card_by_definition(state, "card.resource.money")
+
+	var board: BoardView = BoardView.new()
+	get_root().add_child(board)
+	board.bind_run(state, controller.content)
+	board.apply_events(controller.drain_events())
+	_assert_true(board.get_card_view(shop_card.instance_id) == null, "BoardView should not render shop cards as board cards.")
+	_assert_true((board.get("_queued_visual_events") as Array).is_empty(), "Initial shop spawn events should not queue BoardView visual effects.")
+	_assert_true(board.find_snap_stack(money.instance_id, state.get_stack(shop_card.stack_id).base_position) != state.get_stack(shop_card.stack_id), "Board snap should ignore hidden shop stacks.")
+
+	var dock: Control = _create_shop_dock()
+	get_root().add_child(dock)
+	dock.call("bind_run", state, controller.content)
+	var shop_view: CardView = dock.call("get_card_view", shop_card.instance_id) as CardView
+	var viewport_height: float = dock.get_viewport().get_visible_rect().size.y
+	_assert_true(shop_view != null, "ShopDockView should render shop cards.")
+	_assert_true(shop_view.position.y >= viewport_height - (dock.get("visible_height") as float) - 0.01, "Shop cards should start only partially visible at the viewport bottom.")
+
+	var base_y: float = shop_view.position.y
+	dock.call("set_hovered_stack_id", shop_card.stack_id)
+	_assert_equal(shop_view.position.y, base_y - (dock.get("hover_raise") as float), "Hovered shop card should raise to signal the active dropzone.")
+
+	board.queue_free()
+	dock.queue_free()
+
+func _test_board_drag_can_drop_money_on_shop_dock() -> void:
+	var controller: RunController = _create_controller(805)
+	var state: RunState = controller.start_new_run(805)
+	var money: CardInstance = _find_card_by_definition(state, "card.resource.money")
+	var shop_card: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.talent_pool")
+
+	var board: BoardView = BoardView.new()
+	var dock: Control = _create_shop_dock()
+	get_root().add_child(board)
+	get_root().add_child(dock)
+	board.bind_run(state, controller.content)
+	dock.call("bind_run", state, controller.content)
+	board.screen_drop_target_resolver = Callable(dock, "find_drop_stack_id")
+	board.move_card_to_stack_requested.connect(func(card_id: String, target_stack_id: String) -> void:
+		controller.move_card_to_stack(card_id, target_stack_id)
+	)
+
+	var money_view: CardView = board.get_card_view(money.instance_id)
+	var shop_view: CardView = dock.call("get_card_view", shop_card.instance_id) as CardView
+	var pointer_start: Vector2 = money_view.position + Vector2(8.0, 8.0)
+	var pointer_drop: Vector2 = shop_view.position + Vector2(8.0, 8.0)
+
+	board.call("_begin_drag", money.instance_id, pointer_start, pointer_start)
+	board.call("_finish_drag", pointer_drop, pointer_drop)
+
+	_assert_equal(money.stack_id, shop_card.stack_id, "Dropping a single money card on a docked shop card should move it into the shop stack.")
+	_assert_true(board.get_card_view(money.instance_id) == null, "Money in a shop stack should not reappear on the board during buy processing.")
+
+	board.queue_free()
+	dock.queue_free()
+
+func _test_application_drag_overlay_sits_above_shop_dock() -> void:
+	var scene: PackedScene = ResourceLoader.load("res://scenes/application/Main.tscn") as PackedScene
+	var app: MainApplication = scene.instantiate() as MainApplication
+	get_root().add_child(app)
+
+	var board: BoardView = app.get_board_view()
+	var state: RunState = app.run_state
+	var camera: BoardCamera = app.get_node("Camera2D") as BoardCamera
+	camera.call("_apply_zoom", 0.5)
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var idea_view: CardView = board.get_card_view(idea.instance_id)
+	var ui_layer: CanvasLayer = app.get_node("UiLayer") as CanvasLayer
+	var overlay_layer: CanvasLayer = app.get_node("DragOverlayLayer") as CanvasLayer
+	var screen_drag_layer: Control = app.get_node("DragOverlayLayer/ScreenDragLayer") as Control
+	var press_position: Vector2 = idea_view.position + Vector2(12.0, 12.0)
+	var viewport_press_position: Vector2 = board.get_global_transform_with_canvas() * press_position
+
+	board.call("_begin_drag", idea.instance_id, press_position, viewport_press_position)
+
+	_assert_true(overlay_layer.layer > ui_layer.layer, "Drag overlay should draw above the shop/HUD CanvasLayer.")
+	_assert_true(idea_view.get_parent() == screen_drag_layer, "Dragged cards should move to the screen drag overlay while dragging.")
+	_assert_equal(idea_view.scale, Vector2(0.5, 0.5), "Dragged cards in the screen overlay should keep the board camera zoom scale.")
+
+	board.call("_finish_drag", press_position + Vector2(220.0, 0.0), viewport_press_position + Vector2(220.0, 0.0))
+	_assert_equal(idea_view.scale, Vector2.ONE, "Dragged cards should reset to board-local scale after the drag ends.")
+	app.queue_free()
+
 func _setup_card_view(card: CardInstance, definition: CardDefinition, stack: StackState) -> CardView:
 	var view: CardView = CardView.new()
 	get_root().add_child(view)
 	view.setup(card, definition, stack)
 	return view
+
+func _create_shop_dock() -> Control:
+	var script: Script = ResourceLoader.load("res://scripts/presentation/shop_dock_view.gd") as Script
+	return script.new() as Control
 
 func _load_catalog() -> ContentCatalog:
 	var catalog: ContentCatalog = ContentCatalog.new()

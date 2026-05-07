@@ -809,9 +809,7 @@ func _delete_stack_if_empty(stack: StackState) -> void:
 		state.stacks.erase(stack.stack_id)
 
 func _get_spawn_position_near_stack(source_stack_id: String, spawn_index: int = 0) -> Vector2:
-	var source_position: Vector2 = Vector2.ZERO
-	if state.stacks.has(source_stack_id):
-		source_position = _get_existing_stack(source_stack_id).base_position
+	var source_position: Vector2 = _get_spawn_source_position(source_stack_id)
 
 	var step_x: float = SPAWN_CARD_SIZE.x + SPAWN_GAP
 	var step_y: float = SPAWN_CARD_SIZE.y + SPAWN_GAP
@@ -865,7 +863,41 @@ func _does_spawn_overlap(position: Vector2) -> bool:
 		if spawn_rect.intersects(Rect2(previous_position, SPAWN_CARD_SIZE)):
 			return true
 	for stack: StackState in state.stacks.values():
+		if _is_shop_stack(stack):
+			continue
 		if spawn_rect.intersects(_get_stack_rect(stack)):
+			return true
+	return false
+
+func _get_spawn_source_position(source_stack_id: String) -> Vector2:
+	if not state.stacks.has(source_stack_id):
+		return Vector2.ZERO
+
+	var source_stack: StackState = _get_existing_stack(source_stack_id)
+	if _is_shop_stack(source_stack):
+		return _get_shop_spawn_source_position()
+	return source_stack.base_position
+
+func _get_shop_spawn_source_position() -> Vector2:
+	var safe_zoom: float = 1.0
+	if state.board.camera_zoom.x > 0.0:
+		safe_zoom = state.board.camera_zoom.x
+	var visible_size: Vector2 = BoardState.INITIAL_VIEWPORT_SIZE / safe_zoom
+	var source_position: Vector2 = state.board.camera_position + Vector2(
+		0.0,
+		visible_size.y * 0.5 - SPAWN_CARD_SIZE.y - 160.0
+	)
+	return _clamp_spawn_position_to_board(source_position)
+
+func _is_shop_stack(stack: StackState) -> bool:
+	if stack == null:
+		return false
+	for card_id: String in stack.card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has("shop"):
 			return true
 	return false
 

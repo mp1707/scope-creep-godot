@@ -23,10 +23,14 @@ func _test_board_builds_card_views() -> void:
 	var context: Dictionary = _create_bound_board()
 	var board: BoardView = context["board"] as BoardView
 	var state: RunState = context["state"] as RunState
+	var catalog: ContentCatalog = context["catalog"] as ContentCatalog
 
-	_assert_equal(board.get_child_count(), state.cards.size(), "BoardView should create one CardView per card.")
+	_assert_equal(_count_board_cards(state, catalog), 7, "Start run should have seven non-shop board cards.")
 	for card_id: String in state.cards.keys():
-		_assert_true(board.get_card_view(card_id) != null, "BoardView should expose created CardView.")
+		if _is_shop_card(state, catalog, card_id):
+			_assert_true(board.get_card_view(card_id) == null, "BoardView should not expose shop CardViews.")
+		else:
+			_assert_true(board.get_card_view(card_id) != null, "BoardView should expose created board CardViews.")
 
 func _test_cards_show_name_and_tooltip_only() -> void:
 	var context: Dictionary = _create_bound_board()
@@ -196,6 +200,20 @@ func _send_mouse_motion(board: BoardView, board_position: Vector2) -> void:
 	var event: InputEventMouseMotion = InputEventMouseMotion.new()
 	event.position = board.get_global_transform_with_canvas() * board_position
 	board._unhandled_input(event)
+
+func _count_board_cards(state: RunState, catalog: ContentCatalog) -> int:
+	var count: int = 0
+	for card_id: String in state.cards.keys():
+		if not _is_shop_card(state, catalog, card_id):
+			count += 1
+	return count
+
+func _is_shop_card(state: RunState, catalog: ContentCatalog, card_id: String) -> bool:
+	var card: CardInstance = state.get_card(card_id)
+	if card == null:
+		return false
+	var definition: CardDefinition = catalog.get_card_definition(card.definition_id)
+	return definition != null and definition.tags.has("shop")
 
 func _assert_true(value: bool, message: String) -> void:
 	if value:

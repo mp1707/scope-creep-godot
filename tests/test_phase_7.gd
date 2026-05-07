@@ -176,7 +176,7 @@ func _test_auto_pay_button_is_disabled_without_money() -> void:
 	app.call("request_start_next_sprint")
 	app.call("advance_run", 60.0)
 
-	var auto_pay_button: Button = app.get_node("UiLayer/Hud/StatusPanel/ButtonRow/AutoPayButton") as Button
+	var auto_pay_button: Button = app.get_node("UiLayer/Hud/ButtonRow/AutoPayButton") as Button
 	_assert_true(auto_pay_button.disabled, "Auto-pay button should be disabled in payment when no money exists.")
 	auto_pay_button.pressed.emit()
 	_assert_false(state.paid_employee_ids.has(developer.instance_id), "Disabled auto-pay button path must not mark developer paid.")
@@ -187,13 +187,12 @@ func _test_application_hud_uses_static_viewport_layer() -> void:
 	var app: Node = _create_app()
 	var ui_layer: CanvasLayer = app.get_node("UiLayer") as CanvasLayer
 	var hud: Control = app.get_node("UiLayer/Hud") as Control
-	var status_panel: Panel = hud.get_node("StatusPanel") as Panel
-	var status_label: Label = hud.get_node("StatusPanel/StatusLabel") as Label
-	var auto_pay_button: Button = hud.get_node("StatusPanel/ButtonRow/AutoPayButton") as Button
+	var status_label: Label = hud.get_node("StatusLabel") as Label
+	var auto_pay_button: Button = hud.get_node("ButtonRow/AutoPayButton") as Button
 
 	_assert_true(ui_layer.get_parent() == app, "Application HUD should live in a viewport-static CanvasLayer under Main.")
 	_assert_true(hud != null, "Application HUD should be an editable Hud scene instance.")
-	_assert_equal(status_panel.position, Vector2(116.0, 116.0), "Application HUD should keep a stable layout anchor.")
+	_assert_true(status_label.get_parent() == hud, "HUD status label should stay in the editable Hud scene instance.")
 	_assert_equal(status_label.get_theme_color("font_color"), Color(0.055, 0.052, 0.047, 1.0), "HUD text should be dark on the offwhite board.")
 	_assert_equal(auto_pay_button.focus_mode, Control.FOCUS_NONE, "HUD buttons should not capture Space focus.")
 	app.queue_free()

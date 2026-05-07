@@ -7,7 +7,7 @@
 
 [sub_resource type="Resource" id="Duration_buy"]
 script = ExtResource("2_duration")
-base_seconds = 1.0
+base_seconds = 0.18
 affected_by_global_modifiers = false
 
 [sub_resource type="Resource" id="Effect_consume_money"]

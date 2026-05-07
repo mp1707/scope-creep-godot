@@ -7,7 +7,7 @@
 
 [sub_resource type="Resource" id="Resource_2k6hn"]
 script = ExtResource("2_q0axn")
-base_seconds = 1.0
+base_seconds = 0.18
 
 [sub_resource type="Resource" id="Resource_9tv7l"]
 script = ExtResource("3_yx2tw")

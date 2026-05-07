@@ -26,5 +26,6 @@ short_text = "Kauft ein Pack"
 tooltip_text = "Lege 1 Geld auf den Slot, um ein Boosterpack zu kaufen."
 visual = SubResource("Resource_7u6xq")
 base_values = {
-"booster_definition_id": "booster.founder.test_pack"
+"booster_definition_id": "booster.founder.test_pack",
+"shop_dock_order": 50
 }

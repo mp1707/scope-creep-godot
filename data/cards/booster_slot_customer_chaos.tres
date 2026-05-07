@@ -20,5 +20,6 @@ short_text = "Nachfrage-Pack"
 tooltip_text = "Lege 1 Geld auf den Slot, um ein Kundenchaos-Pack zu kaufen."
 visual = SubResource("Resource_visual")
 base_values = {
-"booster_definition_id": "booster.customer_chaos"
+"booster_definition_id": "booster.customer_chaos",
+"shop_dock_order": 20
 }

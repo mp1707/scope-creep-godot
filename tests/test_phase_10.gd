@@ -137,10 +137,10 @@ func _test_dev_buttons_do_not_keep_keyboard_focus() -> void:
 	await process_frame
 
 	var hud: Control = app.get_node("UiLayer/Hud") as Control
-	var auto_pay_button: Button = hud.get_node("StatusPanel/ButtonRow/AutoPayButton") as Button
-	var next_sprint_button: Button = hud.get_node("StatusPanel/ButtonRow/NextSprintButton") as Button
-	var save_button: Button = hud.get_node("StatusPanel/ButtonRow/SaveButton") as Button
-	var load_button: Button = hud.get_node("StatusPanel/ButtonRow/LoadButton") as Button
+	var auto_pay_button: Button = hud.get_node("ButtonRow/AutoPayButton") as Button
+	var next_sprint_button: Button = hud.get_node("ButtonRow/NextSprintButton") as Button
+	var save_button: Button = hud.get_node("ButtonRow/SaveButton") as Button
+	var load_button: Button = hud.get_node("ButtonRow/LoadButton") as Button
 
 	_assert_equal(auto_pay_button.focus_mode, Control.FOCUS_NONE, "Auto-Pay button should not capture Space focus.")
 	_assert_equal(next_sprint_button.focus_mode, Control.FOCUS_NONE, "Next sprint button should not capture Space focus.")

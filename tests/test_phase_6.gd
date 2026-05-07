@@ -40,7 +40,10 @@ func _test_application_bootstrap_binds_board() -> void:
 	_assert_equal(board.state, app.run_state, "BoardView should bind to the application RunState.")
 	_assert_equal(board.content, app.content, "BoardView should bind to the application ContentCatalog.")
 	for card_id: String in app.run_state.cards.keys():
-		_assert_true(board.get_card_view(card_id) != null, "BoardView should create card views for the start run.")
+		if _is_shop_card(app.run_state, app.content, card_id):
+			_assert_true(board.get_card_view(card_id) == null, "BoardView should leave shop cards to the ShopDock.")
+		else:
+			_assert_true(board.get_card_view(card_id) != null, "BoardView should create card views for the start run.")
 	app.queue_free()
 
 func _test_card_view_controls_do_not_consume_mouse() -> void:
@@ -231,6 +234,8 @@ func _test_dropped_stack_draws_above_all_other_cards() -> void:
 	for card: CardInstance in state.cards.values():
 		if card.instance_id == developer.instance_id or card.instance_id == idea.instance_id:
 			continue
+		if _is_shop_card(state, app.content, card.instance_id):
+			continue
 		var view: CardView = board.get_card_view(card.instance_id)
 		_assert_true(top_dragged_z > view.z_index, "Last dropped stack should draw above every other board card.")
 	app.queue_free()
@@ -247,12 +252,14 @@ func _test_repeated_drags_keep_drag_layer_above_board_cards() -> void:
 		var release_position: Vector2 = idea_view.position + Vector2(160.0 + float(index % 5), 32.0)
 		_send_mouse_button(board, press_position, true)
 		_send_mouse_motion(board, release_position)
-		_assert_true(idea_view.get_parent().name == "DragLayer", "Dragged card should be temporarily parented to DragLayer.")
-		_assert_true(idea_view.get_parent().z_index > idea_view.z_index, "DragLayer should remain above dragged card local z.")
+		_assert_true(idea_view.get_parent().name == "ScreenDragLayer", "Dragged card should be temporarily parented to the screen drag overlay.")
+		_assert_true(app.get_node("DragOverlayLayer").layer > app.get_node("UiLayer").layer, "Screen drag overlay should remain above UI layers.")
 		_send_mouse_button(board, release_position, false)
 
 	var max_board_z: int = -2147483648
 	for card: CardInstance in state.cards.values():
+		if _is_shop_card(state, app.content, card.instance_id):
+			continue
 		var view: CardView = board.get_card_view(card.instance_id)
 		max_board_z = maxi(max_board_z, view.z_index)
 	_assert_true(max_board_z < 4090, "Board card z-indices should remain below the DragLayer after many drags.")
@@ -367,6 +374,13 @@ func _find_card_by_definition(state: RunState, definition_id: String) -> CardIns
 			return card
 	_assert_true(false, "Missing card with definition '%s'." % definition_id)
 	return null
+
+func _is_shop_card(state: RunState, catalog: ContentCatalog, card_id: String) -> bool:
+	var card: CardInstance = state.get_card(card_id)
+	if card == null:
+		return false
+	var definition: CardDefinition = catalog.get_card_definition(card.definition_id)
+	return definition != null and definition.tags.has("shop")
 
 func _find_newest_card_by_definition(state: RunState, definition_id: String) -> CardInstance:
 	var newest: CardInstance = null

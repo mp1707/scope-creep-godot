@@ -42,6 +42,9 @@ signal board_pan_requested(relative: Vector2)
 
 var state: RunState = null
 var content: ContentCatalog = null
+var screen_drop_target_resolver: Callable = Callable()
+var screen_drag_finished_callback: Callable = Callable()
+var screen_drag_layer: Control = null
 
 var _card_views: Dictionary = {}
 var _stack_progress_views: Dictionary = {}
@@ -73,7 +76,8 @@ func _process(_delta: float) -> void:
 	var viewport: Viewport = get_viewport()
 	if viewport == null:
 		return
-	_update_drag_preview(_viewport_position_to_board(viewport.get_mouse_position()))
+	var viewport_position: Vector2 = viewport.get_mouse_position()
+	_update_drag_preview(_viewport_position_to_board(viewport_position), viewport_position)
 
 func _draw() -> void:
 	var board_rect: Rect2 = _get_board_rect()
@@ -131,14 +135,14 @@ func _unhandled_input(event: InputEvent) -> void:
 				_pending_click_position = board_position
 				_mark_input_as_handled()
 				return
-			_begin_drag(hit_card_id, board_position)
+			_begin_drag(hit_card_id, board_position, mouse_event.position)
 			_mark_input_as_handled()
 		elif not _pending_click_card_id.is_empty():
 			card_clicked.emit(_pending_click_card_id)
 			_pending_click_card_id = ""
 			_mark_input_as_handled()
 		elif not _dragging_card_id.is_empty():
-			_finish_drag(board_position)
+			_finish_drag(board_position, mouse_event.position)
 			_mark_input_as_handled()
 		elif _is_board_panning:
 			_is_board_panning = false
@@ -157,13 +161,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		if pending_position.distance_to(_pending_click_position) >= CLICK_DRAG_THRESHOLD:
 			var pending_card_id: String = _pending_click_card_id
 			_pending_click_card_id = ""
-			_begin_drag(pending_card_id, _pending_click_position)
-			_update_drag_preview(pending_position)
+			_begin_drag(pending_card_id, _pending_click_position, pending_motion_event.position)
+			_update_drag_preview(pending_position, pending_motion_event.position)
 		_mark_input_as_handled()
 
 	if event is InputEventMouseMotion and not _dragging_card_id.is_empty():
 		var motion_event: InputEventMouseMotion = event as InputEventMouseMotion
-		_update_drag_preview(_viewport_position_to_board(motion_event.position))
+		_update_drag_preview(_viewport_position_to_board(motion_event.position), motion_event.position)
 		_mark_input_as_handled()
 
 func bind_run(run_state: RunState, content_catalog: ContentCatalog) -> void:
@@ -183,6 +187,9 @@ func apply_events(events: Array[SimulationEvent]) -> void:
 			ScopeEnums.SimulationEventType.CARD_REMOVED:
 				_queue_visual_event(event)
 			ScopeEnums.SimulationEventType.CARD_SPAWNED:
+				if not _should_render_card_on_board(event.card_id):
+					_remove_card_view(event.card_id)
+					continue
 				if _card_views.has(event.card_id):
 					_update_stack(event.stack_id)
 				else:
@@ -222,6 +229,8 @@ func find_snap_stack(card_id: String, board_position: Vector2) -> StackState:
 	for stack: StackState in state.stacks.values():
 		if stack.card_ids.has(card_id):
 			continue
+		if _is_shop_stack(stack):
+			continue
 		var rect: Rect2 = _layout.get_stack_rect(stack)
 		var distance: float = _distance_to_rect(board_position, rect)
 		if distance <= best_distance:
@@ -244,7 +253,8 @@ func _rebuild() -> void:
 	_next_stack_layer = 1
 
 	for card_id: String in state.cards.keys():
-		_ensure_card_view(card_id)
+		if _should_render_card_on_board(card_id):
+			_ensure_card_view(card_id)
 	refresh()
 
 func _ensure_card_view(card_id: String) -> CardView:
@@ -274,9 +284,18 @@ func _update_stack(stack_id: String) -> void:
 		return
 
 	var stack: StackState = state.get_stack(stack_id)
+	if _is_shop_stack(stack):
+		for card_id: String in stack.card_ids:
+			_remove_card_view(card_id)
+		_remove_stack_progress_view(stack.stack_id)
+		return
+
 	_ensure_stack_layer(stack.stack_id)
 	for index: int in stack.card_ids.size():
 		var card_id: String = stack.card_ids[index]
+		if not _should_render_card_on_board(card_id):
+			_remove_card_view(card_id)
+			continue
 		var view: CardView = _ensure_card_view(card_id)
 		if not _drag_preview_card_ids.has(card_id):
 			view.position = _layout.get_card_position(stack, card_id)
@@ -291,6 +310,9 @@ func _update_card_view(card_id: String) -> void:
 	if card == null:
 		_remove_card_view(card_id)
 		return
+	if not _should_render_card_on_board(card_id):
+		_remove_card_view(card_id)
+		return
 
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
 	var stack: StackState = state.get_stack(card.stack_id)
@@ -300,7 +322,7 @@ func _update_card_view(card_id: String) -> void:
 	var view: CardView = _ensure_card_view(card_id)
 	view.setup(card, definition, stack)
 
-func _begin_drag(card_id: String, board_position: Vector2) -> void:
+func _begin_drag(card_id: String, board_position: Vector2, viewport_position: Vector2) -> void:
 	var card: CardInstance = state.get_card(card_id)
 	if card == null:
 		return
@@ -319,9 +341,9 @@ func _begin_drag(card_id: String, board_position: Vector2) -> void:
 	_move_drag_views_to_layer()
 	_bring_stack_to_front(card.stack_id)
 	_play_drag_started_audio()
-	_update_drag_preview(board_position)
+	_update_drag_preview(board_position, viewport_position)
 
-func _update_drag_preview(board_position: Vector2) -> void:
+func _update_drag_preview(board_position: Vector2, viewport_position: Vector2) -> void:
 	if _drag_preview_card_ids.is_empty():
 		return
 	var preview_base_position: Vector2 = board_position - _drag_pointer_offset
@@ -330,18 +352,32 @@ func _update_drag_preview(board_position: Vector2) -> void:
 		var view: CardView = get_card_view(card_id)
 		if view == null:
 			continue
+		var preview_position: Vector2 = preview_base_position + stack_offset * float(index)
 		view.set_elevated(true)
-		view.set_drag_preview_position(preview_base_position + stack_offset * float(index))
+		if _is_using_screen_drag_layer():
+			view.scale = _get_screen_drag_scale()
+			view.set_drag_preview_position(_board_position_to_viewport(preview_position))
+		else:
+			view.scale = Vector2.ONE
+			view.set_drag_preview_position(preview_position)
 		view.z_index = index
 	_update_drag_progress_preview(preview_base_position)
+	_resolve_screen_drop_stack_id(_dragging_card_id, viewport_position)
 
-func _finish_drag(board_position: Vector2) -> void:
-	var snap_stack: StackState = find_snap_stack(_dragging_card_id, board_position)
+func _finish_drag(board_position: Vector2, viewport_position: Vector2) -> void:
+	var screen_target_stack_id: String = _resolve_screen_drop_stack_id(_dragging_card_id, viewport_position)
+	var snap_stack: StackState = null
 	var target_stack_id: String = ""
+	if not screen_target_stack_id.is_empty():
+		target_stack_id = screen_target_stack_id
+		move_card_to_stack_requested.emit(_dragging_card_id, screen_target_stack_id)
+	else:
+		snap_stack = find_snap_stack(_dragging_card_id, board_position)
+
 	if snap_stack != null:
 		target_stack_id = snap_stack.stack_id
 		move_card_to_stack_requested.emit(_dragging_card_id, snap_stack.stack_id)
-	else:
+	elif screen_target_stack_id.is_empty():
 		var card: CardInstance = state.get_card(_dragging_card_id)
 		var drop_position: Vector2 = board_position - _drag_pointer_offset
 		if card != null and card.stack_id == _drag_start_stack_id and _drag_start_card_index == 0:
@@ -365,6 +401,7 @@ func _finish_drag(board_position: Vector2) -> void:
 	_drag_start_stack_id = ""
 	_drag_start_card_index = -1
 	_drag_preview_card_ids = PackedStringArray()
+	_notify_screen_drag_finished()
 	refresh()
 
 func _get_card_index_in_stack(card_id: String, stack_id: String) -> int:
@@ -383,23 +420,27 @@ func _get_drag_preview_card_ids(stack_id: String, start_index: int) -> PackedStr
 	return result
 
 func _move_drag_views_to_layer() -> void:
-	_ensure_drag_layer()
+	var target_layer: Node = _get_drag_parent()
 	for card_id: String in _drag_preview_card_ids:
 		var view: CardView = get_card_view(card_id)
-		if view != null and view.get_parent() != _drag_layer:
-			view.reparent(_drag_layer, true)
+		if view != null and view.get_parent() != target_layer:
+			view.reparent(target_layer, true)
 	var progress_view: Control = get_stack_progress_view(_drag_start_stack_id)
-	if progress_view != null and progress_view.get_parent() != _drag_layer:
-		progress_view.reparent(_drag_layer, true)
+	if progress_view != null and progress_view.get_parent() != target_layer:
+		progress_view.reparent(target_layer, true)
 
 func _restore_drag_views_to_board() -> void:
 	for card_id: String in _drag_preview_card_ids:
 		var view: CardView = get_card_view(card_id)
 		if view != null and view.get_parent() != self:
 			view.reparent(self, true)
+		if view != null:
+			view.scale = Vector2.ONE
 	var progress_view: Control = get_stack_progress_view(_drag_start_stack_id)
 	if progress_view != null and progress_view.get_parent() != self:
 		progress_view.reparent(self, true)
+	if progress_view != null:
+		progress_view.scale = Vector2.ONE
 
 func _ensure_drag_layer() -> void:
 	if _drag_layer != null and is_instance_valid(_drag_layer):
@@ -408,6 +449,12 @@ func _ensure_drag_layer() -> void:
 	_drag_layer.name = "DragLayer"
 	_drag_layer.z_index = DRAG_LAYER_Z
 	add_child(_drag_layer)
+
+func _get_drag_parent() -> Node:
+	if _is_using_screen_drag_layer():
+		return screen_drag_layer
+	_ensure_drag_layer()
+	return _drag_layer
 
 func _ensure_audio() -> void:
 	if _audio != null and is_instance_valid(_audio):
@@ -476,6 +523,9 @@ func _apply_visual_event(event: SimulationEvent, with_effects: bool) -> void:
 				_play_card_destroyed_audio()
 			_remove_card_view(event.card_id)
 		ScopeEnums.SimulationEventType.CARD_SPAWNED:
+			if not _should_render_card_on_board(event.card_id):
+				_remove_card_view(event.card_id)
+				return
 			var view: CardView = _ensure_card_view(event.card_id)
 			_update_stack(event.stack_id)
 			if view != null:
@@ -511,6 +561,9 @@ func _find_card_at_board_position(board_position: Vector2) -> String:
 
 func _viewport_position_to_board(viewport_position: Vector2) -> Vector2:
 	return get_global_transform_with_canvas().affine_inverse() * viewport_position
+
+func _board_position_to_viewport(board_position: Vector2) -> Vector2:
+	return get_global_transform_with_canvas() * board_position
 
 func _mark_input_as_handled() -> void:
 	var viewport: Viewport = get_viewport()
@@ -555,7 +608,13 @@ func _update_drag_progress_preview(preview_base_position: Vector2) -> void:
 	var progress_view: Control = get_stack_progress_view(_drag_start_stack_id)
 	if progress_view == null:
 		return
-	progress_view.position = preview_base_position + PROGRESS_OFFSET
+	var progress_position: Vector2 = preview_base_position + PROGRESS_OFFSET
+	if _is_using_screen_drag_layer():
+		progress_view.scale = _get_screen_drag_scale()
+		progress_view.position = _board_position_to_viewport(progress_position)
+	else:
+		progress_view.scale = Vector2.ONE
+		progress_view.position = progress_position
 	progress_view.z_index = _drag_preview_card_ids.size() + STACK_PROGRESS_Z_OFFSET
 
 func _ensure_stack_progress_view(stack_id: String) -> Control:
@@ -666,3 +725,43 @@ func _get_board_size() -> Vector2:
 	if state != null and state.board != null:
 		return state.board.size
 	return BoardState.DEFAULT_SIZE
+
+func _should_render_card_on_board(card_id: String) -> bool:
+	if state == null or content == null:
+		return false
+	var card: CardInstance = state.get_card(card_id)
+	if card == null:
+		return false
+	var stack: StackState = state.get_stack(card.stack_id)
+	if stack != null and _is_shop_stack(stack):
+		return false
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition != null and not definition.tags.has("shop")
+
+func _is_shop_stack(stack: StackState) -> bool:
+	if stack == null or state == null or content == null:
+		return false
+	for card_id: String in stack.card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has("shop"):
+			return true
+	return false
+
+func _resolve_screen_drop_stack_id(card_id: String, viewport_position: Vector2) -> String:
+	if not screen_drop_target_resolver.is_valid():
+		return ""
+	return screen_drop_target_resolver.call(card_id, viewport_position, _drag_preview_card_ids.size()) as String
+
+func _notify_screen_drag_finished() -> void:
+	if screen_drag_finished_callback.is_valid():
+		screen_drag_finished_callback.call()
+
+func _is_using_screen_drag_layer() -> bool:
+	return screen_drag_layer != null and is_instance_valid(screen_drag_layer)
+
+func _get_screen_drag_scale() -> Vector2:
+	var transform: Transform2D = get_global_transform_with_canvas()
+	return Vector2(transform.x.length(), transform.y.length())

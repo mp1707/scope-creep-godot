@@ -20,5 +20,6 @@ short_text = "Buerohilfe"
 tooltip_text = "Lege 1 Geld auf den Slot, um ein Office-Invest-Pack zu kaufen."
 visual = SubResource("Resource_visual")
 base_values = {
-"booster_definition_id": "booster.office_invest"
+"booster_definition_id": "booster.office_invest",
+"shop_dock_order": 30
 }
