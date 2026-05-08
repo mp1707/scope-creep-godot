@@ -352,6 +352,8 @@ func _validate_balance(balance: BalanceDefinition) -> void:
 		_errors.append("%s: Balance '%s' needs positive sprint_duration_seconds." % [path, balance.id])
 	if balance.board_snap_distance <= 0.0:
 		_errors.append("%s: Balance '%s' needs positive board_snap_distance." % [path, balance.id])
+	if balance.auto_stack_spawn_radius < 0.0:
+		_errors.append("%s: Balance '%s' needs non-negative auto_stack_spawn_radius." % [path, balance.id])
 	if balance.tech_debt_chance < 0.0 or balance.tech_debt_chance > 1.0:
 		_errors.append("%s: Balance '%s' needs tech_debt_chance between 0 and 1." % [path, balance.id])
 	if balance.order_bonus_money_cards < 0:

@@ -115,7 +115,7 @@ func _test_spawn_placement_spreads_multiple_cards() -> void:
 
 	for index: int in 18:
 		var position: Vector2 = controller.call("_get_spawn_position_near_stack", source.stack_id, index) as Vector2
-		controller.call("_spawn_card_as_new_stack", "card.resource.money", position)
+		controller.call("_spawn_card_as_new_stack", "card.problem.bug", position)
 		var rect: Rect2 = Rect2(position, Vector2(144.0, 196.0))
 		_assert_true(bounds.encloses(rect), "Spawn position should stay inside board bounds.")
 		for previous_rect: Rect2 in placed_rects:
@@ -127,9 +127,9 @@ func _test_spawn_placement_reuses_freed_positions() -> void:
 	var state: RunState = controller.start_new_run(806)
 	var source: CardInstance = _find_card_by_definition(state, "card.product.software")
 	var first_position: Vector2 = controller.call("_get_spawn_position_near_stack", source.stack_id, 0) as Vector2
-	var spawned_money: CardInstance = controller.call("_spawn_card_as_new_stack", "card.resource.money", first_position) as CardInstance
+	var spawned_bug: CardInstance = controller.call("_spawn_card_as_new_stack", "card.problem.bug", first_position) as CardInstance
 
-	controller.call("_remove_card_instance", spawned_money.instance_id)
+	controller.call("_remove_card_instance", spawned_bug.instance_id)
 	var second_position: Vector2 = controller.call("_get_spawn_position_near_stack", source.stack_id, 0) as Vector2
 
 	_assert_equal(second_position, first_position, "Spawn placement should reuse a freed position near the source stack.")

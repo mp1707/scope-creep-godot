@@ -636,14 +636,19 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 		push_error("Missing card definition: %s" % card_definition_id)
 		return null
 
-	var stack: StackState = _create_stack(position)
+	var definition: CardDefinition = content.get_card_definition(card_definition_id)
+	var stack: StackState = _find_auto_stack_spawn_target(definition, position)
+	if stack == null:
+		stack = _create_stack(position)
+	else:
+		position = stack.base_position
+
 	var card: CardInstance = CardInstance.new()
 	card.instance_id = _create_card_instance_id()
 	card.definition_id = card_definition_id
 	card.stack_id = stack.stack_id
 	card.position = position
 	card.created_at_sprint = state.sprint_index
-	var definition: CardDefinition = content.get_card_definition(card_definition_id)
 	if definition != null:
 		card.values = definition.base_values.duplicate(true)
 	stack.card_ids.append(card.instance_id)
@@ -651,7 +656,48 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 
 	_emit(SimulationEvent.card_spawned(card.instance_id, stack.stack_id))
 	_emit(SimulationEvent.stack_changed(stack.stack_id))
+	_refresh_stack_recipe_if_present(stack.stack_id)
 	return card
+
+func _find_auto_stack_spawn_target(definition: CardDefinition, position: Vector2) -> StackState:
+	if definition == null or not definition.auto_stack_on_spawn:
+		return null
+
+	var radius: float = _get_auto_stack_spawn_radius()
+	if radius <= 0.0:
+		return null
+
+	var best_stack: StackState = null
+	var best_distance: float = radius
+	for stack: StackState in state.stacks.values():
+		if _is_shop_stack(stack):
+			continue
+		if not _is_pure_stack_for_definition(stack, definition.id):
+			continue
+		var distance: float = stack.base_position.distance_to(position)
+		if distance <= best_distance:
+			best_distance = distance
+			best_stack = stack
+	return best_stack
+
+func _is_pure_stack_for_definition(stack: StackState, card_definition_id: String) -> bool:
+	if stack == null or stack.card_ids.is_empty():
+		return false
+
+	for card_id: String in stack.card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			return false
+		if card.definition_id != card_definition_id:
+			return false
+		if not card.parent_card_id.is_empty():
+			return false
+	return true
+
+func _get_auto_stack_spawn_radius() -> float:
+	if content.balance == null:
+		return 180.0
+	return content.balance.auto_stack_spawn_radius
 
 func _spawn_attached_card(parent_card_id: String, card_definition_id: String, attachment_slot: String) -> CardInstance:
 	if not content.has_card_definition(card_definition_id):

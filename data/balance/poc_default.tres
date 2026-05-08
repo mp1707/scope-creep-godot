@@ -8,3 +8,4 @@ id = "balance.poc.default"
 release_duration_seconds = 6.0
 board_snap_distance = 50.0
 stack_offset = Vector2(0, 33)
+auto_stack_spawn_radius = 800.0

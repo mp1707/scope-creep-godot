@@ -20,3 +20,4 @@ tags = PackedStringArray("money", "resource")
 short_text = "Immer genau 1 Geld"
 tooltip_text = "Immer genau 1 Geld"
 visual = SubResource("Resource_5j0s0")
+auto_stack_on_spawn = true

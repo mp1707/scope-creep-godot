@@ -8,5 +8,6 @@ extends Resource
 @export_multiline var short_text: String = ""
 @export_multiline var tooltip_text: String = ""
 @export var visual: CardVisualDefinition = CardVisualDefinition.new()
+@export var auto_stack_on_spawn: bool = false
 @export var base_values: Dictionary = {}
 @export var default_state: Dictionary = {}

@@ -51,7 +51,7 @@ func _save_cards() -> int:
 		Color(0.22, 0.36, 0.68),
 		"res://assets/icons/handdrawn/cardIcons/mail.png"
 	), "res://data/cards/feature.tres"))
-	exit_code = max(exit_code, _save_resource(_create_card(
+	var money_card: CardDefinition = _create_card(
 		"card.resource.money",
 		"Geld",
 		ScopeEnums.CardType.RESOURCE,
@@ -60,7 +60,9 @@ func _save_cards() -> int:
 		Color(0.62, 0.88, 0.66),
 		Color(0.17, 0.48, 0.24),
 		"res://assets/icons/handdrawn/cardIcons/money.png"
-	), "res://data/cards/money.tres"))
+	)
+	money_card.auto_stack_on_spawn = true
+	exit_code = max(exit_code, _save_resource(money_card, "res://data/cards/money.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.problem.bug",
 		"Bug",
@@ -285,6 +287,7 @@ func _save_balance() -> int:
 	balance.board_snap_distance = 96.0
 	balance.stack_offset = Vector2(0.0, 40.0)
 	balance.spawn_placement_radius = 160.0
+	balance.auto_stack_spawn_radius = 180.0
 	return _save_resource(balance, "res://data/balance/poc_default.tres")
 
 func _create_card(

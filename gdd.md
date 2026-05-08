@@ -1315,6 +1315,7 @@ Schnelle Lösung, die später Arbeit verursacht.
 - Neutrale Stapel bleiben liegen und können als Gruppe bewegt werden.
 - Es gibt keine harte maximale Stackgröße; Grenzen entstehen nur durch Lesbarkeit und UI.
 - Ergebnis- und Spawn-Karten erscheinen an einer freien Position nahe der verarbeiteten Karten. Sie sollen nichts verdecken und nicht unter einer bestehenden Karte spawnen.
+- Bestimmte Karten dürfen beim Spawn automatisch auf einen nahen reinen Stapel derselben Karte gelegt werden, wenn die CardDefinition das erlaubt. Geld nutzt dieses Verhalten; Mitarbeiterkarten wie Entwickler, Externer Dev, Product Owner und Tester spawnen nicht automatisch aufeinander.
 - **Kamera-Steuerung:**
   - Maus-**Edge-Pan** (RTS-Stil): Maus an den Bildschirmrand bewegt die Kamera.
   - **Scrollrad** zoomt rein und raus.

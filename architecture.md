@@ -144,6 +144,7 @@ Mindestfelder:
 - `short_text: String`
 - `tooltip_text: String`
 - `visual: CardVisualDefinition`
+- `auto_stack_on_spawn: bool`
 - `base_values: Dictionary`
 - `default_state: Dictionary`
 
@@ -262,6 +263,7 @@ Beispiele:
 - Board-Snap-Distanz
 - Stack-Offset
 - Spawn-Placement-Radius
+- Auto-Stack-Radius fuer gespawnte Karten
 
 ## 5. Runtime-State
 
@@ -497,6 +499,8 @@ Presentation rendert Stacks Stacklands-artig:
 ### Spawn-Placement
 
 Neue Karten spawnen an einer freien Position nahe der Quelle. Der Placement-Service sucht Positionen, die keine bestehende Karte verdecken und nicht unter einer Karte liegen.
+
+CardDefinitions koennen `auto_stack_on_spawn` aktivieren. Solche Karten werden beim Spawn auf einen nahen reinen Stack derselben CardDefinition gelegt, wenn dessen Basisposition innerhalb des Balancing-Werts `auto_stack_spawn_radius` liegt. Mitarbeiterkarten lassen dieses Flag deaktiviert und spawnen dadurch immer als eigener Stack.
 
 Der Placement-Service ist Teil der Board-Simulation oder ein deterministic helper. Presentation darf die Spawn-Position animieren, aber nicht eigenmaechtig andere Zielpositionen waehlen.
 
