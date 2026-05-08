@@ -638,6 +638,7 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 
 	var definition: CardDefinition = content.get_card_definition(card_definition_id)
 	var stack: StackState = _find_auto_stack_spawn_target(definition, position)
+	var was_stacked_on_spawn: bool = stack != null
 	if stack == null:
 		stack = _create_stack(position)
 	else:
@@ -654,7 +655,7 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 	stack.card_ids.append(card.instance_id)
 	state.cards[card.instance_id] = card
 
-	_emit(SimulationEvent.card_spawned(card.instance_id, stack.stack_id))
+	_emit(SimulationEvent.card_spawned(card.instance_id, stack.stack_id, card.definition_id, was_stacked_on_spawn))
 	_emit(SimulationEvent.stack_changed(stack.stack_id))
 	_refresh_stack_recipe_if_present(stack.stack_id)
 	return card
@@ -733,7 +734,7 @@ func _spawn_attached_card(parent_card_id: String, card_definition_id: String, at
 	state.cards[card.instance_id] = card
 	_refresh_attachment_runtime_states()
 
-	_emit(SimulationEvent.card_spawned(card.instance_id, stack.stack_id))
+	_emit(SimulationEvent.card_spawned(card.instance_id, stack.stack_id, card.definition_id))
 	_emit(SimulationEvent.stack_changed(stack.stack_id))
 	_refresh_stack_recipe_if_present(stack.stack_id)
 	return card
@@ -759,6 +760,7 @@ func _remove_card_instance(card_id: String) -> void:
 	var event: SimulationEvent = SimulationEvent.new()
 	event.type = ScopeEnums.SimulationEventType.CARD_REMOVED
 	event.card_id = card_id
+	event.card_definition_id = card.definition_id
 	event.stack_id = stack_id
 	_emit(event)
 

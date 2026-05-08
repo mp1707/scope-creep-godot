@@ -3,17 +3,21 @@ extends Resource
 
 @export var type: ScopeEnums.SimulationEventType = ScopeEnums.SimulationEventType.STACK_CHANGED
 @export var card_id: String = ""
+@export var card_definition_id: String = ""
 @export var stack_id: String = ""
 @export var phase: ScopeEnums.RunPhase = ScopeEnums.RunPhase.SPRINT
 @export var timer_id: String = ""
 @export var timer_seconds: float = 0.0
 @export var is_paused: bool = false
+@export var was_stacked_on_spawn: bool = false
 
-static func card_spawned(spawned_card_id: String, target_stack_id: String) -> SimulationEvent:
+static func card_spawned(spawned_card_id: String, target_stack_id: String, spawned_card_definition_id: String = "", spawned_on_existing_stack: bool = false) -> SimulationEvent:
 	var event: SimulationEvent = SimulationEvent.new()
 	event.type = ScopeEnums.SimulationEventType.CARD_SPAWNED
 	event.card_id = spawned_card_id
+	event.card_definition_id = spawned_card_definition_id
 	event.stack_id = target_stack_id
+	event.was_stacked_on_spawn = spawned_on_existing_stack
 	return event
 
 static func stack_changed(changed_stack_id: String) -> SimulationEvent:

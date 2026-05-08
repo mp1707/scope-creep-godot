@@ -144,9 +144,12 @@ Mindestfelder:
 - `short_text: String`
 - `tooltip_text: String`
 - `visual: CardVisualDefinition`
+- `audio: CardAudioDefinition`
 - `auto_stack_on_spawn: bool`
 - `base_values: Dictionary`
 - `default_state: Dictionary`
+
+`BoardAudioPlayer` verwaltet Default-Sounds fuer `create`, `drag`, `drop`, `stack` und `destroy`. `CardDefinition.audio` darf diese Streams pro Karte ueberschreiben; nicht gesetzte Streams fallen immer auf den jeweiligen Default zurueck.
 
 Beispiele fuer `type`:
 

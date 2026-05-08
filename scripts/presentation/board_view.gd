@@ -340,7 +340,7 @@ func _begin_drag(card_id: String, board_position: Vector2, viewport_position: Ve
 	_drag_preview_card_ids = preview_card_ids
 	_move_drag_views_to_layer()
 	_bring_stack_to_front(card.stack_id)
-	_play_drag_started_audio()
+	_play_drag_started_audio(_get_card_definition_for_audio(card_id))
 	_update_drag_preview(board_position, viewport_position)
 
 func _update_drag_preview(board_position: Vector2, viewport_position: Vector2) -> void:
@@ -374,17 +374,21 @@ func _get_drag_lift_offset() -> Vector2:
 	return view.get_drag_lift_offset()
 
 func _finish_drag(board_position: Vector2, viewport_position: Vector2) -> void:
+	var dragged_card_definition: CardDefinition = _get_card_definition_for_audio(_dragging_card_id)
 	var screen_target_stack_id: String = _resolve_screen_drop_stack_id(_dragging_card_id, viewport_position)
 	var snap_stack: StackState = null
 	var target_stack_id: String = ""
+	var dropped_on_stack: bool = false
 	if not screen_target_stack_id.is_empty():
 		target_stack_id = screen_target_stack_id
+		dropped_on_stack = true
 		move_card_to_stack_requested.emit(_dragging_card_id, screen_target_stack_id)
 	else:
 		snap_stack = find_snap_stack(_dragging_card_id, board_position)
 
 	if snap_stack != null:
 		target_stack_id = snap_stack.stack_id
+		dropped_on_stack = true
 		move_card_to_stack_requested.emit(_dragging_card_id, snap_stack.stack_id)
 	elif screen_target_stack_id.is_empty():
 		var card: CardInstance = state.get_card(_dragging_card_id)
@@ -405,7 +409,10 @@ func _finish_drag(board_position: Vector2, viewport_position: Vector2) -> void:
 	_restore_drag_views_to_board()
 	if not target_stack_id.is_empty():
 		_bring_stack_to_front(target_stack_id)
-	_play_card_dropped_audio()
+	if dropped_on_stack:
+		_play_card_stacked_audio(dragged_card_definition)
+	else:
+		_play_card_dropped_audio(dragged_card_definition)
 	_dragging_card_id = ""
 	_drag_start_stack_id = ""
 	_drag_start_card_index = -1
@@ -475,29 +482,50 @@ func _ensure_audio() -> void:
 	_audio.name = "BoardAudioPlayer"
 	add_child(_audio, false, Node.INTERNAL_MODE_BACK)
 
-func _play_drag_started_audio() -> void:
+func _play_drag_started_audio(card_definition: CardDefinition) -> void:
 	if not _should_use_presentation_effects():
 		return
 	_ensure_audio()
-	_audio.play_drag_started()
+	_audio.play_drag_started(card_definition)
 
-func _play_card_dropped_audio() -> void:
+func _play_card_dropped_audio(card_definition: CardDefinition) -> void:
 	if not _should_use_presentation_effects():
 		return
 	_ensure_audio()
-	_audio.play_card_dropped()
+	_audio.play_card_dropped(card_definition)
 
-func _play_card_spawned_audio() -> void:
+func _play_card_stacked_audio(card_definition: CardDefinition) -> void:
 	if not _should_use_presentation_effects():
 		return
 	_ensure_audio()
-	_audio.play_card_spawned()
+	_audio.play_card_stacked(card_definition)
 
-func _play_card_destroyed_audio() -> void:
+func _play_card_created_audio(card_definition: CardDefinition) -> void:
 	if not _should_use_presentation_effects():
 		return
 	_ensure_audio()
-	_audio.play_card_destroyed()
+	_audio.play_card_created(card_definition)
+
+func _play_card_destroyed_audio(card_definition: CardDefinition) -> void:
+	if not _should_use_presentation_effects():
+		return
+	_ensure_audio()
+	_audio.play_card_destroyed(card_definition)
+
+func _get_card_definition_for_audio(card_id: String) -> CardDefinition:
+	if state == null or content == null:
+		return null
+	var card: CardInstance = state.get_card(card_id)
+	if card == null:
+		return null
+	return content.get_card_definition(card.definition_id)
+
+func _get_event_card_definition_for_audio(event: SimulationEvent) -> CardDefinition:
+	if content == null:
+		return null
+	if not event.card_definition_id.is_empty():
+		return content.get_card_definition(event.card_definition_id)
+	return _get_card_definition_for_audio(event.card_id)
 
 func _is_click_openable_card(card_id: String) -> bool:
 	if state == null or content == null:
@@ -529,7 +557,7 @@ func _apply_visual_event(event: SimulationEvent, with_effects: bool) -> void:
 	match event.type:
 		ScopeEnums.SimulationEventType.CARD_REMOVED:
 			if with_effects:
-				_play_card_destroyed_audio()
+				_play_card_destroyed_audio(_get_event_card_definition_for_audio(event))
 			_remove_card_view(event.card_id)
 		ScopeEnums.SimulationEventType.CARD_SPAWNED:
 			if not _should_render_card_on_board(event.card_id):
@@ -542,7 +570,10 @@ func _apply_visual_event(event: SimulationEvent, with_effects: bool) -> void:
 				if with_effects:
 					view.play_spawn_pop()
 			if with_effects:
-				_play_card_spawned_audio()
+				if event.was_stacked_on_spawn:
+					_play_card_stacked_audio(_get_event_card_definition_for_audio(event))
+				else:
+					_play_card_created_audio(_get_event_card_definition_for_audio(event))
 		_:
 			pass
 

@@ -20,6 +20,8 @@ func _run() -> void:
 	_test_shop_cards_are_docked_and_not_rendered_on_board()
 	_test_board_drag_can_drop_money_on_shop_dock()
 	_test_application_drag_overlay_sits_above_shop_dock()
+	_test_money_uses_specific_drop_and_stack_audio()
+	_test_auto_stacked_spawn_events_request_stack_audio()
 
 	if _failed:
 		quit(1)
@@ -236,6 +238,8 @@ func _test_board_drag_can_drop_money_on_shop_dock() -> void:
 	var controller: RunController = _create_controller(805)
 	var state: RunState = controller.start_new_run(805)
 	var money: CardInstance = _find_card_by_definition(state, "card.resource.money")
+	var money_stack: StackState = state.get_stack(money.stack_id)
+	money = state.get_card(money_stack.card_ids[money_stack.card_ids.size() - 1])
 	var shop_card: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.talent_pool")
 
 	var board: BoardView = BoardView.new()
@@ -290,6 +294,37 @@ func _test_application_drag_overlay_sits_above_shop_dock() -> void:
 	_assert_equal(idea_view.scale, Vector2.ONE, "Dragged cards should reset to board-local scale after the drag ends.")
 	app.queue_free()
 
+func _test_money_uses_specific_drop_and_stack_audio() -> void:
+	var catalog: ContentCatalog = _load_catalog()
+	var money_definition: CardDefinition = catalog.get_card_definition("card.resource.money")
+	var money_audio: CardAudioDefinition = money_definition.audio
+	var audio_player: BoardAudioPlayer = BoardAudioPlayer.new()
+
+	_assert_true(money_audio != null, "Money should define card-specific audio overrides.")
+	_assert_true(money_audio.drop_stream != null, "Money should override single-card drop audio.")
+	_assert_true(money_audio.stack_stream != null, "Money should override stack-drop audio.")
+	_assert_equal(audio_player.call("_get_drop_stream", money_definition), money_audio.drop_stream, "Money drop should use money_place.wav.")
+	_assert_equal(audio_player.call("_get_stack_stream", money_definition), money_audio.stack_stream, "Money stack-drop should use money_stack.wav.")
+	_assert_equal(audio_player.call("_get_drag_stream", money_definition), audio_player.default_drag_stream, "Money drag should fall back to the default drag audio.")
+	_assert_equal(audio_player.call("_get_create_stream", money_definition), audio_player.default_create_stream, "Money create should fall back to the default create audio.")
+	_assert_equal(audio_player.call("_get_destroy_stream", money_definition), audio_player.default_destroy_stream, "Money destroy should fall back to the default destroy audio.")
+
+func _test_auto_stacked_spawn_events_request_stack_audio() -> void:
+	var controller: RunController = _create_controller(807)
+	var state: RunState = controller.start_new_run(807)
+	controller.drain_events()
+
+	var money: CardInstance = _find_card_by_definition(state, "card.resource.money")
+	var money_stack: StackState = state.get_stack(money.stack_id)
+	var spawned_money: CardInstance = controller.call("_spawn_card_as_new_stack", "card.resource.money", money_stack.base_position) as CardInstance
+	var spawned_bug: CardInstance = controller.call("_spawn_card_as_new_stack", "card.problem.bug", Vector2(1440.0, 720.0)) as CardInstance
+	var events: Array[SimulationEvent] = controller.drain_events()
+	var money_spawn_event: SimulationEvent = _find_spawn_event(events, spawned_money.instance_id)
+	var bug_spawn_event: SimulationEvent = _find_spawn_event(events, spawned_bug.instance_id)
+
+	_assert_true(money_spawn_event.was_stacked_on_spawn, "Auto-stacked money spawn should request stack audio.")
+	_assert_true(not bug_spawn_event.was_stacked_on_spawn, "Fresh non-stacked spawn should request create audio.")
+
 func _setup_card_view(card: CardInstance, definition: CardDefinition, stack: StackState) -> CardView:
 	var view: CardView = CardView.new()
 	get_root().add_child(view)
@@ -331,6 +366,13 @@ func _find_card_by_definition(state: RunState, definition_id: String) -> CardIns
 		if card.definition_id == definition_id:
 			return card
 	_assert_true(false, "Missing card with definition '%s'." % definition_id)
+	return null
+
+func _find_spawn_event(events: Array[SimulationEvent], card_id: String) -> SimulationEvent:
+	for event: SimulationEvent in events:
+		if event.type == ScopeEnums.SimulationEventType.CARD_SPAWNED and event.card_id == card_id:
+			return event
+	_assert_true(false, "Missing spawn event for card '%s'." % card_id)
 	return null
 
 func _send_viewport_mouse_button(board: BoardView, viewport_position: Vector2, pressed: bool) -> void:

@@ -146,9 +146,15 @@ func _validate_card(card: CardDefinition) -> void:
 		_errors.append("%s: Card '%s' needs a visual definition." % [path, card.id])
 	else:
 		_validate_poc2_visual_minimum(card)
+	var audio: CardAudioDefinition = card.audio
+	if audio != null and not _card_audio_has_any_override(audio):
+		_errors.append("%s: Card '%s' has an empty audio override resource." % [path, card.id])
 	_validate_poc2_required_tags(card)
 
 	_card_ids[card.id] = path
+
+func _card_audio_has_any_override(audio: CardAudioDefinition) -> bool:
+	return audio.has_any_override()
 
 func _validate_poc2_required_tags(card: CardDefinition) -> void:
 	if not POC2_REQUIRED_CARD_TAGS.has(card.id):
