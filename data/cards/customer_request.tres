@@ -1,11 +1,11 @@
-[gd_resource type="Resource" script_class="CardDefinition" format=3]
+[gd_resource type="Resource" script_class="CardDefinition" format=3 uid="uid://dl4mpmshihxvv"]
 
-[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_card"]
-[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+[ext_resource type="Script" uid="uid://cindpeikx18t1" path="res://scripts/data/card_definition.gd" id="1_card"]
+[ext_resource type="Script" uid="uid://doiop67wth2ac" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
 
 [sub_resource type="Resource" id="Resource_visual"]
 script = ExtResource("2_visual")
-background_color = Color(0.98, 0.78, 0.50, 1)
+background_color = Color(0.98, 0.78, 0.5, 1)
 accent_color = Color(0.62, 0.32, 0.08, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
 marker_text = "REQ"
@@ -14,8 +14,8 @@ marker_text = "REQ"
 script = ExtResource("1_card")
 id = "card.input.customer_request"
 display_name = "Kundenwunsch"
-type = 1
 tags = PackedStringArray("input", "customer_request")
 short_text = "Kundengetriebener Input"
 tooltip_text = "Kann mit Product Owner zu einer vielversprechenden User Story werden."
 visual = SubResource("Resource_visual")
+auto_stack_on_spawn = true

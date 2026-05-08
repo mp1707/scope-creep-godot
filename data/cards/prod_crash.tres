@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="CardDefinition" format=3]
+[gd_resource type="Resource" script_class="CardDefinition" format=3 uid="uid://bsk1i5djv0dyp"]
 
-[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_fr0m8"]
-[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_y8crk"]
-[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/fire.png" id="3_2w1rd"]
+[ext_resource type="Script" uid="uid://cindpeikx18t1" path="res://scripts/data/card_definition.gd" id="1_fr0m8"]
+[ext_resource type="Script" uid="uid://doiop67wth2ac" path="res://scripts/data/card_visual_definition.gd" id="2_y8crk"]
+[ext_resource type="Texture2D" uid="uid://waj3spn8urhp" path="res://assets/icons/handdrawn/cardIcons/fire.png" id="3_2w1rd"]
 
 [sub_resource type="Resource" id="Resource_8n4wy"]
 script = ExtResource("2_y8crk")
@@ -11,9 +11,6 @@ accent_color = Color(0.98, 0.58, 0.24, 1)
 text_color = Color(0.98, 0.94, 0.88, 1)
 icon_texture = ExtResource("3_2w1rd")
 icon_color = Color(0.98, 0.94, 0.88, 1)
-icon_size = Vector2(78, 78)
-icon_offset = Vector2(0, 0)
-icon_recolor_alpha_mask = true
 marker_text = "!!!"
 
 [resource]
@@ -25,3 +22,4 @@ tags = PackedStringArray("problem", "prod_crash")
 short_text = "Blockiert Einnahmen"
 tooltip_text = "Entsteht aus 3 Bugs am Sprintstart und blockiert Einnahmen."
 visual = SubResource("Resource_8n4wy")
+auto_stack_on_spawn = true

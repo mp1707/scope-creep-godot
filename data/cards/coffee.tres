@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="CardDefinition" format=3]
+[gd_resource type="Resource" script_class="CardDefinition" format=3 uid="uid://ew5bnh77fcnd"]
 
-[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_krkuc"]
-[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_6wkug"]
-[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/coffee.png" id="3_on4by"]
+[ext_resource type="Script" uid="uid://cindpeikx18t1" path="res://scripts/data/card_definition.gd" id="1_krkuc"]
+[ext_resource type="Script" uid="uid://doiop67wth2ac" path="res://scripts/data/card_visual_definition.gd" id="2_6wkug"]
+[ext_resource type="Texture2D" uid="uid://0icbq30pxdr1" path="res://assets/icons/handdrawn/cardIcons/coffee.png" id="3_on4by"]
 
 [sub_resource type="Resource" id="Resource_arqf4"]
 script = ExtResource("2_6wkug")
@@ -10,11 +10,6 @@ background_color = Color(0.92, 0.68, 0.52, 1)
 accent_color = Color(0.5, 0.25, 0.12, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
 icon_texture = ExtResource("3_on4by")
-icon_color = Color(0.06, 0.055, 0.05, 1)
-icon_size = Vector2(78, 78)
-icon_offset = Vector2(0, 0)
-icon_recolor_alpha_mask = true
-marker_text = ""
 
 [resource]
 script = ExtResource("1_krkuc")
@@ -25,3 +20,4 @@ tags = PackedStringArray("coffee", "consumable")
 short_text = "Beschleunigt ein Arbeits-Recipe"
 tooltip_text = "Beschleunigt ein Arbeits-Recipe"
 visual = SubResource("Resource_arqf4")
+auto_stack_on_spawn = true

@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="CardDefinition" format=3]
+[gd_resource type="Resource" script_class="CardDefinition" format=3 uid="uid://dligtj2mdg8ib"]
 
-[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_t1tnw"]
-[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_xtgol"]
-[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/star.png" id="3_mn4h2"]
+[ext_resource type="Script" uid="uid://cindpeikx18t1" path="res://scripts/data/card_definition.gd" id="1_t1tnw"]
+[ext_resource type="Script" uid="uid://doiop67wth2ac" path="res://scripts/data/card_visual_definition.gd" id="2_xtgol"]
+[ext_resource type="Texture2D" uid="uid://5fyymaa7x6bc" path="res://assets/icons/handdrawn/cardIcons/star.png" id="3_mn4h2"]
 
 [sub_resource type="Resource" id="Resource_gmgh4"]
 script = ExtResource("2_xtgol")
@@ -10,11 +10,6 @@ background_color = Color(0.98, 0.82, 0.42, 1)
 accent_color = Color(0.62, 0.42, 0.08, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
 icon_texture = ExtResource("3_mn4h2")
-icon_color = Color(0.06, 0.055, 0.05, 1)
-icon_size = Vector2(78, 78)
-icon_offset = Vector2(0, 0)
-icon_recolor_alpha_mask = true
-marker_text = ""
 
 [resource]
 script = ExtResource("1_t1tnw")
@@ -24,3 +19,4 @@ tags = PackedStringArray("idea", "input")
 short_text = "Kann umgesetzt werden"
 tooltip_text = "Kann umgesetzt werden"
 visual = SubResource("Resource_gmgh4")
+auto_stack_on_spawn = true
