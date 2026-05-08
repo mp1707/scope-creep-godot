@@ -11,6 +11,7 @@ func _run() -> void:
 	_test_attached_burnout_stays_opaque()
 	_test_board_view_uses_recipe_action_text()
 	_test_spawn_placement_spreads_multiple_cards()
+	_test_spawn_placement_reuses_freed_positions()
 	_test_board_is_four_times_initial_viewport_area()
 	_test_board_camera_clamps_and_zooms_to_full_board()
 	_test_trackpad_pan_gesture_zooms_camera()
@@ -114,11 +115,24 @@ func _test_spawn_placement_spreads_multiple_cards() -> void:
 
 	for index: int in 18:
 		var position: Vector2 = controller.call("_get_spawn_position_near_stack", source.stack_id, index) as Vector2
+		controller.call("_spawn_card_as_new_stack", "card.resource.money", position)
 		var rect: Rect2 = Rect2(position, Vector2(144.0, 196.0))
 		_assert_true(bounds.encloses(rect), "Spawn position should stay inside board bounds.")
 		for previous_rect: Rect2 in placed_rects:
 			_assert_true(not rect.intersects(previous_rect), "Spawn placement should avoid previous spawn positions.")
 		placed_rects.append(rect)
+
+func _test_spawn_placement_reuses_freed_positions() -> void:
+	var controller: RunController = _create_controller(806)
+	var state: RunState = controller.start_new_run(806)
+	var source: CardInstance = _find_card_by_definition(state, "card.product.software")
+	var first_position: Vector2 = controller.call("_get_spawn_position_near_stack", source.stack_id, 0) as Vector2
+	var spawned_money: CardInstance = controller.call("_spawn_card_as_new_stack", "card.resource.money", first_position) as CardInstance
+
+	controller.call("_remove_card_instance", spawned_money.instance_id)
+	var second_position: Vector2 = controller.call("_get_spawn_position_near_stack", source.stack_id, 0) as Vector2
+
+	_assert_equal(second_position, first_position, "Spawn placement should reuse a freed position near the source stack.")
 
 func _test_board_is_four_times_initial_viewport_area() -> void:
 	var controller: RunController = _create_controller(803)

@@ -102,6 +102,7 @@ func load_run(loaded_state: RunState) -> void:
 	_rng.seed = state.rng_seed
 	_rng.state = state.rng_state
 	_sync_next_runtime_ids()
+	_prune_stale_spawn_history()
 	_refresh_attachment_runtime_states()
 	_emit(SimulationEvent.phase_changed(state.phase))
 	_emit(SimulationEvent.pause_changed(state.is_paused))
@@ -809,6 +810,7 @@ func _delete_stack_if_empty(stack: StackState) -> void:
 		state.stacks.erase(stack.stack_id)
 
 func _get_spawn_position_near_stack(source_stack_id: String, spawn_index: int = 0) -> Vector2:
+	_prune_stale_spawn_history()
 	var source_position: Vector2 = _get_spawn_source_position(source_stack_id)
 
 	var step_x: float = SPAWN_CARD_SIZE.x + SPAWN_GAP
@@ -851,6 +853,25 @@ func _get_spawn_position_near_stack(source_stack_id: String, spawn_index: int = 
 	var fallback: Vector2 = _clamp_spawn_position_to_board(source_position + Vector2(step_x * float(spawn_index + 1), step_y))
 	state.board.spawn_history.append(fallback)
 	return fallback
+
+func _prune_stale_spawn_history() -> void:
+	if state == null or state.board.spawn_history.is_empty():
+		return
+
+	var active_history: Array[Vector2] = []
+	for previous_position: Vector2 in state.board.spawn_history:
+		if _is_spawn_history_position_occupied(previous_position):
+			active_history.append(previous_position)
+	state.board.spawn_history = active_history
+
+func _is_spawn_history_position_occupied(position: Vector2) -> bool:
+	var history_rect: Rect2 = Rect2(position, SPAWN_CARD_SIZE)
+	for stack: StackState in state.stacks.values():
+		if _is_shop_stack(stack):
+			continue
+		if history_rect.intersects(_get_stack_rect(stack)):
+			return true
+	return false
 
 func _does_spawn_overlap(position: Vector2) -> bool:
 	var spawn_rect: Rect2 = Rect2(position, SPAWN_CARD_SIZE)

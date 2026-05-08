@@ -7,6 +7,7 @@ const CARD_BORDER_WIDTH: int = 5
 const HEADER_HEIGHT: float = 34.0
 const CARD_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
 const DRAG_SHADOW_COLOR: Color = Color(0.18, 0.17, 0.15, 1.0)
+const DRAG_SHADOW_OFFSET: Vector2 = Vector2(8.0, 10.0)
 const STATUS_BADGE_TEXT_COLOR: Color = Color(0.98, 0.955, 0.88, 1.0)
 const STATUS_BADGE_COLOR: Color = Color(0.055, 0.052, 0.047, 0.92)
 const STATUS_BADGE_ALERT_COLOR: Color = Color(0.42, 0.07, 0.10, 0.95)
@@ -65,6 +66,9 @@ func update_runtime(card: CardInstance, stack: StackState, definition: CardDefin
 
 func set_drag_preview_position(board_position: Vector2) -> void:
 	position = board_position
+
+func get_drag_lift_offset() -> Vector2:
+	return -DRAG_SHADOW_OFFSET
 
 func clear_drag_preview() -> void:
 	set_elevated(false)
@@ -183,7 +187,7 @@ func _apply_default_layout() -> void:
 	size = DEFAULT_CARD_SIZE
 	_set_top_left_layout(_shadow)
 	_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_shadow.position = Vector2(8.0, 10.0)
+	_shadow.position = DRAG_SHADOW_OFFSET
 	_shadow.size = DEFAULT_CARD_SIZE
 	_apply_shadow_style()
 	_set_top_left_layout(_background)

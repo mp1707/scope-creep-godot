@@ -8,4 +8,6 @@ const DEFAULT_SIZE: Vector2 = INITIAL_VIEWPORT_SIZE * 2.0
 @export var camera_position: Vector2 = INITIAL_VIEWPORT_SIZE * 0.5
 @export var camera_zoom: Vector2 = Vector2.ONE
 @export var reserved_areas: Array[Rect2] = []
+
+# Transient spawn reservations. Real occupancy is still determined from stacks.
 @export var spawn_history: Array[Vector2] = []

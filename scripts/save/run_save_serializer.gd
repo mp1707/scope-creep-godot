@@ -215,7 +215,6 @@ func _serialize_board(board: BoardState) -> Dictionary:
 		"camera_position": _serialize_vector2(board.camera_position),
 		"camera_zoom": _serialize_vector2(board.camera_zoom),
 		"reserved_areas": _encode_value(board.reserved_areas),
-		"spawn_history": _encode_value(board.spawn_history),
 	}
 
 func _deserialize_board(data: Dictionary) -> BoardState:

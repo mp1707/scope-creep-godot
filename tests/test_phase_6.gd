@@ -11,6 +11,7 @@ func _run() -> void:
 	_test_application_bootstrap_binds_board()
 	_test_card_view_controls_do_not_consume_mouse()
 	_test_board_mouse_input_drags_card_to_stack()
+	_test_drag_preview_lifts_card_above_original_footprint()
 	_test_frame_tick_does_not_reset_drag_preview()
 	_test_active_stack_tick_does_not_reset_drag_preview()
 	_test_empty_board_drop_uses_free_preview_position()
@@ -80,6 +81,26 @@ func _test_board_mouse_input_drags_card_to_stack() -> void:
 
 	_assert_equal(idea.stack_id, developer.stack_id, "World-space mouse input should drag idea onto developer stack.")
 	_assert_equal(state.get_stack(developer.stack_id).processing_state.active_recipe_id, "recipe.feature_from_idea.developer", "Dropping idea on developer via mouse input should start processing.")
+	app.queue_free()
+
+func _test_drag_preview_lifts_card_above_original_footprint() -> void:
+	var app: Node = _create_app()
+	var state: RunState = app.run_state
+	var board: BoardView = app.call("get_board_view") as BoardView
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var idea_view: CardView = board.get_card_view(idea.instance_id)
+	var shadow: Control = idea_view.get_node("DragShadow") as Control
+	var original_position: Vector2 = idea_view.position
+	var press_position: Vector2 = original_position + Vector2(18.0, 24.0)
+
+	_send_mouse_button(board, press_position, true)
+
+	var expected_lifted_position: Vector2 = board.call("_board_position_to_viewport", original_position + idea_view.get_drag_lift_offset()) as Vector2
+	var expected_shadow_position: Vector2 = board.call("_board_position_to_viewport", original_position) as Vector2
+	_assert_equal(idea_view.position, expected_lifted_position, "Dragged card should lift up-left by the shadow offset.")
+	_assert_equal(idea_view.position + shadow.position * idea_view.scale, expected_shadow_position, "Drag shadow should begin on the original card footprint.")
+
+	_send_mouse_button(board, press_position, false)
 	app.queue_free()
 
 func _test_frame_tick_does_not_reset_drag_preview() -> void:

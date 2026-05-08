@@ -347,12 +347,13 @@ func _update_drag_preview(board_position: Vector2, viewport_position: Vector2) -
 	if _drag_preview_card_ids.is_empty():
 		return
 	var preview_base_position: Vector2 = board_position - _drag_pointer_offset
+	var visual_base_position: Vector2 = preview_base_position + _get_drag_lift_offset()
 	for index: int in _drag_preview_card_ids.size():
 		var card_id: String = _drag_preview_card_ids[index]
 		var view: CardView = get_card_view(card_id)
 		if view == null:
 			continue
-		var preview_position: Vector2 = preview_base_position + stack_offset * float(index)
+		var preview_position: Vector2 = visual_base_position + stack_offset * float(index)
 		view.set_elevated(true)
 		if _is_using_screen_drag_layer():
 			view.scale = _get_screen_drag_scale()
@@ -361,8 +362,16 @@ func _update_drag_preview(board_position: Vector2, viewport_position: Vector2) -
 			view.scale = Vector2.ONE
 			view.set_drag_preview_position(preview_position)
 		view.z_index = index
-	_update_drag_progress_preview(preview_base_position)
+	_update_drag_progress_preview(visual_base_position)
 	_resolve_screen_drop_stack_id(_dragging_card_id, viewport_position)
+
+func _get_drag_lift_offset() -> Vector2:
+	if _drag_preview_card_ids.is_empty():
+		return Vector2.ZERO
+	var view: CardView = get_card_view(_drag_preview_card_ids[0])
+	if view == null:
+		return Vector2.ZERO
+	return view.get_drag_lift_offset()
 
 func _finish_drag(board_position: Vector2, viewport_position: Vector2) -> void:
 	var screen_target_stack_id: String = _resolve_screen_drop_stack_id(_dragging_card_id, viewport_position)
