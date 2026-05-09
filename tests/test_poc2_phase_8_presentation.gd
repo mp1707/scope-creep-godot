@@ -20,6 +20,8 @@ func _run() -> void:
 	_test_shop_cards_are_docked_and_not_rendered_on_board()
 	_test_board_drag_can_drop_money_on_shop_dock()
 	_test_application_drag_overlay_sits_above_shop_dock()
+	_test_zoomed_drag_lift_uses_screen_space_shadow_offset()
+	_test_zoomed_stack_drag_progress_stays_aligned_with_lifted_stack()
 	_test_money_uses_specific_drop_and_stack_audio()
 	_test_auto_stacked_spawn_events_request_stack_audio()
 
@@ -294,6 +296,74 @@ func _test_application_drag_overlay_sits_above_shop_dock() -> void:
 	_assert_equal(idea_view.scale, Vector2.ONE, "Dragged cards should reset to board-local scale after the drag ends.")
 	app.queue_free()
 
+func _test_zoomed_drag_lift_uses_screen_space_shadow_offset() -> void:
+	var scene: PackedScene = ResourceLoader.load("res://scenes/application/Main.tscn") as PackedScene
+	var app: MainApplication = scene.instantiate() as MainApplication
+	get_root().add_child(app)
+
+	var board: BoardView = app.get_board_view()
+	var state: RunState = app.run_state
+	var camera: BoardCamera = app.get_node("Camera2D") as BoardCamera
+	camera.call("_apply_zoom", 2.0)
+
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var idea_view: CardView = board.get_card_view(idea.instance_id)
+	var shadow: Control = idea_view.get_node("DragShadow") as Control
+	var original_position: Vector2 = idea_view.position
+	var press_position: Vector2 = original_position + Vector2(12.0, 12.0)
+	var viewport_press_position: Vector2 = board.call("_board_position_to_viewport", press_position) as Vector2
+	var board_canvas_scale: Vector2 = board.call("_get_board_canvas_scale") as Vector2
+	var expected_position: Vector2 = board.call(
+		"_board_position_to_screen_drag_layer",
+		original_position + idea_view.get_drag_lift_offset_for_canvas_scale(board_canvas_scale)
+	) as Vector2
+	var expected_shadow_anchor: Vector2 = board.call("_board_position_to_screen_drag_layer", original_position) as Vector2
+
+	board.call("_begin_drag", idea.instance_id, press_position, viewport_press_position)
+
+	_assert_vector_approx(idea_view.position, expected_position, 0.01, "Zoomed drag lift should stay at the screen-space shadow offset.")
+	_assert_vector_approx(idea_view.position + shadow.position * idea_view.scale, expected_shadow_anchor, 0.01, "Zoomed drag shadow should remain anchored on the original card footprint.")
+	_assert_vector_approx(shadow.position * idea_view.scale, CardView.DRAG_SHADOW_OFFSET, 0.01, "Zoomed drag shadow offset should not grow with camera zoom.")
+
+	board.call("_finish_drag", press_position, viewport_press_position)
+	app.queue_free()
+
+func _test_zoomed_stack_drag_progress_stays_aligned_with_lifted_stack() -> void:
+	var scene: PackedScene = ResourceLoader.load("res://scenes/application/Main.tscn") as PackedScene
+	var app: MainApplication = scene.instantiate() as MainApplication
+	get_root().add_child(app)
+
+	var board: BoardView = app.get_board_view()
+	var state: RunState = app.run_state
+	var camera: BoardCamera = app.get_node("Camera2D") as BoardCamera
+	camera.call("_apply_zoom", 2.0)
+
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	app.call("request_move_card_to_stack", idea.instance_id, developer.stack_id)
+	app.call("advance_run", 0.25)
+
+	var developer_view: CardView = board.get_card_view(developer.instance_id)
+	var progress_view: Control = board.get_stack_progress_view(developer.stack_id)
+	var original_position: Vector2 = developer_view.position
+	var press_position: Vector2 = original_position + Vector2(20.0, 10.0)
+	var viewport_press_position: Vector2 = board.call("_board_position_to_viewport", press_position) as Vector2
+	var board_canvas_scale: Vector2 = board.call("_get_board_canvas_scale") as Vector2
+	var lifted_base_position: Vector2 = original_position + developer_view.get_drag_lift_offset_for_canvas_scale(board_canvas_scale)
+	var expected_progress_position: Vector2 = board.call(
+		"_board_position_to_screen_drag_layer",
+		lifted_base_position + BoardView.PROGRESS_OFFSET
+	) as Vector2
+
+	board.call("_begin_drag", developer.instance_id, press_position, viewport_press_position)
+
+	_assert_vector_approx(progress_view.position, expected_progress_position, 0.01, "Zoomed stack drag should keep progress overlay aligned to the lifted stack.")
+	_assert_vector_approx(progress_view.scale, board.call("_get_screen_drag_scale") as Vector2, 0.01, "Dragged progress overlay should use the same screen scale as dragged cards.")
+	_assert_vector_approx(progress_view.position + Vector2(0.0, -BoardView.PROGRESS_OFFSET.y) * progress_view.scale, developer_view.position, 0.01, "Progress overlay should remain centered above the dragged stack card.")
+
+	board.call("_finish_drag", press_position, viewport_press_position)
+	app.queue_free()
+
 func _test_money_uses_specific_drop_and_stack_audio() -> void:
 	var catalog: ContentCatalog = _load_catalog()
 	var money_definition: CardDefinition = catalog.get_card_definition("card.resource.money")
@@ -398,3 +468,9 @@ func _assert_equal(actual: Variant, expected: Variant, message: String) -> void:
 		return
 	_failed = true
 	printerr("Assertion failed: %s Expected '%s', got '%s'." % [message, expected, actual])
+
+func _assert_vector_approx(actual: Vector2, expected: Vector2, tolerance: float, message: String) -> void:
+	if actual.distance_to(expected) <= tolerance:
+		return
+	_failed = true
+	printerr("Assertion failed: %s Expected approximately '%s', got '%s'." % [message, expected, actual])

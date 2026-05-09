@@ -348,16 +348,18 @@ func _update_drag_preview(board_position: Vector2, viewport_position: Vector2) -
 		return
 	var preview_base_position: Vector2 = board_position - _drag_pointer_offset
 	var visual_base_position: Vector2 = preview_base_position + _get_drag_lift_offset()
+	var drag_canvas_scale: Vector2 = _get_board_canvas_scale()
 	for index: int in _drag_preview_card_ids.size():
 		var card_id: String = _drag_preview_card_ids[index]
 		var view: CardView = get_card_view(card_id)
 		if view == null:
 			continue
 		var preview_position: Vector2 = visual_base_position + stack_offset * float(index)
+		view.set_drag_elevation_canvas_scale(drag_canvas_scale)
 		view.set_elevated(true)
 		if _is_using_screen_drag_layer():
 			view.scale = _get_screen_drag_scale()
-			view.set_drag_preview_position(_board_position_to_viewport(preview_position))
+			view.set_drag_preview_position(_board_position_to_screen_drag_layer(preview_position))
 		else:
 			view.scale = Vector2.ONE
 			view.set_drag_preview_position(preview_position)
@@ -371,7 +373,7 @@ func _get_drag_lift_offset() -> Vector2:
 	var view: CardView = get_card_view(_drag_preview_card_ids[0])
 	if view == null:
 		return Vector2.ZERO
-	return view.get_drag_lift_offset()
+	return view.get_drag_lift_offset_for_canvas_scale(_get_board_canvas_scale())
 
 func _finish_drag(board_position: Vector2, viewport_position: Vector2) -> void:
 	var dragged_card_definition: CardDefinition = _get_card_definition_for_audio(_dragging_card_id)
@@ -605,6 +607,12 @@ func _viewport_position_to_board(viewport_position: Vector2) -> Vector2:
 func _board_position_to_viewport(board_position: Vector2) -> Vector2:
 	return get_global_transform_with_canvas() * board_position
 
+func _board_position_to_screen_drag_layer(board_position: Vector2) -> Vector2:
+	if not _is_using_screen_drag_layer():
+		return board_position
+	var viewport_position: Vector2 = _board_position_to_viewport(board_position)
+	return screen_drag_layer.get_global_transform_with_canvas().affine_inverse() * viewport_position
+
 func _mark_input_as_handled() -> void:
 	var viewport: Viewport = get_viewport()
 	if viewport != null:
@@ -651,7 +659,7 @@ func _update_drag_progress_preview(preview_base_position: Vector2) -> void:
 	var progress_position: Vector2 = preview_base_position + PROGRESS_OFFSET
 	if _is_using_screen_drag_layer():
 		progress_view.scale = _get_screen_drag_scale()
-		progress_view.position = _board_position_to_viewport(progress_position)
+		progress_view.position = _board_position_to_screen_drag_layer(progress_position)
 	else:
 		progress_view.scale = Vector2.ONE
 		progress_view.position = progress_position
@@ -803,5 +811,16 @@ func _is_using_screen_drag_layer() -> bool:
 	return screen_drag_layer != null and is_instance_valid(screen_drag_layer)
 
 func _get_screen_drag_scale() -> Vector2:
+	var board_scale: Vector2 = _get_board_canvas_scale()
+	var layer_scale: Vector2 = _get_screen_drag_layer_canvas_scale()
+	return Vector2(board_scale.x / layer_scale.x, board_scale.y / layer_scale.y)
+
+func _get_board_canvas_scale() -> Vector2:
 	var transform: Transform2D = get_global_transform_with_canvas()
 	return Vector2(transform.x.length(), transform.y.length())
+
+func _get_screen_drag_layer_canvas_scale() -> Vector2:
+	if not _is_using_screen_drag_layer():
+		return Vector2.ONE
+	var transform: Transform2D = screen_drag_layer.get_global_transform_with_canvas()
+	return Vector2(maxf(0.001, transform.x.length()), maxf(0.001, transform.y.length()))

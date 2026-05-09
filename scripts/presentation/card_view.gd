@@ -70,7 +70,15 @@ func set_drag_preview_position(board_position: Vector2) -> void:
 func get_drag_lift_offset() -> Vector2:
 	return -DRAG_SHADOW_OFFSET
 
+func get_drag_lift_offset_for_canvas_scale(canvas_scale: Vector2) -> Vector2:
+	return -_get_scaled_drag_shadow_offset(canvas_scale)
+
+func set_drag_elevation_canvas_scale(canvas_scale: Vector2) -> void:
+	_resolve_or_create_nodes()
+	_shadow.position = _get_scaled_drag_shadow_offset(canvas_scale)
+
 func clear_drag_preview() -> void:
+	set_drag_elevation_canvas_scale(Vector2.ONE)
 	set_elevated(false)
 
 func set_elevated(elevated: bool) -> void:
@@ -333,6 +341,10 @@ func _apply_shadow_style() -> void:
 	shadow_style.corner_radius_top_left = CARD_CORNER_RADIUS
 	shadow_style.corner_radius_top_right = CARD_CORNER_RADIUS
 	_shadow.add_theme_stylebox_override("panel", shadow_style)
+
+func _get_scaled_drag_shadow_offset(canvas_scale: Vector2) -> Vector2:
+	var safe_scale: Vector2 = Vector2(maxf(0.001, canvas_scale.x), maxf(0.001, canvas_scale.y))
+	return Vector2(DRAG_SHADOW_OFFSET.x / safe_scale.x, DRAG_SHADOW_OFFSET.y / safe_scale.y)
 
 func _update_progress(_stack: StackState) -> void:
 	_progress_bar.visible = false
