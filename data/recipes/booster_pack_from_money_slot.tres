@@ -44,4 +44,5 @@ inputs = Array[ExtResource("1_s5v6k")]([SubResource("Resource_4w7p1"), SubResour
 duration = SubResource("Resource_2k6hn")
 priority = 10
 specificity_score = 2
+allowed_extra_inputs = Array[ExtResource("1_s5v6k")]([SubResource("Resource_4w7p1")])
 effects_on_complete = Array[ExtResource("3_yx2tw")]([SubResource("Resource_9tv7l"), SubResource("Resource_k3u6j")])

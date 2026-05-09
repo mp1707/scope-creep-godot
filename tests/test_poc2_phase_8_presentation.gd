@@ -21,6 +21,7 @@ func _run() -> void:
 	_test_board_drag_can_drop_money_on_shop_dock()
 	_test_application_drag_overlay_sits_above_shop_dock()
 	_test_zoomed_drag_lift_uses_screen_space_shadow_offset()
+	_test_zoomed_drag_lift_resets_spawn_pivot_for_employee_cards()
 	_test_zoomed_stack_drag_progress_stays_aligned_with_lifted_stack()
 	_test_money_uses_specific_drop_and_stack_audio()
 	_test_auto_stacked_spawn_events_request_stack_audio()
@@ -326,6 +327,52 @@ func _test_zoomed_drag_lift_uses_screen_space_shadow_offset() -> void:
 	_assert_vector_approx(shadow.position * idea_view.scale, CardView.DRAG_SHADOW_OFFSET, 0.01, "Zoomed drag shadow offset should not grow with camera zoom.")
 
 	board.call("_finish_drag", press_position, viewport_press_position)
+	app.queue_free()
+
+func _test_zoomed_drag_lift_resets_spawn_pivot_for_employee_cards() -> void:
+	var scene: PackedScene = ResourceLoader.load("res://scenes/application/Main.tscn") as PackedScene
+	var app: MainApplication = scene.instantiate() as MainApplication
+	get_root().add_child(app)
+
+	var board: BoardView = app.get_board_view()
+	var camera: BoardCamera = app.get_node("Camera2D") as BoardCamera
+	camera.call("_apply_zoom", 2.0)
+
+	var employee_definition_ids: PackedStringArray = PackedStringArray([
+		"card.employee.product_owner",
+		"card.employee.tester",
+	])
+	for index: int in employee_definition_ids.size():
+		var spawned_card: CardInstance = app.controller.call(
+			"_spawn_card_as_new_stack",
+			employee_definition_ids[index],
+			Vector2(720.0 + float(index) * 180.0, 540.0)
+		) as CardInstance
+		app.call("_apply_pending_events")
+
+		var spawned_view: CardView = board.get_card_view(spawned_card.instance_id)
+		var shadow: Control = spawned_view.get_node("DragShadow") as Control
+		spawned_view.play_spawn_pop()
+		_assert_equal(spawned_view.pivot_offset, CardView.DEFAULT_CARD_SIZE * 0.5, "Spawn pop should temporarily use a center pivot.")
+
+		var original_position: Vector2 = spawned_view.position
+		var press_position: Vector2 = original_position + Vector2(12.0, 12.0)
+		var viewport_press_position: Vector2 = board.call("_board_position_to_viewport", press_position) as Vector2
+		var board_canvas_scale: Vector2 = board.call("_get_board_canvas_scale") as Vector2
+		var expected_position: Vector2 = board.call(
+			"_board_position_to_screen_drag_layer",
+			original_position + spawned_view.get_drag_lift_offset_for_canvas_scale(board_canvas_scale)
+		) as Vector2
+		var expected_shadow_anchor: Vector2 = board.call("_board_position_to_screen_drag_layer", original_position) as Vector2
+
+		board.call("_begin_drag", spawned_card.instance_id, press_position, viewport_press_position)
+
+		_assert_equal(spawned_view.pivot_offset, Vector2.ZERO, "Dragging a spawned card should restore top-left pivot positioning.")
+		_assert_vector_approx(spawned_view.position, expected_position, 0.01, "Zoomed spawned employee drag lift should stay at the shadow offset.")
+		_assert_vector_approx(spawned_view.position + shadow.position * spawned_view.scale, expected_shadow_anchor, 0.01, "Zoomed spawned employee shadow should stay on the old footprint.")
+
+		board.call("_finish_drag", press_position, viewport_press_position)
+
 	app.queue_free()
 
 func _test_zoomed_stack_drag_progress_stays_aligned_with_lifted_stack() -> void:

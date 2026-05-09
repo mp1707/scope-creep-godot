@@ -40,6 +40,7 @@ var _default_marker_text: String = ""
 var _card_font: FontFile = null
 var _icon_mask_material: ShaderMaterial = null
 var _layout_initialized: bool = false
+var _spawn_tween: Tween = null
 
 func _ready() -> void:
 	_set_top_left_layout(self)
@@ -75,6 +76,8 @@ func get_drag_lift_offset_for_canvas_scale(canvas_scale: Vector2) -> Vector2:
 
 func set_drag_elevation_canvas_scale(canvas_scale: Vector2) -> void:
 	_resolve_or_create_nodes()
+	_cancel_spawn_tween()
+	pivot_offset = Vector2.ZERO
 	_shadow.position = _get_scaled_drag_shadow_offset(canvas_scale)
 
 func clear_drag_preview() -> void:
@@ -86,11 +89,13 @@ func set_elevated(elevated: bool) -> void:
 	_shadow.visible = elevated
 
 func play_spawn_pop() -> void:
+	_cancel_spawn_tween()
 	pivot_offset = DEFAULT_CARD_SIZE * 0.5
 	scale = Vector2(0.84, 0.84)
-	var tween: Tween = create_tween()
-	tween.tween_property(self, "scale", Vector2(1.06, 1.06), 0.08)
-	tween.tween_property(self, "scale", Vector2.ONE, 0.07)
+	_spawn_tween = create_tween()
+	_spawn_tween.tween_property(self, "scale", Vector2(1.06, 1.06), 0.08)
+	_spawn_tween.tween_property(self, "scale", Vector2.ONE, 0.07)
+	_spawn_tween.tween_callback(_reset_spawn_transform)
 
 func _resolve_or_create_nodes() -> void:
 	if _background == null:
@@ -345,6 +350,16 @@ func _apply_shadow_style() -> void:
 func _get_scaled_drag_shadow_offset(canvas_scale: Vector2) -> Vector2:
 	var safe_scale: Vector2 = Vector2(maxf(0.001, canvas_scale.x), maxf(0.001, canvas_scale.y))
 	return Vector2(DRAG_SHADOW_OFFSET.x / safe_scale.x, DRAG_SHADOW_OFFSET.y / safe_scale.y)
+
+func _cancel_spawn_tween() -> void:
+	if _spawn_tween != null and _spawn_tween.is_valid():
+		_spawn_tween.kill()
+	_spawn_tween = null
+
+func _reset_spawn_transform() -> void:
+	_spawn_tween = null
+	pivot_offset = Vector2.ZERO
+	scale = Vector2.ONE
 
 func _update_progress(_stack: StackState) -> void:
 	_progress_bar.visible = false

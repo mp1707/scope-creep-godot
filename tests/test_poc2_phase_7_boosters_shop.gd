@@ -5,6 +5,7 @@ var _failed: bool = false
 func _init() -> void:
 	_test_themed_booster_slots_create_matching_pack()
 	_test_bugfix_patch_shop_buys_patch()
+	_test_paused_multiple_shop_payments_queue_booster_purchases()
 	_test_each_booster_draws_deterministically_from_own_pool()
 
 	if _failed:
@@ -30,6 +31,29 @@ func _test_bugfix_patch_shop_buys_patch() -> void:
 	controller.advance_time(1.0)
 
 	_assert_equal(_count_cards_by_definition(state, "card.consumable.bugfix_patch"), patches_before + 1, "Patch shop should spawn one Bugfix-Patch.")
+
+func _test_paused_multiple_shop_payments_queue_booster_purchases() -> void:
+	var controller: RunController = _create_controller(704)
+	var state: RunState = controller.start_new_run(704)
+	var slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.talent_pool")
+	var money_ids: PackedStringArray = _find_card_ids_by_definition(state, "card.resource.money")
+	controller.set_paused(true)
+
+	controller.move_card_to_stack(money_ids[0], slot.stack_id)
+	var stack: StackState = state.get_stack(slot.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.booster_pack_from_money.slot", "First paused shop payment should start the buy recipe.")
+
+	controller.move_card_to_stack(money_ids[1], slot.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.booster_pack_from_money.slot", "Second paused shop payment should keep the buy recipe queued.")
+
+	controller.set_paused(false)
+	controller.advance_time(0.2)
+	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 1, "First queued shop payment should spawn one booster pack after unpausing.")
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.booster_pack_from_money.slot", "Remaining queued money should start the next shop purchase.")
+
+	controller.advance_time(0.2)
+	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 2, "Second queued shop payment should spawn a second booster pack.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), 1, "Two queued shop payments should consume exactly two money cards.")
 
 func _test_each_booster_draws_deterministically_from_own_pool() -> void:
 	for booster_id: String in ["booster.talent_pool", "booster.office_invest", "booster.customer_chaos", "booster.hot_fix_kit"]:
@@ -115,6 +139,14 @@ func _find_card_by_definition(state: RunState, definition_id: String) -> CardIns
 			return card
 	_assert_true(false, "Missing card with definition '%s'." % definition_id)
 	return null
+
+func _find_card_ids_by_definition(state: RunState, definition_id: String) -> PackedStringArray:
+	var card_ids: PackedStringArray = PackedStringArray()
+	for card: CardInstance in state.cards.values():
+		if card.definition_id == definition_id:
+			card_ids.append(card.instance_id)
+	_assert_true(card_ids.size() > 0, "Missing cards with definition '%s'." % definition_id)
+	return card_ids
 
 func _assert_true(value: bool, message: String) -> void:
 	if value:

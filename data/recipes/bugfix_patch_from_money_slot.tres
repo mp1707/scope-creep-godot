@@ -43,4 +43,5 @@ inputs = Array[ExtResource("1_matcher")]([SubResource("Input_money"), SubResourc
 duration = SubResource("Duration_buy")
 priority = 10
 specificity_score = 2
+allowed_extra_inputs = Array[ExtResource("1_matcher")]([SubResource("Input_money")])
 effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_consume_money"), SubResource("Effect_spawn_patch")])
