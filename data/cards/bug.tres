@@ -10,7 +10,7 @@ background_color = Color(0.94, 0.52, 0.55, 1)
 accent_color = Color(0.55, 0.12, 0.17, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
 icon_texture = ExtResource("3_hludf")
-icon_size = Vector2(26, 26)
+icon_size = Vector2(78, 78)
 
 [resource]
 script = ExtResource("1_uu4mb")
