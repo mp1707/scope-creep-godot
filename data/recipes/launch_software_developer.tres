@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_matcher"]
+[ext_resource type="Script" path="res://scripts/data/recipe_constraint_definition.gd" id="2_constraint"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="3_duration"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="4_effect"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="5_recipe"]
+
+[sub_resource type="Resource" id="Duration_launch"]
+script = ExtResource("3_duration")
+base_seconds = 4.0
+
+[sub_resource type="Resource" id="Constraint_launch_ready"]
+script = ExtResource("2_constraint")
+constraint_type = "software_launch_ready"
+
+[sub_resource type="Resource" id="Effect_launch"]
+script = ExtResource("4_effect")
+id = "effect.launch_software.manual"
+effect_type = "launch_software"
+parameters = {
+"customer_card_definition_id": "card.value_source.customer",
+"goal_card_definition_id": "card.goal.business_goal"
+}
+
+[sub_resource type="Resource" id="Input_software"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.product.software"
+
+[sub_resource type="Resource" id="Input_developer"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.employee.developer"
+
+[resource]
+script = ExtResource("5_recipe")
+id = "recipe.launch_software.developer"
+display_text = "Launch vorbereiten"
+inputs = Array[ExtResource("1_matcher")]([SubResource("Input_software"), SubResource("Input_developer")])
+constraints = Array[ExtResource("2_constraint")]([SubResource("Constraint_launch_ready")])
+duration = SubResource("Duration_launch")
+priority = 40
+specificity_score = 2
+effects_on_complete = Array[ExtResource("4_effect")]([SubResource("Effect_launch")])

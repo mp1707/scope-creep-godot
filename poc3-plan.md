@@ -16,8 +16,8 @@ Der Plan bleibt bewusst phasenweise und abhakbar. Jede Phase ist so geschnitten,
 - [x] Phase 1 - Run-Metadaten und Software-Status vorbereiten
 - [x] Phase 2 - Feature-Integration statt direkter Software-Einnahmen
 - [x] Phase 3 - Freelance-Finanzierung vor Launch
-- [ ] Phase 4 - Manueller Launch und Startkunden
-- [ ] Phase 5 - Kundenwirtschaft nach Launch
+- [x] Phase 4 - Manueller Launch und Startkunden
+- [x] Phase 5 - Kundenwirtschaft nach Launch
 - [ ] Phase 6 - Kundendruck, Unzufriedenheit und Kundenverlust
 - [ ] Phase 7 - Business Goals, Investorenpanik und PoC3-Endzustand
 - [ ] Phase 8 - Booster-/Shop-Scope fuer PoC3
@@ -253,7 +253,7 @@ Marco:
 
 - [x] Freelance-Auftrag im Editor visuell von altem Auftrag/Kundenwunsch unterscheidbar machen.
 - [x] Tooltip pruefen: Entscheidung `ins Produkt integrieren` vs. `fuer Geld abgeben` muss sofort klar sein.
-- [x] Im Playtest bewerten, ob 4 Startgeld plus 1 Freelance-Auftrag zu hart oder zu weich wirkt.
+- [x] Im Playtest bewerten, ob Startgeld plus 1 Freelance-Auftrag zu hart oder zu weich wirkt. Aktueller Playtest-Hilfswert: 30 Startgeld.
 
 Definition of Done:
 
@@ -276,27 +276,27 @@ Ziel: Launch wird ein bewusster Wendepunkt, nicht ein automatischer Statuswechse
 
 Codex:
 
-- [ ] Launch-Recipe anlegen: launchbereite Software + Entwickler.
-- [ ] Launch-Recipe darf erst ab `feature_count >= 10` matchen.
-- [ ] Beim Launch `product_stage` auf `live` setzen und `launch_feature_count` speichern.
-- [ ] Startkunden berechnen: `floor(feature_count / 5)`.
-- [ ] Entsprechend viele `card.value_source.customer` Karten sichtbar auf dem Board spawnen.
-- [ ] Direkt nach Launch erstes Business Goal spawnen, falls Phase 7 noch nicht implementiert ist ggf. als deaktivierter Platzhalter mit klarer TODO-Notiz.
-- [ ] Launch darf bei vorhandenen Bugs/Tech Debt nicht blockiert werden.
-- [ ] Tests fuer Launch bei 9/10/15 Features, Kundenanzahl und Nicht-Blockade durch Probleme schreiben.
+- [x] Launch-Recipe anlegen: launchbereite Software + Entwickler.
+- [x] Launch-Recipe darf erst ab `feature_count >= 10` matchen.
+- [x] Beim Launch `product_stage` auf `live` setzen und `launch_feature_count` speichern.
+- [x] Startkunden berechnen: `floor(feature_count / 5)`.
+- [x] Entsprechend viele `card.value_source.customer` Karten sichtbar auf dem Board spawnen.
+- [x] Direkt nach Launch erstes Business Goal spawnen, falls Phase 7 noch nicht implementiert ist ggf. als deaktivierter Platzhalter mit klarer TODO-Notiz.
+- [x] Launch darf bei vorhandenen Bugs/Tech Debt nicht blockiert werden.
+- [x] Tests fuer Launch bei 9/10/15 Features, Kundenanzahl und Nicht-Blockade durch Probleme schreiben.
 
 Marco:
 
-- [ ] Launch-Aktionstext und Software-Marker im Editor/Playtest pruefen.
-- [ ] Pruefen, ob beim Launch gespawnte Kunden nicht unlesbar auf vorhandenen Karten liegen.
-- [ ] Falls das Spawn-Layout unsauber wirkt: visuelle Zielpositionen/Spawn-Abstaende abstimmen, nicht Gameplay-Regeln im Editor bauen.
+- [x] Launch-Aktionstext und Software-Marker im Editor/Playtest pruefen.
+- [x] Pruefen, ob beim Launch gespawnte Kunden nicht unlesbar auf vorhandenen Karten liegen.
+- [x] Falls das Spawn-Layout unsauber wirkt: visuelle Zielpositionen/Spawn-Abstaende abstimmen, nicht Gameplay-Regeln im Editor bauen.
 
 Definition of Done:
 
-- [ ] Launch passiert nur manuell per Karteninteraktion.
-- [ ] 9 Features reichen nicht, 10 Features reichen.
-- [ ] Spaeterer Launch mit 15/20 Features erzeugt mehr Startkunden.
-- [ ] Software bleibt dieselbe sichtbare Produktkarte mit geaendertem Status, kein unsichtbarer Run-Schalter.
+- [x] Launch passiert nur manuell per Karteninteraktion.
+- [x] 9 Features reichen nicht, 10 Features reichen.
+- [x] Spaeterer Launch mit 15/20 Features erzeugt mehr Startkunden.
+- [x] Software bleibt dieselbe sichtbare Produktkarte mit geaendertem Status, kein unsichtbarer Run-Schalter.
 
 Headless-Test:
 
@@ -304,37 +304,41 @@ Headless-Test:
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc3_phase_4_launch.gd
 ```
 
+Status: bestanden. Marco-Editor-/Playtest-Check erledigt.
+
 ## Phase 5 - Kundenwirtschaft nach Launch
 
 Ziel: Nach Launch kommt Geld ueber Kundenkarten. Kunden erzeugen gleichzeitig Arbeit.
 
 Codex:
 
-- [ ] Sprintstart-Regel nach Launch: jeder Kunde erzeugt 1 Geld und 1 Kundenwunsch.
-- [ ] Bei aktivem Prod-Crash erzeugen Kunden kein Geld.
-- [ ] Bei aktivem Prod-Crash erzeugen Kunden statt normalem Kundenwunsch Unzufriedenheit, sobald Phase 6 verfuegbar ist.
-- [ ] Sicherstellen, dass Kundengeld nicht direkt von Software erzeugt wird.
-- [ ] Bestehende Kundenwunsch-Recipes aus PoC2 weiterverwenden.
-- [ ] Tests fuer Kunden-Tick, Geldmenge, Kundenwunsch-Spawns und Prod-Crash-Blockade schreiben.
+- [x] Sprintstart-Regel nach Launch: jeder Kunde erzeugt 1 Geld und 1 Kundenwunsch.
+- [x] Bei aktivem Prod-Crash erzeugen Kunden kein Geld.
+- [x] Bei aktivem Prod-Crash erzeugen Kunden statt normalem Kundenwunsch Unzufriedenheit, sobald Phase 6 verfuegbar ist.
+- [x] Sicherstellen, dass Kundengeld nicht direkt von Software erzeugt wird.
+- [x] Bestehende Kundenwunsch-Recipes aus PoC2 weiterverwenden.
+- [x] Tests fuer Kunden-Tick, Geldmenge, Kundenwunsch-Spawns und Prod-Crash-Blockade schreiben.
 
 Marco:
 
-- [ ] Im Playtest pruefen, ob Kunden als Wertquelle visuell gut erkennbar sind.
-- [ ] Board-Layout nach Kunden-Ticks beobachten: viele Geld-/Kundenwunschkarten duerfen nicht sofort unspielbar clustern.
-- [ ] Tooltip fuer Kunde schaerfen: `Zahlt nach Launch, erzeugt aber Arbeit.`
+- [x] Im Playtest pruefen, ob Kunden als Wertquelle visuell gut erkennbar sind.
+- [x] Board-Layout nach Kunden-Ticks beobachten: viele Geld-/Kundenwunschkarten duerfen nicht sofort unspielbar clustern.
+- [x] Tooltip fuer Kunde schaerfen: `Zahlt nach Launch, erzeugt aber Arbeit.`
 
 Definition of Done:
 
-- [ ] 3 Kunden erzeugen am Sprintstart 3 Geld und 3 Kundenwuensche.
-- [ ] Prod-Crash blockiert Kundengeld hart.
-- [ ] Software erzeugt weiterhin kein direktes Geld.
-- [ ] Kundenwunsch bleibt eine echte Karte und kein unsichtbarer Bedarf.
+- [x] 3 Kunden erzeugen am Sprintstart 3 Geld und 3 Kundenwuensche.
+- [x] Prod-Crash blockiert Kundengeld hart.
+- [x] Software erzeugt weiterhin kein direktes Geld.
+- [x] Kundenwunsch bleibt eine echte Karte und kein unsichtbarer Bedarf.
 
 Headless-Test:
 
 ```bash
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc3_phase_5_customer_income.gd
 ```
+
+Status: bestanden. Marco-Editor-/Playtest-Check erledigt.
 
 ## Phase 6 - Kundendruck, Unzufriedenheit und Kundenverlust
 
@@ -418,7 +422,7 @@ Ziel: Booster unterstuetzen den neuen Run-Bogen, ohne das Hiring-Rework vorzuzie
 
 Codex:
 
-- [ ] Startsetup auf PoC3 umstellen: Software MVP, Entwickler, Idee, Kaffee, 4 Geld, 1 Freelance-Auftrag, Gruenderpanik-Slot, Office-Invest-Slot, Patch-Shop.
+- [ ] Startsetup auf PoC3 umstellen: Software MVP, Entwickler, Idee, Kaffee, aktuell 30 Geld als Playtest-Hilfe, 1 Freelance-Auftrag, Gruenderpanik-Slot, Office-Invest-Slot, Patch-Shop.
 - [ ] Talent-Pool aus normalem PoC3-Startsetup entfernen oder deaktivieren.
 - [ ] `Gruenderpanik` als fruehes 1-Geld-Pack definieren oder bestehendes Founder-Test-Pack fachlich entsprechend umbauen.
 - [ ] Office-Invest fuer PoC3 pruefen: Kaffee, Kaffeemaschine, Pizza Party, Stresskurs.
@@ -493,7 +497,7 @@ Codex:
 Marco:
 
 - [ ] Mindestens 2 manuelle Playtests im Editor: einmal frueher Launch bei 10 Features, einmal spaeter Launch bei 15+ Features.
-- [ ] Notieren, ob 4 Startgeld, 10 Features, 3/5/7 Goals und 2-Unhappy-zu-1-Kunde fair wirken.
+- [ ] Notieren, ob 30 Playtest-Startgeld, 10 Features, 3/5/7 Goals und 2-Unhappy-zu-1-Kunde fair wirken. Spaeter echten Startgeldwert wieder reduzieren.
 - [ ] Pruefen, ob PoC3-Siegmeldung und Niederlage klar genug sind.
 - [ ] UI/Lesbarkeit bei vielen Kundenwuenschen, Geldkarten und Problemen bewerten.
 
@@ -554,4 +558,4 @@ Definition of Done:
 - Konkurrieren Business Goals wirklich mit Gehaeltern, Boostern und Notfall-Bugfixes?
 - Sind 3 Business Goals ein guter Mini-Run-Abschluss?
 - Ist Talent-Pool-Deaktivierung fuer PoC3 richtig?
-- Sind die Startwerte 4 Geld, 10 MVP-Features, 3/5/7 Goals und 2 Unzufriedenheit pro Kundenverlust passend?
+- Sind die Startwerte 30 Playtest-Geld, 10 MVP-Features, 3/5/7 Goals und 2 Unzufriedenheit pro Kundenverlust passend?

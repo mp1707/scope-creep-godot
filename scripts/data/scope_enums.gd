@@ -12,6 +12,7 @@ enum CardType {
 	VALUE_SOURCE,
 	PRODUCT,
 	CONSUMABLE,
+	GOAL,
 }
 
 enum RunPhase {

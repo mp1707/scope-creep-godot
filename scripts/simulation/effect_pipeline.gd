@@ -18,6 +18,8 @@ func execute(effects: Array[EffectDefinition], context: EffectContext) -> void:
 				_set_card_value(effect, context)
 			"modify_card_value":
 				_modify_card_value(effect, context)
+			"launch_software":
+				_launch_software(effect, context)
 			"open_booster":
 				_open_booster(effect, context)
 			_:
@@ -91,6 +93,32 @@ func _modify_card_value(effect: EffectDefinition, context: EffectContext) -> voi
 		return
 	var delta: int = int(effect.parameters.get("delta", 0))
 	card.values[key] = int(card.values.get(key, 0)) + delta
+
+func _launch_software(effect: EffectDefinition, context: EffectContext) -> void:
+	var software: CardInstance = _find_card_in_stack(ProductLifecycleService.SOFTWARE_DEFINITION_ID, context)
+	if software == null:
+		return
+
+	var lifecycle: ProductLifecycleService = ProductLifecycleService.new()
+	if not lifecycle.is_launch_ready(context.state):
+		return
+
+	var feature_count: int = lifecycle.get_feature_count(software)
+	software.values[ProductLifecycleService.PRODUCT_STAGE_VALUE] = ProductLifecycleService.PRODUCT_STAGE_LIVE
+	software.values[ProductLifecycleService.LAUNCH_FEATURE_COUNT_VALUE] = feature_count
+
+	var customer_card_definition_id: String = effect.parameters.get("customer_card_definition_id", "card.value_source.customer") as String
+	var customer_count: int = floori(float(feature_count) / 5.0)
+	for index: int in customer_count:
+		context.spawn_card.call(customer_card_definition_id, _get_spawn_position(context, index))
+
+	var goal_card_definition_id: String = effect.parameters.get("goal_card_definition_id", "card.goal.business_goal") as String
+	if not goal_card_definition_id.is_empty():
+		var goal: CardInstance = context.spawn_card.call(goal_card_definition_id, _get_spawn_position(context, customer_count)) as CardInstance
+		if goal != null:
+			goal.values["goal_index"] = 1
+			goal.values["required_money"] = 3
+			goal.values["paid_money"] = 0
 
 func _open_booster(effect: EffectDefinition, context: EffectContext) -> void:
 	var booster_id: String = effect.parameters.get("booster_definition_id", "") as String

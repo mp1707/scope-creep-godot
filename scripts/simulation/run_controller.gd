@@ -17,6 +17,9 @@ const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
 const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
 const BURNOUT_PROGRESS_VALUE: String = "burnout_progress"
 const FREELANCE_ORDER_DEFINITION_ID: String = "card.value_source.freelance_order"
+const CUSTOMER_REQUEST_DEFINITION_ID: String = "card.input.customer_request"
+const MONEY_DEFINITION_ID: String = "card.resource.money"
+const START_MONEY_CARD_COUNT: int = 30
 const ActiveProcessingInteractionServiceScript: Script = preload("res://scripts/simulation/active_processing_interaction_service.gd")
 const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")
 const START_CARD_IDS: Array[String] = [
@@ -26,9 +29,6 @@ const START_CARD_IDS: Array[String] = [
 	"card.consumable.coffee",
 	"card.value_source.freelance_order",
 	"card.shop.booster_slot",
-	"card.resource.money",
-	"card.resource.money",
-	"card.resource.money",
 	"card.resource.money",
 	"card.shop.booster_slot.talent_pool",
 	"card.shop.booster_slot.office_invest",
@@ -75,7 +75,12 @@ func start_new_run(run_seed: int = 1) -> RunState:
 		var column: int = index % START_LAYOUT_COLUMNS
 		var row: int = floori(float(index) / float(START_LAYOUT_COLUMNS))
 		var position: Vector2 = START_LAYOUT_ORIGIN + Vector2(float(column), float(row)) * START_LAYOUT_STEP
-		_spawn_card_as_new_stack(START_CARD_IDS[index], position)
+		var card_definition_id: String = START_CARD_IDS[index]
+		if card_definition_id == MONEY_DEFINITION_ID:
+			for money_index: int in START_MONEY_CARD_COUNT:
+				_spawn_card_as_new_stack(MONEY_DEFINITION_ID, position)
+		else:
+			_spawn_card_as_new_stack(card_definition_id, position)
 	_product_lifecycle.ensure_software_defaults(state)
 
 	_emit(SimulationEvent.phase_changed(state.phase))
@@ -508,10 +513,29 @@ func _spawn_persistent_tick_cards() -> void:
 		var spawner: CardInstance = state.get_card(card_id)
 		if spawner == null:
 			continue
+		var spawner_definition: CardDefinition = content.get_card_definition(spawner.definition_id)
+		if spawner_definition != null and spawner_definition.tags.has("customer"):
+			_spawn_customer_tick_cards(spawner)
+			continue
 		var spawned_card_definition_id: String = spawner.values.get("sprint_tick_spawn_card_id", "") as String
 		if spawned_card_definition_id.is_empty():
 			continue
 		_spawn_card_as_new_stack(spawned_card_definition_id, _get_spawn_position_near_stack(spawner.stack_id, 0))
+
+func _spawn_customer_tick_cards(customer: CardInstance) -> void:
+	var software: CardInstance = get_software_card()
+	if software == null:
+		return
+	if _product_lifecycle.get_product_stage(software) != ProductLifecycleService.PRODUCT_STAGE_LIVE:
+		return
+	if _has_card_with_tag("prod_crash"):
+		# Phase 6 replaces the normal customer tick with unhappy-customer cards here.
+		return
+
+	_spawn_card_as_new_stack(MONEY_DEFINITION_ID, _get_spawn_position_near_stack(customer.stack_id, 0))
+	var request: CardInstance = _spawn_card_as_new_stack(CUSTOMER_REQUEST_DEFINITION_ID, _get_spawn_position_near_stack(customer.stack_id, 1))
+	if request != null:
+		request.values["spawned_sprint_index"] = state.sprint_index
 
 func _find_card_ids_with_tag(tag: String) -> PackedStringArray:
 	var card_ids: PackedStringArray = PackedStringArray()
@@ -520,6 +544,9 @@ func _find_card_ids_with_tag(tag: String) -> PackedStringArray:
 		if definition != null and definition.tags.has(tag):
 			card_ids.append(card.instance_id)
 	return card_ids
+
+func _has_card_with_tag(tag: String) -> bool:
+	return not _find_card_ids_with_tag(tag).is_empty()
 
 func _has_no_employees() -> bool:
 	for card: CardInstance in state.cards.values():

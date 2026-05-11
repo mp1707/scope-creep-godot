@@ -24,7 +24,7 @@ func _test_start_setup_contains_freelance_order_and_four_money() -> void:
 	var state: RunState = controller.start_new_run(3301)
 
 	_assert_equal(_count_cards_by_definition(state, "card.value_source.freelance_order"), 1, "Start setup should include one freelance order.")
-	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), 4, "PoC3 start setup should include four money cards.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), 30, "PoC3 playtest start setup should include thirty money cards.")
 	_assert_equal(_count_pure_stacks_by_definition(state, "card.resource.money"), 1, "PoC3 start money should spawn as one money stack.")
 
 func _test_pre_launch_sprint_start_keeps_one_freelance_order_available() -> void:

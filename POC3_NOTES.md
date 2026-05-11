@@ -100,7 +100,7 @@ Booster/Shop:
 ## Phase 3 Freelance-Finanzierung
 
 - Neue Karte `card.value_source.freelance_order` trennt PoC3-Freelance fachlich von alten PoC2-Auftraegen.
-- Startsetup enthaelt jetzt 4 Geld und 1 Freelance-Auftrag.
+- Startsetup enthaelt jetzt 30 Geld und 1 Freelance-Auftrag. Die 30 Geld sind eine bewusste Playtest-Hilfe, damit Launch und Kundenloop schneller erreichbar sind.
 - Vor Launch ersetzt der Sprintstart einen verfallenen Freelance-Auftrag durch genau 1 neuen Auftrag.
 - Nach Launch endet dieser automatische Freelance-Zufluss.
 - Neue Recipes:
@@ -110,3 +110,24 @@ Booster/Shop:
 - Marco-Check: Freelance-Auftrag ist visuell ausreichend unterscheidbar, Tooltip ohne `Vor Launch:` passt, Startgeld liegt als ein Geldstapel und die Startbalance passt fuer den naechsten Slice.
 - Headless-Test `tests/test_poc3_phase_3_freelance.gd`: bestanden.
 - Content-Validation: bestanden.
+
+## Phase 4 Manueller Launch
+
+- Neues Recipe `recipe.launch_software.developer`: launchbereite Software + Entwickler -> `Launch vorbereiten`.
+- Launchbereitschaft wird ueber eine Simulation-Constraint `software_launch_ready` geprueft. Dadurch matcht 9/10 nicht, 10/10 und mehr matchen.
+- Neuer Effect `launch_software` setzt `product_stage = live`, speichert `launch_feature_count` und spawnt `floor(feature_count / 5)` Kunden.
+- Direkt nach Launch spawnt `card.goal.business_goal` als PoC3-Platzhalter. Die eigentliche Goal-Zahlung, Erfuellung und Paniklogik bleibt Phase 7.
+- Launch wird durch vorhandene Bug-/Tech-Debt-Karten ausserhalb des Launch-Stacks nicht blockiert und verbraucht diese Probleme nicht.
+- Headless-Test `tests/test_poc3_phase_4_launch.gd`: bestanden.
+- Content-Validation: bestanden.
+
+## Phase 5 Kundenwirtschaft
+
+- Kunden-Ticks sind jetzt post-launch gated: Kunden erzeugen erst bei Live-Software am Sprintstart Karten.
+- Jeder Kunde erzeugt ohne Prod-Crash 1 Geldkarte und 1 Kundenwunschkarte.
+- Kundenwuensche bekommen beim Spawn `spawned_sprint_index`; Phase 6 nutzt diesen Wert fuer ignorierte Wuensche.
+- Aktiver Prod-Crash blockiert den kompletten normalen Kundentick. Unhappy-Customer-Ersatz kommt in Phase 6, sobald `card.problem.unhappy_customer` existiert.
+- Software-Integration erzeugt auch nach Launch weiterhin kein direktes Geld.
+- Headless-Test `tests/test_poc3_phase_5_customer_income.gd`: bestanden.
+- Content-Validation: bestanden.
+- Marco-Check fuer Phase 4 und 5: Launch, Startkunden, Kundentick und Tooltip passen fuer den naechsten Slice.

@@ -5,20 +5,22 @@
 
 [sub_resource type="Resource" id="Resource_visual"]
 script = ExtResource("2_visual")
-background_color = Color(0.88, 0.72, 0.92, 1)
-accent_color = Color(0.42, 0.20, 0.50, 1)
+background_color = Color(0.94, 0.86, 0.50, 1)
+accent_color = Color(0.46, 0.34, 0.08, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
-marker_text = "K"
+marker_text = "GOAL"
 
 [resource]
 script = ExtResource("1_card")
-id = "card.value_source.customer"
-display_name = "Kunde"
-type = 7
-tags = PackedStringArray("value_source", "customer", "sprint_tick_spawner")
-short_text = "Spawnt Kundenwuensche"
-tooltip_text = "Zahlt nach Launch am Sprintstart 1 Geld und erzeugt 1 Kundenwunsch. Prod-Crash blockiert den Kundentick."
+id = "card.goal.business_goal"
+display_name = "Business Goal"
+type = 10
+tags = PackedStringArray("goal", "business_goal", "poc3_placeholder")
+short_text = "PoC3-Zielkarte"
+tooltip_text = "Platzhalter fuer Phase 7: Wird nach Launch gespawnt und spaeter mit Geldkarten erfuellt."
 visual = SubResource("Resource_visual")
 base_values = {
-"sprint_tick_spawn_card_id": "card.input.customer_request"
+"goal_index": 1,
+"paid_money": 0,
+"required_money": 3
 }

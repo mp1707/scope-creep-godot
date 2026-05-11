@@ -108,9 +108,16 @@ func _constraints_match(
 			"attached_card":
 				if not _attached_card_constraint_matches(constraint, stack, state, content, used_card_ids):
 					return false
+			"software_launch_ready":
+				if not _software_launch_ready_constraint_matches(state):
+					return false
 			_:
 				push_warning("Unknown recipe constraint '%s' on recipe '%s'." % [constraint.constraint_type, recipe.id])
 	return true
+
+func _software_launch_ready_constraint_matches(state: RunState) -> bool:
+	var lifecycle: ProductLifecycleService = ProductLifecycleService.new()
+	return lifecycle.is_launch_ready(state)
 
 func _attached_card_constraint_matches(
 	constraint: RecipeConstraintDefinition,
