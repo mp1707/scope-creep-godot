@@ -13,7 +13,7 @@ Der Plan bleibt bewusst phasenweise und abhakbar. Jede Phase ist so geschnitten,
 ## Fortschritt
 
 - [x] Phase 0 - Baseline sichern und PoC3-Scope einfrieren
-- [ ] Phase 1 - Run-Metadaten und Software-Status vorbereiten
+- [x] Phase 1 - Run-Metadaten und Software-Status vorbereiten
 - [ ] Phase 2 - Feature-Integration statt direkter Software-Einnahmen
 - [ ] Phase 3 - Freelance-Finanzierung vor Launch
 - [ ] Phase 4 - Manueller Launch und Startkunden
@@ -169,31 +169,33 @@ Ziel: Die Simulation kann unterscheiden, ob der Run vor oder nach Launch ist, un
 
 Codex:
 
-- [ ] `RunState` oder Software-Runtime-State um den Produktstatus vorbereiten, ohne Presentation-Abhaengigkeit.
-- [ ] `card.product.software` initial mit `product_stage = mvp`, `feature_count = 0`, `mvp_required_features = 10` starten lassen.
-- [ ] CardView-/Runtime-Marker-Anzeige so erweitern, dass die Software `MVP 0/10`, `Launchbereit 10/10` oder `Live 12 Features` anzeigen kann.
-- [ ] Eine zentrale Query implementieren, z. B. `is_software_launch_ready()`, statt Launchbereitschaft in UI oder Recipe-Sonderlogik zu duplizieren.
-- [ ] Content-Version fuer neue Runs noch nicht umstellen, aber die benoetigten State-Felder save-kompatibel vorbereiten.
-- [ ] Headless-Test fuer Startstatus und Launchbereitschaft schreiben.
+- [x] `RunState` oder Software-Runtime-State um den Produktstatus vorbereiten, ohne Presentation-Abhaengigkeit.
+- [x] `card.product.software` initial mit `product_stage = mvp`, `feature_count = 0`, `mvp_required_features = 10` starten lassen.
+- [x] CardView-/Runtime-Marker-Anzeige so erweitern, dass die Software `MVP 0/10`, `Launchbereit 10/10` oder `Live 12 Features` anzeigen kann.
+- [x] Eine zentrale Query implementieren, z. B. `is_software_launch_ready()`, statt Launchbereitschaft in UI oder Recipe-Sonderlogik zu duplizieren.
+- [x] Content-Version fuer neue Runs noch nicht umstellen, aber die benoetigten State-Felder save-kompatibel vorbereiten.
+- [x] Headless-Test fuer Startstatus und Launchbereitschaft schreiben.
 
 Marco:
 
-- [ ] Im Editor pruefen, ob die Softwarekarte den Runtime-Marker lesbar anzeigt.
-- [ ] Bei Bedarf Labelgroessen, Markerposition oder Kartentexte im Inspector/Theme abstimmen.
-- [ ] Keine Gameplay-Logik im CardView nachbauen; nur Anzeige pruefen.
+- [x] Im Editor pruefen, ob die Softwarekarte den Runtime-Marker lesbar anzeigt.
+- [x] Bei Bedarf Labelgroessen, Markerposition oder Kartentexte im Inspector/Theme abstimmen.
+- [x] Keine Gameplay-Logik im CardView nachbauen; nur Anzeige pruefen.
 
 Definition of Done:
 
-- [ ] Neuer Run startet mit Software `MVP 0/10`.
-- [ ] Software wird ab 10 Features als launchbereit erkennbar.
-- [ ] Produktstatus liegt im Simulation-State oder Card-Runtime-State, nicht im HUD.
-- [ ] Save-kompatible Defaultwerte sind vorbereitet.
+- [x] Neuer Run startet mit Software `MVP 0/10`.
+- [x] Software wird ab 10 Features als launchbereit erkennbar.
+- [x] Produktstatus liegt im Simulation-State oder Card-Runtime-State, nicht im HUD.
+- [x] Save-kompatible Defaultwerte sind vorbereitet.
 
 Headless-Test:
 
 ```bash
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc3_phase_1_software_status.gd
 ```
+
+Status: bestanden.
 
 ## Phase 2 - Feature-Integration statt direkter Software-Einnahmen
 

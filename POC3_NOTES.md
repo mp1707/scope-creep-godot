@@ -74,3 +74,14 @@ Booster/Shop:
 
 - Spawn-Placement hat bereits vor PoC3 Testfehler. PoC3 erzeugt mehr parallele Spawns; dieses Risiko sollte vor oder waehrend Phase 3-5 stabilisiert werden.
 - Alte Basistests enthalten Annahmen, die nach Auto-Stacking nicht mehr stimmen. Vor einer finalen PoC3-QA sollten diese Tests aktualisiert oder bewusst ersetzt werden.
+
+## Phase 1 Baseline
+
+- Product Lifecycle wurde als eigener Simulation-Service vorbereitet.
+- Software startet mit `product_stage = mvp`, `feature_count = 0`, `mvp_required_features = 10`, `launch_feature_count = 0`.
+- `RunController.is_software_launch_ready()` kapselt die Launchbereitschaft.
+- CardView zeigt Softwarestatus im Karten-Textbereich: `MVP`, `Launchbereit` oder `Live`.
+- Marco-Check: Softwarekarte ist ohne Icon und mit zentriertem Runtime-Text lesbar.
+- Content-Version bleibt bewusst noch `poc2`, bis die PoC3-Kernsysteme stabil sind.
+- Headless-Test `tests/test_poc3_phase_1_software_status.gd`: bestanden.
+- Content-Validation: bestanden.

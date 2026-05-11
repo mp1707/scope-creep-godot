@@ -17,6 +17,7 @@ const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
 const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
 const BURNOUT_PROGRESS_VALUE: String = "burnout_progress"
 const ActiveProcessingInteractionServiceScript: Script = preload("res://scripts/simulation/active_processing_interaction_service.gd")
+const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")
 const START_CARD_IDS: Array[String] = [
 	"card.product.software",
 	"card.employee.developer",
@@ -40,6 +41,7 @@ var _recipe_engine: RecipeEngine = RecipeEngine.new()
 var _effect_pipeline: EffectPipeline = EffectPipeline.new()
 var _tech_debt_modifiers: TechDebtModifierService = TechDebtModifierService.new()
 var _processing_interactions: ActiveProcessingInteractionService = ActiveProcessingInteractionServiceScript.new() as ActiveProcessingInteractionService
+var _product_lifecycle: RefCounted = ProductLifecycleServiceScript.new()
 var _save_serializer: RunSaveSerializer = RunSaveSerializer.new()
 var _next_card_index: int = 1
 var _next_stack_index: int = 1
@@ -71,10 +73,19 @@ func start_new_run(run_seed: int = 1) -> RunState:
 		var row: int = floori(float(index) / float(START_LAYOUT_COLUMNS))
 		var position: Vector2 = START_LAYOUT_ORIGIN + Vector2(float(column), float(row)) * START_LAYOUT_STEP
 		_spawn_card_as_new_stack(START_CARD_IDS[index], position)
+	_product_lifecycle.ensure_software_defaults(state)
 
 	_emit(SimulationEvent.phase_changed(state.phase))
 	_emit(SimulationEvent.timer_updated(SPRINT_TIMER_ID, state.active_timers[SPRINT_TIMER_ID] as float))
 	return state
+
+func get_software_card() -> CardInstance:
+	_require_state()
+	return _product_lifecycle.get_software_card(state)
+
+func is_software_launch_ready() -> bool:
+	_require_state()
+	return _product_lifecycle.is_launch_ready(state)
 
 func drain_events() -> Array[SimulationEvent]:
 	var events: Array[SimulationEvent] = pending_events.duplicate()
@@ -105,6 +116,7 @@ func load_run(loaded_state: RunState) -> void:
 	_rng.state = state.rng_state
 	_sync_next_runtime_ids()
 	_prune_stale_spawn_history()
+	_product_lifecycle.ensure_software_defaults(state)
 	_refresh_attachment_runtime_states()
 	_emit(SimulationEvent.phase_changed(state.phase))
 	_emit(SimulationEvent.pause_changed(state.is_paused))
@@ -682,6 +694,7 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 	card.created_at_sprint = state.sprint_index
 	if definition != null:
 		card.values = definition.base_values.duplicate(true)
+	_product_lifecycle.ensure_card_defaults(card)
 	stack.card_ids.append(card.instance_id)
 	state.cards[card.instance_id] = card
 
@@ -755,6 +768,7 @@ func _spawn_attached_card(parent_card_id: String, card_definition_id: String, at
 	var definition: CardDefinition = content.get_card_definition(card_definition_id)
 	if definition != null:
 		card.values = definition.base_values.duplicate(true)
+	_product_lifecycle.ensure_card_defaults(card)
 
 	var parent_index: int = stack.card_ids.find(parent_card_id)
 	if parent_index < 0 or parent_index == stack.card_ids.size() - 1:

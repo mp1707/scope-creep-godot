@@ -15,6 +15,7 @@ const STATUS_BADGE_PAID_COLOR: Color = Color(0.13, 0.36, 0.20, 0.95)
 const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
 const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 108.0)
 const ICON_MASK_SHADER_CODE: String = "shader_type canvas_item;\nuniform vec4 icon_color : source_color = vec4(0.06, 0.055, 0.05, 1.0);\nvoid fragment() {\n\tvec4 texture_color = texture(TEXTURE, UV);\n\tCOLOR = vec4(icon_color.rgb, texture_color.a * icon_color.a);\n}\n"
+const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")
 
 @export var background_path: NodePath
 @export var title_label_path: NodePath
@@ -39,6 +40,7 @@ var _action_label: Label = null
 var _default_marker_text: String = ""
 var _card_font: FontFile = null
 var _icon_mask_material: ShaderMaterial = null
+var _product_lifecycle: RefCounted = ProductLifecycleServiceScript.new()
 var _layout_initialized: bool = false
 var _spawn_tween: Tween = null
 
@@ -61,6 +63,7 @@ func update_runtime(card: CardInstance, stack: StackState, definition: CardDefin
 	stack_id = card.stack_id
 	_update_progress(stack)
 	_update_runtime_marker(card, definition)
+	_update_runtime_short_text(card, definition)
 	_update_runtime_tint(card)
 	if definition != null:
 		_update_tooltip(card, definition)
@@ -243,6 +246,9 @@ func _apply_default_layout() -> void:
 	_short_text_label.size = Vector2(120.0, 62.0)
 	_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_short_text_label.visible = false
+	if _card_font != null:
+		_short_text_label.add_theme_font_override("font", _card_font)
+	_short_text_label.add_theme_font_size_override("font_size", 22)
 	_set_top_left_layout(_progress_bar)
 	_progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_progress_bar.position = Vector2(12.0, 148.0)
@@ -375,6 +381,25 @@ func _update_runtime_marker(card: CardInstance, definition: CardDefinition) -> v
 	_marker_label.visible = false
 	_apply_marker_style(card, marker_text)
 
+func _update_runtime_short_text(card: CardInstance, definition: CardDefinition) -> void:
+	_short_text_label.text = ""
+	_short_text_label.visible = false
+	if definition == null or not definition.tags.has("software"):
+		return
+	var status_text: String = _product_lifecycle.get_status_text(card)
+	if status_text.is_empty():
+		return
+	_short_text_label.text = status_text
+	_short_text_label.visible = true
+	_short_text_label.position = Vector2(12.0, DEFAULT_ICON_CENTER.y - 44.0)
+	_short_text_label.size = Vector2(120.0, 88.0)
+	_short_text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_short_text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if _card_font != null:
+		_short_text_label.add_theme_font_override("font", _card_font)
+	_short_text_label.add_theme_font_size_override("font_size", 22)
+
 func _get_runtime_marker_text(card: CardInstance, definition: CardDefinition) -> String:
 	if card.state.is_paid:
 		return "OK"
@@ -410,6 +435,9 @@ func _apply_marker_style(card: CardInstance, marker_text: String) -> void:
 func _update_tooltip(card: CardInstance, definition: CardDefinition) -> void:
 	var details: PackedStringArray = PackedStringArray()
 	var base_text: String = definition.tooltip_text if not definition.tooltip_text.is_empty() else definition.short_text
+	if definition.tags.has("software"):
+		for detail: String in _product_lifecycle.get_tooltip_details(card):
+			details.append(detail)
 	if definition.tags.has("feature"):
 		details.append("Wert: %d" % int(card.values.get("feature_value", 1)))
 		if bool(card.values.get("is_checked", false)) or definition.tags.has("checked"):
