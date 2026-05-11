@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cindpeikx18t1" path="res://scripts/data/card_definition.gd" id="1_krkuc"]
 [ext_resource type="Script" uid="uid://doiop67wth2ac" path="res://scripts/data/card_visual_definition.gd" id="2_6wkug"]
 [ext_resource type="Texture2D" uid="uid://0icbq30pxdr1" path="res://assets/icons/handdrawn/cardIcons/coffee.png" id="3_on4by"]
+[ext_resource type="Script" path="res://scripts/data/processing_interaction_definition.gd" id="4_interaction"]
 
 [sub_resource type="Resource" id="Resource_arqf4"]
 script = ExtResource("2_6wkug")
@@ -11,13 +12,23 @@ accent_color = Color(0.5, 0.25, 0.12, 1)
 text_color = Color(0.06, 0.055, 0.05, 1)
 icon_texture = ExtResource("3_on4by")
 
+[sub_resource type="Resource" id="Resource_processing_interaction"]
+script = ExtResource("4_interaction")
+operation = 0
+remaining_fraction_per_card = 0.25
+max_applications_per_drop = 4
+required_target_card_type = 0
+consume_cards_on_success = true
+allow_instant_complete = true
+
 [resource]
 script = ExtResource("1_krkuc")
 id = "card.consumable.coffee"
 display_name = "Kaffee"
 type = 9
 tags = PackedStringArray("coffee", "consumable")
-short_text = "Beschleunigt ein Arbeits-Recipe"
-tooltip_text = "Beschleunigt ein Arbeits-Recipe"
+short_text = "-25% Restzeit auf laufende Mitarbeiterarbeit"
+tooltip_text = "Auf eine laufende Mitarbeiterarbeit droppen: verbraucht Kaffee und reduziert die verbleibende Bearbeitungszeit um 25% pro Kaffee."
 visual = SubResource("Resource_arqf4")
 auto_stack_on_spawn = true
+processing_interaction = SubResource("Resource_processing_interaction")

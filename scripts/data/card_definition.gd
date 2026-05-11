@@ -10,5 +10,6 @@ extends Resource
 @export var visual: CardVisualDefinition = CardVisualDefinition.new()
 @export var audio: CardAudioDefinition
 @export var auto_stack_on_spawn: bool = false
+@export var processing_interaction: Resource
 @export var base_values: Dictionary = {}
 @export var default_state: Dictionary = {}

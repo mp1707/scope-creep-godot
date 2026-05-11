@@ -1,5 +1,7 @@
 extends SceneTree
 
+const ProcessingInteractionDefinitionScript: Script = preload("res://scripts/data/processing_interaction_definition.gd")
+
 func _init() -> void:
 	var exit_code: int = 0
 	exit_code = max(exit_code, _save_cards())
@@ -93,16 +95,20 @@ func _save_cards() -> int:
 		Color(0.26, 0.27, 0.29),
 		"res://assets/icons/handdrawn/cardIcons/exclamationmark.png"
 	), "res://data/cards/tech_debt.tres"))
-	exit_code = max(exit_code, _save_resource(_create_card(
+	var coffee_card: CardDefinition = _create_card(
 		"card.consumable.coffee",
 		"Kaffee",
 		ScopeEnums.CardType.CONSUMABLE,
 		PackedStringArray(["coffee", "consumable"]),
-		"Beschleunigt ein Arbeits-Recipe",
+		"-25% Restzeit auf laufende Mitarbeiterarbeit",
 		Color(0.92, 0.68, 0.52),
 		Color(0.50, 0.25, 0.12),
 		"res://assets/icons/handdrawn/cardIcons/coffee.png"
-	), "res://data/cards/coffee.tres"))
+	)
+	coffee_card.tooltip_text = "Auf eine laufende Mitarbeiterarbeit droppen: verbraucht Kaffee und reduziert die verbleibende Bearbeitungszeit um 25% pro Kaffee."
+	coffee_card.auto_stack_on_spawn = true
+	coffee_card.processing_interaction = _create_processing_interaction()
+	exit_code = max(exit_code, _save_resource(coffee_card, "res://data/cards/coffee.tres"))
 	var booster_pack_card: CardDefinition = _create_card(
 		"card.resource.booster_pack",
 		"Boosterpack",
@@ -146,25 +152,6 @@ func _save_recipes() -> int:
 	]
 	idea_to_feature.duration_modifier_tags = PackedStringArray(["feature_work"])
 	exit_code = max(exit_code, _save_resource(idea_to_feature, "res://data/recipes/feature_from_idea_developer.tres"))
-
-	var idea_to_feature_with_coffee: RecipeDefinition = RecipeDefinition.new()
-	idea_to_feature_with_coffee.id = "recipe.feature_from_idea.developer_coffee"
-	idea_to_feature_with_coffee.display_text = "Funktion bauen mit Kaffee"
-	idea_to_feature_with_coffee.inputs = [
-		_create_input("card.input.idea"),
-		_create_input("card.employee.developer"),
-		_create_input("card.consumable.coffee"),
-	]
-	idea_to_feature_with_coffee.duration = _create_duration(4.0)
-	idea_to_feature_with_coffee.priority = 20
-	idea_to_feature_with_coffee.specificity_score = 3
-	idea_to_feature_with_coffee.effects_on_complete = [
-		_create_effect("effect.consume_input.idea", "consume_input", {"card_definition_id": "card.input.idea"}),
-		_create_effect("effect.consume_input.coffee", "consume_input", {"card_definition_id": "card.consumable.coffee"}),
-		_create_effect("effect.spawn_card.feature", "spawn_card", {"card_definition_id": "card.output.feature", "count": 1}),
-	]
-	idea_to_feature_with_coffee.duration_modifier_tags = PackedStringArray(["feature_work"])
-	exit_code = max(exit_code, _save_resource(idea_to_feature_with_coffee, "res://data/recipes/feature_from_idea_developer_coffee.tres"))
 
 	var feature_to_money: RecipeDefinition = RecipeDefinition.new()
 	feature_to_money.id = "recipe.money_from_feature.software"
@@ -339,6 +326,16 @@ func _create_effect(id: String, effect_type: String, parameters: Dictionary) -> 
 	effect.effect_type = effect_type
 	effect.parameters = parameters
 	return effect
+
+func _create_processing_interaction() -> Resource:
+	var interaction: Resource = ProcessingInteractionDefinitionScript.new()
+	interaction.set("operation", 0)
+	interaction.set("remaining_fraction_per_card", 0.25)
+	interaction.set("max_applications_per_drop", 4)
+	interaction.set("required_target_card_type", ScopeEnums.CardType.EMPLOYEE)
+	interaction.set("consume_cards_on_success", true)
+	interaction.set("allow_instant_complete", true)
+	return interaction
 
 func _create_pool_entry(card_definition_id: String, weight: int) -> BoosterPoolEntry:
 	var entry: BoosterPoolEntry = BoosterPoolEntry.new()

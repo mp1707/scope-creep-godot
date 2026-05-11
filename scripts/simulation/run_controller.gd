@@ -16,6 +16,7 @@ const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
 const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
 const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
 const BURNOUT_PROGRESS_VALUE: String = "burnout_progress"
+const ActiveProcessingInteractionServiceScript: Script = preload("res://scripts/simulation/active_processing_interaction_service.gd")
 const START_CARD_IDS: Array[String] = [
 	"card.product.software",
 	"card.employee.developer",
@@ -38,6 +39,7 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _recipe_engine: RecipeEngine = RecipeEngine.new()
 var _effect_pipeline: EffectPipeline = EffectPipeline.new()
 var _tech_debt_modifiers: TechDebtModifierService = TechDebtModifierService.new()
+var _processing_interactions: RefCounted = ActiveProcessingInteractionServiceScript.new()
 var _save_serializer: RunSaveSerializer = RunSaveSerializer.new()
 var _next_card_index: int = 1
 var _next_stack_index: int = 1
@@ -183,6 +185,8 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 		return
 	if not _can_interact_with_board():
 		return
+	if _try_apply_processing_interaction(moving_card_ids, target_stack):
+		return
 	source_stack.card_ids = source_stack.card_ids.slice(0, start_index)
 
 	for moving_card_id: String in moving_card_ids:
@@ -197,6 +201,29 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 	_delete_stack_if_empty(source_stack)
 	_refresh_stack_recipe_if_present(source_stack.stack_id)
 	_refresh_stack_recipe_if_present(target_stack.stack_id)
+
+func _try_apply_processing_interaction(moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
+	var result: RefCounted = _processing_interactions.calculate(moving_card_ids, target_stack, state, content)
+	if not result.applied:
+		return false
+
+	for consumed_card_id: String in result.consumed_card_ids:
+		_remove_card_instance(consumed_card_id)
+
+	if not state.stacks.has(target_stack.stack_id):
+		return true
+
+	var updated_target_stack: StackState = _get_existing_stack(target_stack.stack_id)
+	if not updated_target_stack.processing_state.is_active():
+		return true
+
+	updated_target_stack.processing_state.elapsed = result.new_elapsed
+	if result.should_complete:
+		_complete_processing(updated_target_stack)
+	elif state.stacks.has(updated_target_stack.stack_id):
+		_emit(SimulationEvent.stack_changed(updated_target_stack.stack_id))
+
+	return true
 
 func split_stack_from_card(card_id: String, new_position: Vector2) -> StackState:
 	_require_state()

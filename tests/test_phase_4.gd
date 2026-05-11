@@ -4,7 +4,13 @@ var _failed: bool = false
 
 func _init() -> void:
 	_test_basic_recipe_starts()
-	_test_specific_coffee_recipe_wins()
+	_test_coffee_reduces_running_employee_work_remaining_time()
+	_test_coffee_stack_reduces_remaining_time_per_card()
+	_test_four_coffees_complete_running_work()
+	_test_coffee_affects_product_owner_tester_external_dev_and_burnout_work()
+	_test_coffee_does_not_affect_object_processing()
+	_test_more_than_four_coffees_consume_only_four()
+	_test_mixed_stack_does_not_trigger_processing_interaction()
 	_test_neutral_extra_card_cancels_processing()
 	_test_idea_to_feature_completion()
 	_test_feature_to_money_completion()
@@ -30,7 +36,7 @@ func _test_basic_recipe_starts() -> void:
 	_assert_equal(stack.processing_state.status, ScopeEnums.ProcessingStatus.ACTIVE, "Matched recipe should become active.")
 	_assert_equal(stack.processing_state.duration, 8.0, "Base feature recipe should use resource duration.")
 
-func _test_specific_coffee_recipe_wins() -> void:
+func _test_coffee_reduces_running_employee_work_remaining_time() -> void:
 	var controller: RunController = _create_controller()
 	var state: RunState = controller.start_new_run(1)
 	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
@@ -38,11 +44,130 @@ func _test_specific_coffee_recipe_wins() -> void:
 	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
 
 	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
+	controller.advance_time(4.0)
 	controller.move_card_to_stack(coffee.instance_id, developer.stack_id)
 
 	var stack: StackState = state.get_stack(developer.stack_id)
-	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.developer_coffee", "Coffee recipe should beat the less specific base recipe.")
-	_assert_equal(stack.processing_state.duration, 4.0, "Coffee recipe should use shorter duration.")
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.developer", "Coffee should not change the active recipe.")
+	_assert_float_equal(stack.processing_state.duration, 8.0, "Coffee should not change the recipe duration.")
+	_assert_float_equal(stack.processing_state.elapsed, 5.0, "One coffee should remove 25% of the remaining work.")
+	_assert_equal(_count_cards_by_definition(state, "card.consumable.coffee"), 0, "Applied coffee should be consumed immediately.")
+
+func _test_coffee_stack_reduces_remaining_time_per_card() -> void:
+	var controller: RunController = _create_controller()
+	var state: RunState = controller.start_new_run(1)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var burnout: CardInstance = controller.call("_spawn_attached_card", developer.instance_id, "card.problem.burnout", "burnout") as CardInstance
+	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
+	var coffee_2: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(1200.0, 360.0))
+	var coffee_3: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(1400.0, 360.0))
+
+	controller.move_card_to_stack(coffee_2.instance_id, coffee.stack_id)
+	controller.move_card_to_stack(coffee_3.instance_id, coffee.stack_id)
+	controller.advance_time(35.0)
+	controller.move_card_to_stack(coffee.instance_id, developer.stack_id)
+
+	var stack: StackState = state.get_stack(developer.stack_id)
+	_assert_equal(burnout.parent_card_id, developer.instance_id, "Burnout should stay attached to the developer.")
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.burnout_recovery.employee", "Coffee should work on active burnout recovery.")
+	_assert_float_equal(stack.processing_state.duration, 45.0, "Burnout recovery duration should stay stable.")
+	_assert_float_equal(stack.processing_state.elapsed, 42.5, "Three coffees on 10s remaining should leave 2.5s.")
+	_assert_equal(_count_cards_by_definition(state, "card.consumable.coffee"), 0, "All three applied coffees should be consumed.")
+
+func _test_four_coffees_complete_running_work() -> void:
+	var controller: RunController = _create_controller()
+	var state: RunState = controller.start_new_run(1)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
+	var coffee_2: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(1200.0, 360.0))
+	var coffee_3: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(1400.0, 360.0))
+	var coffee_4: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(1600.0, 360.0))
+
+	controller.move_card_to_stack(coffee_2.instance_id, coffee.stack_id)
+	controller.move_card_to_stack(coffee_3.instance_id, coffee.stack_id)
+	controller.move_card_to_stack(coffee_4.instance_id, coffee.stack_id)
+	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
+	controller.advance_time(1.0)
+	controller.move_card_to_stack(coffee.instance_id, developer.stack_id)
+
+	var stack: StackState = state.get_stack(developer.stack_id)
+	_assert_equal(stack.processing_state.status, ScopeEnums.ProcessingStatus.IDLE, "Four coffees should complete active employee work immediately.")
+	_assert_equal(_count_cards_by_definition(state, "card.input.idea"), 0, "Instant completion should execute recipe effects.")
+	_assert_equal(_count_cards_by_definition(state, "card.output.feature"), 1, "Instant completion should spawn the recipe output.")
+	_assert_equal(_count_cards_by_definition(state, "card.consumable.coffee"), 0, "The four applied coffees should be consumed.")
+
+func _test_coffee_affects_product_owner_tester_external_dev_and_burnout_work() -> void:
+	_assert_coffee_reduces_recipe_for_spawned_employee("card.employee.product_owner", "card.input.idea", "recipe.user_story_from_idea.product_owner")
+	_assert_coffee_reduces_recipe_for_spawned_employee("card.employee.tester", "card.output.feature", "recipe.checked_feature_from_feature.tester")
+	_assert_coffee_reduces_recipe_for_spawned_employee("card.employee.external_dev", "card.problem.bug", "recipe.debug_bug.external_dev")
+
+	var controller: RunController = _create_controller()
+	var state: RunState = controller.start_new_run(1)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	controller.call("_spawn_attached_card", developer.instance_id, "card.problem.burnout", "burnout")
+	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
+	controller.advance_time(5.0)
+	controller.move_card_to_stack(coffee.instance_id, developer.stack_id)
+
+	var stack: StackState = state.get_stack(developer.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.burnout_recovery.employee", "Coffee should affect burnout recovery because it is employee work.")
+	_assert_true(stack.processing_state.elapsed > 5.0, "Coffee should reduce remaining burnout recovery time.")
+
+func _test_coffee_does_not_affect_object_processing() -> void:
+	var controller: RunController = _create_controller()
+	var state: RunState = controller.start_new_run(7)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
+
+	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
+	controller.advance_time(8.0)
+
+	var feature: CardInstance = _find_card_by_definition(state, "card.output.feature")
+	var software: CardInstance = _find_card_by_definition(state, "card.product.software")
+	controller.move_card_to_stack(feature.instance_id, software.stack_id)
+	controller.advance_time(1.0)
+	controller.move_card_to_stack(coffee.instance_id, software.stack_id)
+
+	var stack: StackState = state.get_stack(software.stack_id)
+	_assert_equal(coffee.stack_id, software.stack_id, "Coffee should normally stack onto ineligible object processing.")
+	_assert_equal(stack.processing_state.active_recipe_id, "", "Coffee should not accelerate object processing and should follow neutral stack cancellation.")
+
+func _test_more_than_four_coffees_consume_only_four() -> void:
+	var controller: RunController = _create_controller()
+	var state: RunState = controller.start_new_run(1)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
+
+	for index: int in 4:
+		var extra_coffee: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(1200.0 + float(index) * 180.0, 360.0))
+		controller.move_card_to_stack(extra_coffee.instance_id, coffee.stack_id)
+
+	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
+	controller.move_card_to_stack(coffee.instance_id, developer.stack_id)
+
+	_assert_equal(_count_cards_by_definition(state, "card.consumable.coffee"), 1, "Only four coffees should be consumed per drop.")
+	_assert_equal(_count_cards_by_definition(state, "card.output.feature"), 1, "Four applied coffees should complete the work.")
+
+func _test_mixed_stack_does_not_trigger_processing_interaction() -> void:
+	var controller: RunController = _create_controller()
+	var state: RunState = controller.start_new_run(1)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
+	var money: CardInstance = _find_card_by_definition(state, "card.resource.money")
+
+	controller.move_card_to_stack(money.instance_id, coffee.stack_id)
+	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
+	controller.advance_time(1.0)
+	controller.move_card_to_stack(coffee.instance_id, developer.stack_id)
+
+	var stack: StackState = state.get_stack(developer.stack_id)
+	_assert_equal(coffee.stack_id, developer.stack_id, "Mixed stack should move normally.")
+	_assert_equal(money.stack_id, developer.stack_id, "Mixed stack should move normally.")
+	_assert_equal(stack.processing_state.active_recipe_id, "", "Mixed coffee stacks should not trigger the processing interaction.")
 
 func _test_neutral_extra_card_cancels_processing() -> void:
 	var controller: RunController = _create_controller()
@@ -116,6 +241,28 @@ func _create_controller() -> RunController:
 	_assert_true(catalog.load_default_content(), "Default content should load.")
 	return RunController.new(catalog)
 
+func _assert_coffee_reduces_recipe_for_spawned_employee(
+	employee_definition_id: String,
+	work_definition_id: String,
+	expected_recipe_id: String
+) -> void:
+	var controller: RunController = _create_controller()
+	var state: RunState = controller.start_new_run(1)
+	var employee: CardInstance = _spawn_card(controller, employee_definition_id, Vector2(1200.0, 360.0))
+	var work: CardInstance = _spawn_card(controller, work_definition_id, Vector2(1400.0, 360.0))
+	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
+
+	controller.move_card_to_stack(work.instance_id, employee.stack_id)
+	controller.advance_time(1.0)
+	controller.move_card_to_stack(coffee.instance_id, employee.stack_id)
+
+	var stack: StackState = state.get_stack(employee.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, expected_recipe_id, "Coffee should keep the active employee recipe.")
+	_assert_true(stack.processing_state.elapsed > 1.0, "Coffee should reduce remaining time for '%s'." % expected_recipe_id)
+
+func _spawn_card(controller: RunController, definition_id: String, position: Vector2) -> CardInstance:
+	return controller.call("_spawn_card_as_new_stack", definition_id, position) as CardInstance
+
 func _count_cards_by_definition(state: RunState, definition_id: String) -> int:
 	var count: int = 0
 	for card: CardInstance in state.cards.values():
@@ -138,6 +285,12 @@ func _assert_true(value: bool, message: String) -> void:
 
 func _assert_equal(actual: Variant, expected: Variant, message: String) -> void:
 	if actual == expected:
+		return
+	_failed = true
+	printerr("Assertion failed: %s Expected '%s', got '%s'." % [message, expected, actual])
+
+func _assert_float_equal(actual: float, expected: float, message: String) -> void:
+	if is_equal_approx(actual, expected):
 		return
 	_failed = true
 	printerr("Assertion failed: %s Expected '%s', got '%s'." % [message, expected, actual])

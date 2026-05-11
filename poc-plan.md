@@ -108,7 +108,7 @@ Ziel: Ein kleiner, echter Content-Satz wird datengetrieben gepflegt und automati
 Codex:
 
 - [x] Minimal-CardDefinitions anlegen: Software, Entwickler, Idee, Funktion, Geld, Bug, Kaffee, Boosterpack-Platzhalter.
-- [x] Minimal-RecipeDefinitions anlegen: Idee zu Funktion, Funktion zu Software, Kaffee-Modifier fuer eine Aufgabe.
+- [x] Minimal-RecipeDefinitions anlegen: Idee zu Funktion und Funktion zu Software; Kaffee als aktive Processing-Interaktion modellieren.
 - [x] Minimal-BoosterDefinition fuer ein einfaches Gruender-/Testpack anlegen.
 - [x] BalanceDefinition mit Sprintdauer, Release-Dauer, Bug-Chance, Snap-Distanz und Stack-Offset anlegen.
 - [x] Headless Content-Validator implementieren: doppelte IDs, fehlende Referenzen, ungueltige Recipe-Inputs, leere Booster-Pools.
@@ -175,7 +175,7 @@ Codex:
 - [x] Processing mit Dauer, Fortschritt, Pause und Abbruch implementieren.
 - [x] Stack-Aenderung invalidiert aktives Recipe und bricht es bei Nicht-Match ab.
 - [x] Basis-Effects implementieren: SpawnCard, RemoveCard, ConsumeInput, SpawnMoney, RollChance.
-- [x] Headless Tests fuer Recipe-Matching, Pizza-/Kaffee-aehnliche Spezifitaet, Abbruch bei Stack-Aenderung.
+- [x] Headless Tests fuer Recipe-Matching, aktive Kaffee-Processing-Interaktion, Pizza-Spezifitaet und Abbruch bei Stack-Aenderung.
 
 Marco:
 

@@ -707,18 +707,21 @@ Zeitgewinn + Aufgabe → Aufgabe schneller erledigt
 
 ### Kaffee
 
-Verbrauchskarte. Kaffee ist Teil des nächsten Arbeits-Recipes und bleibt deshalb zunächst auf dem Mitarbeiter liegen.
+Verbrauchskarte. Kaffee wird auf eine bereits laufende Bearbeitung mit mindestens einer Mitarbeiterkarte gedroppt und reduziert sofort die verbleibende Bearbeitungszeit.
 
 Anwendung:
 
-1. Kaffee auf Mitarbeiter legen.
-2. Aufgabe auf den Stapel legen.
-3. Das passende Kaffee-Recipe startet schneller.
-4. Kaffee wird bei Abschluss verbraucht.
+1. Mitarbeiterarbeit starten, z. B. Entwickler + Bug.
+2. Kaffee während des laufenden Progress auf diesen Stack droppen.
+3. Kaffee wird sofort verbraucht.
+4. Die verbleibende Bearbeitungszeit sinkt um 25% pro Kaffee, maximal 4 Kaffee pro Drop.
 
 ```text
-Kaffee + Mitarbeiter + Aufgabe → Aufgabe schneller bearbeiten → Kaffee verbraucht
+Laufende Mitarbeiterarbeit + Kaffee → -25% Restzeit → Kaffee verbraucht
+Laufende Mitarbeiterarbeit + 4× Kaffee → Bearbeitung sofort abgeschlossen
 ```
+
+Kaffee wirkt auf alle laufenden Mitarbeiter-Recipes, auch Erholung oder spätere Konfliktworkshops, solange mindestens eine Mitarbeiterkarte im Stack liegt. Kaffee wirkt nicht auf Objektprozesse ohne Mitarbeiterkarte, z. B. Software + Feature.
 
 ### Kaffeemaschine
 
@@ -1447,7 +1450,7 @@ Mitarbeiter + Burnout + Stressbewältigungskurs → Burnout sofort entfernt
 Mitarbeiter mit Konfliktkarte + Zielperson → 45s „Aussprache…" → Konflikt entfernt
 Konfliktworkshop + Konflikt + beide Parteien des Konflikts → 5s → Konflikt entfernt
 Konflikt + Stressbewältigungskurs + beide Parteien des Konflikts → Konflikt sofort entfernt
-Kaffee + Mitarbeiter + Aufgabe → Aufgabe schneller, Kaffee bei Abschluss verbraucht
+Laufende Mitarbeiterarbeit + Kaffee → -25% Restzeit, Kaffee sofort verbraucht
 Kaffeemaschine → 1× Kaffee pro Sprintstart
 Kunde → 1 Kundenwunsch pro Sprintstart (ab Sprint 2)
 Auftrag + passende Funktion → großer Geldbonus, Auftrag verbraucht

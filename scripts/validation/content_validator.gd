@@ -149,12 +149,32 @@ func _validate_card(card: CardDefinition) -> void:
 	var audio: CardAudioDefinition = card.audio
 	if audio != null and not _card_audio_has_any_override(audio):
 		_errors.append("%s: Card '%s' has an empty audio override resource." % [path, card.id])
+	_validate_processing_interaction(card)
 	_validate_poc2_required_tags(card)
 
 	_card_ids[card.id] = path
 
 func _card_audio_has_any_override(audio: CardAudioDefinition) -> bool:
 	return audio.has_any_override()
+
+func _validate_processing_interaction(card: CardDefinition) -> void:
+	var interaction: Resource = card.processing_interaction
+	if card.id == "card.consumable.coffee" and interaction == null:
+		_errors.append("%s: Coffee must define a processing_interaction." % card.resource_path)
+		return
+	if interaction == null:
+		return
+
+	match interaction.get("operation") as int:
+		0:
+			var remaining_fraction_per_card: float = interaction.get("remaining_fraction_per_card") as float
+			if remaining_fraction_per_card <= 0.0 or remaining_fraction_per_card > 1.0:
+				_errors.append("%s: Processing interaction on '%s' needs remaining_fraction_per_card in (0, 1]." % [card.resource_path, card.id])
+		_:
+			_errors.append("%s: Processing interaction on '%s' uses an unknown operation." % [card.resource_path, card.id])
+
+	if interaction.get("max_applications_per_drop") as int <= 0:
+		_errors.append("%s: Processing interaction on '%s' needs max_applications_per_drop above 0." % [card.resource_path, card.id])
 
 func _validate_poc2_required_tags(card: CardDefinition) -> void:
 	if not POC2_REQUIRED_CARD_TAGS.has(card.id):
@@ -196,6 +216,9 @@ func _validate_recipe(recipe: RecipeDefinition) -> void:
 
 	for input: RecipeInputMatcher in recipe.allowed_extra_inputs:
 		_validate_recipe_input(path, recipe.id, input)
+
+	if _recipe_has_card_input(recipe, "card.consumable.coffee"):
+		_errors.append("%s: Recipe '%s' must not use coffee as an input; coffee is an active processing interaction." % [path, recipe.id])
 
 	_validate_effects(path, recipe.id, recipe.effects_on_start)
 	_validate_effects(path, recipe.id, recipe.effects_on_complete)

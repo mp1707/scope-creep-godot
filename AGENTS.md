@@ -135,7 +135,7 @@ Wichtige GDD-Regeln, die nicht verletzt werden duerfen:
 
 - Geld ist immer eine 1-Geld-Karte.
 - Konflikt ist eine einseitige, angeheftete Karte mit Zielperson.
-- Kaffee ist Teil des naechsten Arbeits-Recipes.
+- Kaffee ist eine aktive Processing-Interaktion auf laufende Mitarbeiterarbeit, kein Recipe-Input.
 - Sprintstart-Ticks passieren erst beim Start des naechsten Sprints.
 - Bug-Formation passiert vor Bug-Verdopplung.
 - Save ist nur im pausierten/frozen Zustand erlaubt.
@@ -217,4 +217,3 @@ Nach der Arbeit:
 - Tests/Checks nennen.
 - Offene Editor-Aufgaben fuer Marco nennen.
 - Wenn etwas bewusst noch nicht final ist, als technische Schuld oder naechsten Schritt markieren.
-

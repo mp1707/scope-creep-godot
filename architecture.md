@@ -146,6 +146,7 @@ Mindestfelder:
 - `visual: CardVisualDefinition`
 - `audio: CardAudioDefinition`
 - `auto_stack_on_spawn: bool`
+- `processing_interaction: ProcessingInteractionDefinition`
 - `base_values: Dictionary`
 - `default_state: Dictionary`
 
@@ -410,7 +411,7 @@ Beispiele:
 - Zwei Konfliktparteien duerfen keinen gemeinsamen Stack bilden, ausser das Recipe verlangt genau diesen Konflikt.
 - Konfliktworkshop verlangt Konfliktkarte plus beide referenzierten Parteien.
 - Bezahlphase erlaubt nur Geld-auf-Mitarbeiter-Interaktionen.
-- Kaffee wirkt nur, wenn Kaffee Teil des Arbeits-Recipes ist.
+- Kaffee ist kein Recipe-Input; Kaffee wirkt als aktive Processing-Interaktion nur auf laufende Stacks mit Mitarbeiterkarte.
 
 ## 8. Effect Pipeline
 
@@ -435,7 +436,7 @@ Beispiele:
 - Tech-Debt fragt alle Tech-Debt-Karten auf dem Board ab und addiert pro Karte Zeit auf Feature- und Bugfix-Recipes.
 - Prod-Crash fragt, ob mindestens ein Prod-Crash auf dem Board existiert, und blockiert Geld-Spawn aus Releases.
 - Burnout-Counter wird nach produktiven Taetigkeiten ueber einen Employee-Modifier/Effect erhoeht.
-- Kaffee reduziert die Dauer eines Recipes, wenn Kaffee Teil des Stack-Inputs ist.
+- Karten wie Kaffee koennen eine `ProcessingInteractionDefinition` besitzen und beim Drop auf laufendes Processing die Restzeit reduzieren, ohne das Recipe-Matching zu umgehen.
 
 Dieses System soll als `RuleQueryService` oder aehnlicher Simulation-Service modelliert werden. Recipes fragen keine globalen Nodes ab.
 
@@ -577,7 +578,7 @@ Pflichtszenarien:
 - Neu verdoppelte Bugs formen erst beim naechsten Sprintstart einen Prod-Crash.
 - Konfliktkarte blockiert gemeinsame Stacks mit Zielperson.
 - Konfliktkarte wird fuer normale Solo-Recipes ignoriert.
-- Kaffee wirkt nur als Teil des naechsten Arbeits-Recipes.
+- Kaffee reduziert als aktive Processing-Interaktion die Restzeit laufender Mitarbeiterarbeit.
 - Geld bleibt immer 1-Geld-Karte.
 - Save/Load eines frozen RunState erhaelt Timer-Fortschritt, Stacks, Attachments und RNG-State.
 - Booster-Ziehung ist mit gleichem RNG-State deterministisch.
