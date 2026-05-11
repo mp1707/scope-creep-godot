@@ -2,12 +2,14 @@ class_name BoardAudioPlayer
 extends Node
 
 const PLAYER_COUNT: int = 6
+const DEFAULT_CARD_SFX_VOLUME_LINEAR: float = 0.3
 
 @export var default_create_stream: AudioStream = preload("res://assets/audio/Flip Card - Board Game.wav")
 @export var default_drag_stream: AudioStream = preload("res://assets/audio/Draw - Board Game.wav")
 @export var default_drop_stream: AudioStream = preload("res://assets/audio/Flip Card - Board Game.wav")
 @export var default_stack_stream: AudioStream = preload("res://assets/audio/Flip Card - Board Game.wav")
 @export var default_destroy_stream: AudioStream = preload("res://assets/audio/Exile - Fantasy - Eastern.wav")
+@export_range(0.0, 1.0, 0.01) var card_sfx_volume_linear: float = DEFAULT_CARD_SFX_VOLUME_LINEAR
 
 var _players: Array[AudioStreamPlayer] = []
 var _next_player_index: int = 0
@@ -16,6 +18,7 @@ func _ready() -> void:
 	for index: int in PLAYER_COUNT:
 		var player: AudioStreamPlayer = AudioStreamPlayer.new()
 		player.name = "AudioStreamPlayer_%d" % index
+		player.volume_db = _get_card_sfx_volume_db()
 		add_child(player)
 		_players.append(player)
 
@@ -82,4 +85,9 @@ func _play(stream: AudioStream) -> void:
 	_next_player_index = (_next_player_index + 1) % _players.size()
 	player.stop()
 	player.stream = stream
+	player.volume_db = _get_card_sfx_volume_db()
 	player.play()
+
+func _get_card_sfx_volume_db() -> float:
+	var linear_volume: float = clampf(card_sfx_volume_linear, 0.0, 1.0)
+	return -80.0 if is_zero_approx(linear_volume) else linear_to_db(linear_volume)

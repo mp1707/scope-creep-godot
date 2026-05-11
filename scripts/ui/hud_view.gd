@@ -6,17 +6,26 @@ signal next_sprint_requested()
 signal save_requested()
 signal load_requested()
 
+const MASTER_BUS_NAME: StringName = &"Master"
+const DEFAULT_MASTER_VOLUME_PERCENT: float = 30.0
+const MIN_VOLUME_DB: float = -80.0
+
 @export var status_label_path: NodePath = NodePath("StatusPanel/StatusLabel")
 @export var auto_pay_button_path: NodePath = NodePath("StatusPanel/ButtonRow/AutoPayButton")
 @export var next_sprint_button_path: NodePath = NodePath("StatusPanel/ButtonRow/NextSprintButton")
 @export var save_button_path: NodePath = NodePath("StatusPanel/ButtonRow/SaveButton")
 @export var load_button_path: NodePath = NodePath("StatusPanel/ButtonRow/LoadButton")
+@export var master_volume_slider_path: NodePath = NodePath("MasterVolumeRow/MasterVolumeSlider")
+@export var master_volume_value_label_path: NodePath = NodePath("MasterVolumeRow/MasterVolumeValueLabel")
 
 var _status_label: Label = null
 var _auto_pay_button: Button = null
 var _next_sprint_button: Button = null
 var _save_button: Button = null
 var _load_button: Button = null
+var _master_volume_slider: HSlider = null
+var _master_volume_value_label: Label = null
+var _master_bus_index: int = -1
 
 func _ready() -> void:
 	_status_label = get_node_or_null(status_label_path) as Label
@@ -24,6 +33,9 @@ func _ready() -> void:
 	_next_sprint_button = get_node_or_null(next_sprint_button_path) as Button
 	_save_button = get_node_or_null(save_button_path) as Button
 	_load_button = get_node_or_null(load_button_path) as Button
+	_master_volume_slider = get_node_or_null(master_volume_slider_path) as HSlider
+	_master_volume_value_label = get_node_or_null(master_volume_value_label_path) as Label
+	_master_bus_index = AudioServer.get_bus_index(MASTER_BUS_NAME)
 
 	if _auto_pay_button != null and not _auto_pay_button.pressed.is_connected(_on_auto_pay_pressed):
 		_auto_pay_button.pressed.connect(_on_auto_pay_pressed)
@@ -33,6 +45,7 @@ func _ready() -> void:
 		_save_button.pressed.connect(_on_save_pressed)
 	if _load_button != null and not _load_button.pressed.is_connected(_on_load_pressed):
 		_load_button.pressed.connect(_on_load_pressed)
+	_initialize_master_volume_control()
 
 func update_from_run(run_state: RunState, sprint_remaining: float, can_auto_pay: bool, can_save: bool, can_load: bool) -> void:
 	if run_state == null:
@@ -78,3 +91,30 @@ func _on_save_pressed() -> void:
 
 func _on_load_pressed() -> void:
 	load_requested.emit()
+
+func _initialize_master_volume_control() -> void:
+	if _master_volume_slider == null:
+		return
+	_master_volume_slider.min_value = 0.0
+	_master_volume_slider.max_value = 100.0
+	_master_volume_slider.step = 1.0
+	_master_volume_slider.value = DEFAULT_MASTER_VOLUME_PERCENT
+	_apply_master_volume(DEFAULT_MASTER_VOLUME_PERCENT)
+	if not _master_volume_slider.value_changed.is_connected(_on_master_volume_changed):
+		_master_volume_slider.value_changed.connect(_on_master_volume_changed)
+
+func _on_master_volume_changed(value: float) -> void:
+	_apply_master_volume(value)
+
+func _apply_master_volume(value: float) -> void:
+	if _master_bus_index < 0:
+		return
+	var linear_volume: float = clampf(value / 100.0, 0.0, 1.0)
+	var volume_db: float = MIN_VOLUME_DB if is_zero_approx(linear_volume) else linear_to_db(linear_volume)
+	AudioServer.set_bus_volume_db(_master_bus_index, volume_db)
+	AudioServer.set_bus_mute(_master_bus_index, is_zero_approx(linear_volume))
+	_update_master_volume_label(value)
+
+func _update_master_volume_label(value: float) -> void:
+	if _master_volume_value_label != null:
+		_master_volume_value_label.text = "%d%%" % roundi(value)
