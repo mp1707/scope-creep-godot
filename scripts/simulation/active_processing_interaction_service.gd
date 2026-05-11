@@ -9,39 +9,39 @@ func calculate(
 	target_stack: StackState,
 	state: RunState,
 	content: ContentCatalog
-) -> RefCounted:
-	var result: RefCounted = ActiveProcessingInteractionResultScript.new()
+) -> ActiveProcessingInteractionResult:
+	var result: ActiveProcessingInteractionResult = ActiveProcessingInteractionResultScript.new() as ActiveProcessingInteractionResult
 	if moving_card_ids.is_empty() or target_stack == null or not target_stack.processing_state.is_active():
 		return result
 
-	var interaction: Resource = _get_card_interaction(moving_card_ids[0], state, content)
+	var interaction: ProcessingInteractionDefinition = _get_card_interaction(moving_card_ids[0], state, content)
 	if interaction == null:
 		return result
 
 	for card_id: String in moving_card_ids:
-		var card_interaction: Resource = _get_card_interaction(card_id, state, content)
+		var card_interaction: ProcessingInteractionDefinition = _get_card_interaction(card_id, state, content)
 		if card_interaction == null or not _interactions_match(interaction, card_interaction):
-			return ActiveProcessingInteractionResultScript.new()
+			return ActiveProcessingInteractionResultScript.new() as ActiveProcessingInteractionResult
 
-	if not _target_stack_has_card_type(target_stack, state, content, interaction.get("required_target_card_type") as ScopeEnums.CardType):
+	if not _target_stack_has_card_type(target_stack, state, content, interaction.required_target_card_type):
 		return result
 
-	match interaction.get("operation") as int:
+	match interaction.operation:
 		OPERATION_ADD_DURATION_PROGRESS_FRACTION:
 			_calculate_duration_progress(result, moving_card_ids, target_stack, interaction)
 		_:
-			return ActiveProcessingInteractionResultScript.new()
+			return ActiveProcessingInteractionResultScript.new() as ActiveProcessingInteractionResult
 
 	return result
 
 func _calculate_duration_progress(
-	result: RefCounted,
+	result: ActiveProcessingInteractionResult,
 	moving_card_ids: PackedStringArray,
 	target_stack: StackState,
-	interaction: Resource
+	interaction: ProcessingInteractionDefinition
 ) -> void:
-	var max_applications: int = interaction.get("max_applications_per_drop") as int
-	var progress_fraction_per_card: float = interaction.get("progress_fraction_per_card") as float
+	var max_applications: int = interaction.max_applications_per_drop
+	var progress_fraction_per_card: float = interaction.progress_fraction_per_card
 	var applications: int = mini(moving_card_ids.size(), max_applications)
 	if applications <= 0 or progress_fraction_per_card <= 0.0:
 		return
@@ -52,7 +52,7 @@ func _calculate_duration_progress(
 
 	var progress_added: float = processing.duration * progress_fraction_per_card * float(applications)
 	var new_elapsed: float = processing.elapsed + progress_added
-	var allow_instant_complete: bool = interaction.get("allow_instant_complete") as bool
+	var allow_instant_complete: bool = interaction.allow_instant_complete
 	if new_elapsed >= processing.duration and not allow_instant_complete:
 		new_elapsed = maxf(0.0, processing.duration - 0.01)
 
@@ -61,7 +61,7 @@ func _calculate_duration_progress(
 	result.new_elapsed = minf(processing.duration, new_elapsed)
 	result.should_complete = new_elapsed >= processing.duration and allow_instant_complete
 
-	if interaction.get("consume_cards_on_success") as bool:
+	if interaction.consume_cards_on_success:
 		for index: int in applications:
 			result.consumed_card_ids.append(moving_card_ids[index])
 
@@ -69,7 +69,7 @@ func _get_card_interaction(
 	card_id: String,
 	state: RunState,
 	content: ContentCatalog
-) -> Resource:
+) -> ProcessingInteractionDefinition:
 	var card: CardInstance = state.get_card(card_id)
 	if card == null:
 		return null
@@ -95,10 +95,10 @@ func _target_stack_has_card_type(
 			return true
 	return false
 
-func _interactions_match(left: Resource, right: Resource) -> bool:
-	return left.get("operation") as int == right.get("operation") as int \
-		and is_equal_approx(left.get("progress_fraction_per_card") as float, right.get("progress_fraction_per_card") as float) \
-		and left.get("max_applications_per_drop") as int == right.get("max_applications_per_drop") as int \
-		and left.get("required_target_card_type") as ScopeEnums.CardType == right.get("required_target_card_type") as ScopeEnums.CardType \
-		and left.get("consume_cards_on_success") as bool == right.get("consume_cards_on_success") as bool \
-		and left.get("allow_instant_complete") as bool == right.get("allow_instant_complete") as bool
+func _interactions_match(left: ProcessingInteractionDefinition, right: ProcessingInteractionDefinition) -> bool:
+	return left.operation == right.operation \
+		and is_equal_approx(left.progress_fraction_per_card, right.progress_fraction_per_card) \
+		and left.max_applications_per_drop == right.max_applications_per_drop \
+		and left.required_target_card_type == right.required_target_card_type \
+		and left.consume_cards_on_success == right.consume_cards_on_success \
+		and left.allow_instant_complete == right.allow_instant_complete

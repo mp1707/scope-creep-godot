@@ -7,6 +7,9 @@ func _init() -> void:
 	_test_coffee_adds_base_duration_progress()
 	_test_three_coffees_complete_after_quarter_progress()
 	_test_four_coffees_complete_running_work()
+	_test_coffee_caps_progress_without_completing_while_paused()
+	_test_coffee_caps_progress_without_completing_in_payment()
+	_test_coffee_adds_quarter_of_current_progress_bar()
 	_test_coffee_affects_product_owner_tester_external_dev_and_burnout_work()
 	_test_coffee_does_not_affect_object_processing()
 	_test_more_than_four_coffees_consume_only_four()
@@ -95,6 +98,71 @@ func _test_four_coffees_complete_running_work() -> void:
 	_assert_equal(_count_cards_by_definition(state, "card.input.idea"), 0, "Instant completion should execute recipe effects.")
 	_assert_equal(_count_cards_by_definition(state, "card.output.feature"), 1, "Instant completion should spawn the recipe output.")
 	_assert_equal(_count_cards_by_definition(state, "card.consumable.coffee"), 0, "The four applied coffees should be consumed.")
+
+func _test_coffee_caps_progress_without_completing_while_paused() -> void:
+	var controller: RunController = _create_controller()
+	var state: RunState = controller.start_new_run(1)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
+	_stack_extra_coffees(controller, coffee, 3)
+
+	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
+	controller.set_paused(true)
+	controller.move_card_to_stack(coffee.instance_id, developer.stack_id)
+
+	var stack: StackState = state.get_stack(developer.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.developer", "Coffee in pause should keep processing active.")
+	_assert_equal(stack.processing_state.status, ScopeEnums.ProcessingStatus.ACTIVE, "Coffee in pause must not complete the work.")
+	_assert_float_equal(stack.processing_state.elapsed, stack.processing_state.duration, "Coffee in pause should cap progress at the full bar.")
+	_assert_equal(_count_cards_by_definition(state, "card.output.feature"), 0, "Coffee in pause must not spawn completion output.")
+	_assert_equal(_count_cards_by_definition(state, "card.consumable.coffee"), 0, "Coffee in pause should still be consumed.")
+
+	controller.set_paused(false)
+	controller.advance_time(0.01)
+
+	_assert_equal(_count_cards_by_definition(state, "card.output.feature"), 1, "Paused coffee completion should resolve after time resumes.")
+
+func _test_coffee_caps_progress_without_completing_in_payment() -> void:
+	var controller: RunController = _create_controller(1.0)
+	var state: RunState = controller.start_new_run(1)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
+	_stack_extra_coffees(controller, coffee, 3)
+
+	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
+	controller.advance_time(1.0)
+	controller.move_card_to_stack(coffee.instance_id, developer.stack_id)
+
+	var stack: StackState = state.get_stack(developer.stack_id)
+	_assert_equal(state.phase, ScopeEnums.RunPhase.PAYMENT, "Short sprint should enter payment before coffee is applied.")
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.developer", "Coffee in payment should keep processing active.")
+	_assert_equal(stack.processing_state.status, ScopeEnums.ProcessingStatus.ACTIVE, "Coffee in payment must not complete the work.")
+	_assert_float_equal(stack.processing_state.elapsed, stack.processing_state.duration, "Coffee in payment should cap progress at the full bar.")
+	_assert_equal(_count_cards_by_definition(state, "card.output.feature"), 0, "Coffee in payment must not spawn completion output.")
+	_assert_equal(_count_cards_by_definition(state, "card.consumable.coffee"), 0, "Coffee in payment should still be consumed.")
+
+	_assert_true(controller.auto_pay_all_employees(), "Auto-pay should keep the employee for the next sprint.")
+	controller.start_next_sprint()
+	controller.advance_time(0.01)
+
+	_assert_equal(_count_cards_by_definition(state, "card.output.feature"), 1, "Payment coffee completion should resolve after the next sprint resumes.")
+
+func _test_coffee_adds_quarter_of_current_progress_bar() -> void:
+	var controller: RunController = _create_controller()
+	var state: RunState = controller.start_new_run(1)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
+	_spawn_card(controller, "card.problem.tech_debt", Vector2(1200.0, 360.0))
+
+	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
+	controller.move_card_to_stack(coffee.instance_id, developer.stack_id)
+
+	var stack: StackState = state.get_stack(developer.stack_id)
+	_assert_float_equal(stack.processing_state.duration, 13.0, "Tech debt should extend the current feature progress bar.")
+	_assert_float_equal(stack.processing_state.elapsed, 3.25, "Coffee should add 25% of the currently running progress bar.")
 
 func _test_coffee_affects_product_owner_tester_external_dev_and_burnout_work() -> void:
 	_assert_coffee_reduces_recipe_for_spawned_employee("card.employee.product_owner", "card.input.idea", "recipe.user_story_from_idea.product_owner")
@@ -235,10 +303,16 @@ func _test_ambiguous_matches_are_visible() -> void:
 	_assert_true(result.ambiguous_recipe_ids.has("recipe.feature_from_idea.developer"), "Ambiguous result should include original recipe.")
 	_assert_true(result.ambiguous_recipe_ids.has("recipe.feature_from_idea.developer_duplicate"), "Ambiguous result should include duplicate recipe.")
 
-func _create_controller() -> RunController:
+func _create_controller(sprint_duration: float = 60.0) -> RunController:
 	var catalog: ContentCatalog = ContentCatalog.new()
 	_assert_true(catalog.load_default_content(), "Default content should load.")
+	catalog.balance.sprint_duration_seconds = sprint_duration
 	return RunController.new(catalog)
+
+func _stack_extra_coffees(controller: RunController, coffee: CardInstance, count: int) -> void:
+	for index: int in count:
+		var extra_coffee: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(1200.0 + float(index) * 180.0, 360.0))
+		controller.move_card_to_stack(extra_coffee.instance_id, coffee.stack_id)
 
 func _assert_coffee_reduces_recipe_for_spawned_employee(
 	employee_definition_id: String,

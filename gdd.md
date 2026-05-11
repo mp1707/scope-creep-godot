@@ -714,15 +714,16 @@ Anwendung:
 1. Mitarbeiterarbeit starten, z. B. Entwickler + Bug.
 2. Kaffee während des laufenden Progress auf diesen Stack droppen.
 3. Kaffee wird sofort verbraucht.
-4. Der Fortschritt steigt um 25% der Grunddauer pro Kaffee, maximal 4 Kaffee pro Drop.
+4. Der Fortschritt steigt um 25% der aktuell laufenden Progressbar pro Kaffee, maximal 4 Kaffee pro Drop.
+5. Wenn das Spiel pausiert oder in der Bezahlphase eingefroren ist, kann Kaffee die Progressbar bis 100% fuellen, aber Abschluss-Effekte werden erst beim Fortsetzen der Zeit ausgefuehrt.
 
 ```text
-Laufende Mitarbeiterarbeit + Kaffee → +25% Fortschritt → Kaffee verbraucht
+Laufende Mitarbeiterarbeit + Kaffee → +25% Fortschritt der aktuellen Progressbar → Kaffee verbraucht
 Laufende Mitarbeiterarbeit bei 25% Fortschritt + 3× Kaffee → Bearbeitung sofort abgeschlossen
 Laufende Mitarbeiterarbeit + 4× Kaffee → Bearbeitung sofort abgeschlossen
 ```
 
-Kaffee wirkt auf alle laufenden Mitarbeiter-Recipes, auch Erholung oder spätere Konfliktworkshops, solange mindestens eine Mitarbeiterkarte im Stack liegt. Kaffee wirkt nicht auf Objektprozesse ohne Mitarbeiterkarte, z. B. Software + Feature.
+Kaffee wirkt auf alle laufenden Mitarbeiter-Recipes, auch Erholung oder spätere Konfliktworkshops, solange mindestens eine Mitarbeiterkarte im Stack liegt. Kaffee wirkt nicht auf Objektprozesse ohne Mitarbeiterkarte, z. B. Software + Feature. Im pausierten Sprint und in der Bezahlphase darf Kaffee genutzt und verbraucht werden; er erzeugt dort aber keine Abschlusskarten oder sonstigen Completion-Effekte.
 
 ### Kaffeemaschine
 
@@ -1451,7 +1452,7 @@ Mitarbeiter + Burnout + Stressbewältigungskurs → Burnout sofort entfernt
 Mitarbeiter mit Konfliktkarte + Zielperson → 45s „Aussprache…" → Konflikt entfernt
 Konfliktworkshop + Konflikt + beide Parteien des Konflikts → 5s → Konflikt entfernt
 Konflikt + Stressbewältigungskurs + beide Parteien des Konflikts → Konflikt sofort entfernt
-Laufende Mitarbeiterarbeit + Kaffee → +25% Fortschritt, Kaffee sofort verbraucht
+Laufende Mitarbeiterarbeit + Kaffee → +25% Fortschritt der aktuellen Progressbar, Kaffee sofort verbraucht
 Kaffeemaschine → 1× Kaffee pro Sprintstart
 Kunde → 1 Kundenwunsch pro Sprintstart (ab Sprint 2)
 Auftrag + passende Funktion → großer Geldbonus, Auftrag verbraucht

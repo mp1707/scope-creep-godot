@@ -327,14 +327,14 @@ func _create_effect(id: String, effect_type: String, parameters: Dictionary) -> 
 	effect.parameters = parameters
 	return effect
 
-func _create_processing_interaction() -> Resource:
-	var interaction: Resource = ProcessingInteractionDefinitionScript.new()
-	interaction.set("operation", 0)
-	interaction.set("progress_fraction_per_card", 0.25)
-	interaction.set("max_applications_per_drop", 4)
-	interaction.set("required_target_card_type", ScopeEnums.CardType.EMPLOYEE)
-	interaction.set("consume_cards_on_success", true)
-	interaction.set("allow_instant_complete", true)
+func _create_processing_interaction() -> ProcessingInteractionDefinition:
+	var interaction: ProcessingInteractionDefinition = ProcessingInteractionDefinitionScript.new() as ProcessingInteractionDefinition
+	interaction.operation = ProcessingInteractionDefinition.Operation.ADD_DURATION_PROGRESS_FRACTION
+	interaction.progress_fraction_per_card = 0.25
+	interaction.max_applications_per_drop = 4
+	interaction.required_target_card_type = ScopeEnums.CardType.EMPLOYEE
+	interaction.consume_cards_on_success = true
+	interaction.allow_instant_complete = true
 	return interaction
 
 func _create_pool_entry(card_definition_id: String, weight: int) -> BoosterPoolEntry:

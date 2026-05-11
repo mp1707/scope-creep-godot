@@ -39,7 +39,7 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _recipe_engine: RecipeEngine = RecipeEngine.new()
 var _effect_pipeline: EffectPipeline = EffectPipeline.new()
 var _tech_debt_modifiers: TechDebtModifierService = TechDebtModifierService.new()
-var _processing_interactions: RefCounted = ActiveProcessingInteractionServiceScript.new()
+var _processing_interactions: ActiveProcessingInteractionService = ActiveProcessingInteractionServiceScript.new() as ActiveProcessingInteractionService
 var _save_serializer: RunSaveSerializer = RunSaveSerializer.new()
 var _next_card_index: int = 1
 var _next_stack_index: int = 1
@@ -203,7 +203,7 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 	_refresh_stack_recipe_if_present(target_stack.stack_id)
 
 func _try_apply_processing_interaction(moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
-	var result: RefCounted = _processing_interactions.calculate(moving_card_ids, target_stack, state, content)
+	var result: ActiveProcessingInteractionResult = _processing_interactions.calculate(moving_card_ids, target_stack, state, content)
 	if not result.applied:
 		return false
 
@@ -218,12 +218,15 @@ func _try_apply_processing_interaction(moving_card_ids: PackedStringArray, targe
 		return true
 
 	updated_target_stack.processing_state.elapsed = result.new_elapsed
-	if result.should_complete:
+	if result.should_complete and _can_complete_processing_from_interaction():
 		_complete_processing(updated_target_stack)
 	elif state.stacks.has(updated_target_stack.stack_id):
 		_emit(SimulationEvent.stack_changed(updated_target_stack.stack_id))
 
 	return true
+
+func _can_complete_processing_from_interaction() -> bool:
+	return state.phase == ScopeEnums.RunPhase.SPRINT and not state.is_paused
 
 func split_stack_from_card(card_id: String, new_position: Vector2) -> StackState:
 	_require_state()

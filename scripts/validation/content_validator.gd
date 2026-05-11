@@ -158,22 +158,22 @@ func _card_audio_has_any_override(audio: CardAudioDefinition) -> bool:
 	return audio.has_any_override()
 
 func _validate_processing_interaction(card: CardDefinition) -> void:
-	var interaction: Resource = card.processing_interaction
+	var interaction: ProcessingInteractionDefinition = card.processing_interaction
 	if card.id == "card.consumable.coffee" and interaction == null:
 		_errors.append("%s: Coffee must define a processing_interaction." % card.resource_path)
 		return
 	if interaction == null:
 		return
 
-	match interaction.get("operation") as int:
-		0:
-			var progress_fraction_per_card: float = interaction.get("progress_fraction_per_card") as float
+	match interaction.operation:
+		ProcessingInteractionDefinition.Operation.ADD_DURATION_PROGRESS_FRACTION:
+			var progress_fraction_per_card: float = interaction.progress_fraction_per_card
 			if progress_fraction_per_card <= 0.0 or progress_fraction_per_card > 1.0:
 				_errors.append("%s: Processing interaction on '%s' needs progress_fraction_per_card in (0, 1]." % [card.resource_path, card.id])
 		_:
 			_errors.append("%s: Processing interaction on '%s' uses an unknown operation." % [card.resource_path, card.id])
 
-	if interaction.get("max_applications_per_drop") as int <= 0:
+	if interaction.max_applications_per_drop <= 0:
 		_errors.append("%s: Processing interaction on '%s' needs max_applications_per_drop above 0." % [card.resource_path, card.id])
 
 func _validate_poc2_required_tags(card: CardDefinition) -> void:
