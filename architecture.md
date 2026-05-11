@@ -436,7 +436,7 @@ Beispiele:
 - Tech-Debt fragt alle Tech-Debt-Karten auf dem Board ab und addiert pro Karte Zeit auf Feature- und Bugfix-Recipes.
 - Prod-Crash fragt, ob mindestens ein Prod-Crash auf dem Board existiert, und blockiert Geld-Spawn aus Releases.
 - Burnout-Counter wird nach produktiven Taetigkeiten ueber einen Employee-Modifier/Effect erhoeht.
-- Karten wie Kaffee koennen eine `ProcessingInteractionDefinition` besitzen und beim Drop auf laufendes Processing die Restzeit reduzieren, ohne das Recipe-Matching zu umgehen.
+- Karten wie Kaffee koennen eine `ProcessingInteractionDefinition` besitzen und beim Drop auf laufendes Processing Fortschritt addieren, ohne das Recipe-Matching zu umgehen.
 
 Dieses System soll als `RuleQueryService` oder aehnlicher Simulation-Service modelliert werden. Recipes fragen keine globalen Nodes ab.
 
@@ -578,7 +578,7 @@ Pflichtszenarien:
 - Neu verdoppelte Bugs formen erst beim naechsten Sprintstart einen Prod-Crash.
 - Konfliktkarte blockiert gemeinsame Stacks mit Zielperson.
 - Konfliktkarte wird fuer normale Solo-Recipes ignoriert.
-- Kaffee reduziert als aktive Processing-Interaktion die Restzeit laufender Mitarbeiterarbeit.
+- Kaffee addiert als aktive Processing-Interaktion Fortschritt auf laufende Mitarbeiterarbeit.
 - Geld bleibt immer 1-Geld-Karte.
 - Save/Load eines frozen RunState erhaelt Timer-Fortschritt, Stacks, Attachments und RNG-State.
 - Booster-Ziehung ist mit gleichem RNG-State deterministisch.

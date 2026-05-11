@@ -4,8 +4,8 @@ var _failed: bool = false
 
 func _init() -> void:
 	_test_basic_recipe_starts()
-	_test_coffee_reduces_running_employee_work_remaining_time()
-	_test_coffee_stack_reduces_remaining_time_per_card()
+	_test_coffee_adds_base_duration_progress()
+	_test_three_coffees_complete_after_quarter_progress()
 	_test_four_coffees_complete_running_work()
 	_test_coffee_affects_product_owner_tester_external_dev_and_burnout_work()
 	_test_coffee_does_not_affect_object_processing()
@@ -36,7 +36,7 @@ func _test_basic_recipe_starts() -> void:
 	_assert_equal(stack.processing_state.status, ScopeEnums.ProcessingStatus.ACTIVE, "Matched recipe should become active.")
 	_assert_equal(stack.processing_state.duration, 8.0, "Base feature recipe should use resource duration.")
 
-func _test_coffee_reduces_running_employee_work_remaining_time() -> void:
+func _test_coffee_adds_base_duration_progress() -> void:
 	var controller: RunController = _create_controller()
 	var state: RunState = controller.start_new_run(1)
 	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
@@ -50,10 +50,10 @@ func _test_coffee_reduces_running_employee_work_remaining_time() -> void:
 	var stack: StackState = state.get_stack(developer.stack_id)
 	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.developer", "Coffee should not change the active recipe.")
 	_assert_float_equal(stack.processing_state.duration, 8.0, "Coffee should not change the recipe duration.")
-	_assert_float_equal(stack.processing_state.elapsed, 5.0, "One coffee should remove 25% of the remaining work.")
+	_assert_float_equal(stack.processing_state.elapsed, 6.0, "One coffee should add 25% of the base duration as progress.")
 	_assert_equal(_count_cards_by_definition(state, "card.consumable.coffee"), 0, "Applied coffee should be consumed immediately.")
 
-func _test_coffee_stack_reduces_remaining_time_per_card() -> void:
+func _test_three_coffees_complete_after_quarter_progress() -> void:
 	var controller: RunController = _create_controller()
 	var state: RunState = controller.start_new_run(1)
 	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
@@ -64,15 +64,14 @@ func _test_coffee_stack_reduces_remaining_time_per_card() -> void:
 
 	controller.move_card_to_stack(coffee_2.instance_id, coffee.stack_id)
 	controller.move_card_to_stack(coffee_3.instance_id, coffee.stack_id)
-	controller.advance_time(35.0)
+	controller.advance_time(11.25)
 	controller.move_card_to_stack(coffee.instance_id, developer.stack_id)
 
 	var stack: StackState = state.get_stack(developer.stack_id)
 	_assert_equal(burnout.parent_card_id, developer.instance_id, "Burnout should stay attached to the developer.")
-	_assert_equal(stack.processing_state.active_recipe_id, "recipe.burnout_recovery.employee", "Coffee should work on active burnout recovery.")
-	_assert_float_equal(stack.processing_state.duration, 45.0, "Burnout recovery duration should stay stable.")
-	_assert_float_equal(stack.processing_state.elapsed, 42.5, "Three coffees on 10s remaining should leave 2.5s.")
+	_assert_equal(stack.processing_state.status, ScopeEnums.ProcessingStatus.IDLE, "Three coffees after 25% progress should complete burnout recovery.")
 	_assert_equal(_count_cards_by_definition(state, "card.consumable.coffee"), 0, "All three applied coffees should be consumed.")
+	_assert_equal(_count_cards_by_definition(state, "card.problem.burnout"), 0, "Instant completion should execute burnout recovery effects.")
 
 func _test_four_coffees_complete_running_work() -> void:
 	var controller: RunController = _create_controller()
@@ -112,7 +111,7 @@ func _test_coffee_affects_product_owner_tester_external_dev_and_burnout_work() -
 
 	var stack: StackState = state.get_stack(developer.stack_id)
 	_assert_equal(stack.processing_state.active_recipe_id, "recipe.burnout_recovery.employee", "Coffee should affect burnout recovery because it is employee work.")
-	_assert_true(stack.processing_state.elapsed > 5.0, "Coffee should reduce remaining burnout recovery time.")
+	_assert_float_equal(stack.processing_state.elapsed, 16.25, "Coffee should add 25% of burnout recovery duration as progress.")
 
 func _test_coffee_does_not_affect_object_processing() -> void:
 	var controller: RunController = _create_controller()
@@ -258,7 +257,7 @@ func _assert_coffee_reduces_recipe_for_spawned_employee(
 
 	var stack: StackState = state.get_stack(employee.stack_id)
 	_assert_equal(stack.processing_state.active_recipe_id, expected_recipe_id, "Coffee should keep the active employee recipe.")
-	_assert_true(stack.processing_state.elapsed > 1.0, "Coffee should reduce remaining time for '%s'." % expected_recipe_id)
+	_assert_true(stack.processing_state.elapsed > 1.0, "Coffee should add progress for '%s'." % expected_recipe_id)
 
 func _spawn_card(controller: RunController, definition_id: String, position: Vector2) -> CardInstance:
 	return controller.call("_spawn_card_as_new_stack", definition_id, position) as CardInstance

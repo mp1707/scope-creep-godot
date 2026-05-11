@@ -100,12 +100,12 @@ func _save_cards() -> int:
 		"Kaffee",
 		ScopeEnums.CardType.CONSUMABLE,
 		PackedStringArray(["coffee", "consumable"]),
-		"-25% Restzeit auf laufende Mitarbeiterarbeit",
+		"+25% Fortschritt auf laufende Mitarbeiterarbeit",
 		Color(0.92, 0.68, 0.52),
 		Color(0.50, 0.25, 0.12),
 		"res://assets/icons/handdrawn/cardIcons/coffee.png"
 	)
-	coffee_card.tooltip_text = "Auf eine laufende Mitarbeiterarbeit droppen: verbraucht Kaffee und reduziert die verbleibende Bearbeitungszeit um 25% pro Kaffee."
+	coffee_card.tooltip_text = "Auf eine laufende Mitarbeiterarbeit droppen: verbraucht Kaffee und fuegt 25% der Grunddauer als Fortschritt hinzu."
 	coffee_card.auto_stack_on_spawn = true
 	coffee_card.processing_interaction = _create_processing_interaction()
 	exit_code = max(exit_code, _save_resource(coffee_card, "res://data/cards/coffee.tres"))
@@ -330,7 +330,7 @@ func _create_effect(id: String, effect_type: String, parameters: Dictionary) -> 
 func _create_processing_interaction() -> Resource:
 	var interaction: Resource = ProcessingInteractionDefinitionScript.new()
 	interaction.set("operation", 0)
-	interaction.set("remaining_fraction_per_card", 0.25)
+	interaction.set("progress_fraction_per_card", 0.25)
 	interaction.set("max_applications_per_drop", 4)
 	interaction.set("required_target_card_type", ScopeEnums.CardType.EMPLOYEE)
 	interaction.set("consume_cards_on_success", true)

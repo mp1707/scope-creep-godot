@@ -167,9 +167,9 @@ func _validate_processing_interaction(card: CardDefinition) -> void:
 
 	match interaction.get("operation") as int:
 		0:
-			var remaining_fraction_per_card: float = interaction.get("remaining_fraction_per_card") as float
-			if remaining_fraction_per_card <= 0.0 or remaining_fraction_per_card > 1.0:
-				_errors.append("%s: Processing interaction on '%s' needs remaining_fraction_per_card in (0, 1]." % [card.resource_path, card.id])
+			var progress_fraction_per_card: float = interaction.get("progress_fraction_per_card") as float
+			if progress_fraction_per_card <= 0.0 or progress_fraction_per_card > 1.0:
+				_errors.append("%s: Processing interaction on '%s' needs progress_fraction_per_card in (0, 1]." % [card.resource_path, card.id])
 		_:
 			_errors.append("%s: Processing interaction on '%s' uses an unknown operation." % [card.resource_path, card.id])
 

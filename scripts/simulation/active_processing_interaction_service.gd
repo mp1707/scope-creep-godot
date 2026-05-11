@@ -2,7 +2,7 @@ class_name ActiveProcessingInteractionService
 extends RefCounted
 
 const ActiveProcessingInteractionResultScript: Script = preload("res://scripts/simulation/active_processing_interaction_result.gd")
-const OPERATION_REDUCE_REMAINING_FRACTION: int = 0
+const OPERATION_ADD_DURATION_PROGRESS_FRACTION: int = 0
 
 func calculate(
 	moving_card_ids: PackedStringArray,
@@ -27,41 +27,39 @@ func calculate(
 		return result
 
 	match interaction.get("operation") as int:
-		OPERATION_REDUCE_REMAINING_FRACTION:
-			_calculate_remaining_fraction_reduction(result, moving_card_ids, target_stack, interaction)
+		OPERATION_ADD_DURATION_PROGRESS_FRACTION:
+			_calculate_duration_progress(result, moving_card_ids, target_stack, interaction)
 		_:
 			return ActiveProcessingInteractionResultScript.new()
 
 	return result
 
-func _calculate_remaining_fraction_reduction(
+func _calculate_duration_progress(
 	result: RefCounted,
 	moving_card_ids: PackedStringArray,
 	target_stack: StackState,
 	interaction: Resource
 ) -> void:
 	var max_applications: int = interaction.get("max_applications_per_drop") as int
-	var remaining_fraction_per_card: float = interaction.get("remaining_fraction_per_card") as float
+	var progress_fraction_per_card: float = interaction.get("progress_fraction_per_card") as float
 	var applications: int = mini(moving_card_ids.size(), max_applications)
-	if applications <= 0 or remaining_fraction_per_card <= 0.0:
+	if applications <= 0 or progress_fraction_per_card <= 0.0:
 		return
 
 	var processing: ProcessingState = target_stack.processing_state
-	var remaining_before: float = maxf(0.0, processing.duration - processing.elapsed)
-	if remaining_before <= 0.0:
+	if processing.duration <= 0.0 or processing.elapsed >= processing.duration:
 		return
 
-	var remaining_multiplier: float = maxf(0.0, 1.0 - remaining_fraction_per_card * float(applications))
-	var remaining_after: float = remaining_before * remaining_multiplier
+	var progress_added: float = processing.duration * progress_fraction_per_card * float(applications)
+	var new_elapsed: float = processing.elapsed + progress_added
 	var allow_instant_complete: bool = interaction.get("allow_instant_complete") as bool
-	if remaining_after <= 0.0 and not allow_instant_complete:
-		remaining_after = 0.01
+	if new_elapsed >= processing.duration and not allow_instant_complete:
+		new_elapsed = maxf(0.0, processing.duration - 0.01)
 
 	result.applied = true
-	result.remaining_before = remaining_before
-	result.remaining_after = remaining_after
-	result.new_elapsed = maxf(0.0, processing.duration - remaining_after)
-	result.should_complete = remaining_after <= 0.0 and allow_instant_complete
+	result.progress_added = progress_added
+	result.new_elapsed = minf(processing.duration, new_elapsed)
+	result.should_complete = new_elapsed >= processing.duration and allow_instant_complete
 
 	if interaction.get("consume_cards_on_success") as bool:
 		for index: int in applications:
@@ -99,7 +97,7 @@ func _target_stack_has_card_type(
 
 func _interactions_match(left: Resource, right: Resource) -> bool:
 	return left.get("operation") as int == right.get("operation") as int \
-		and is_equal_approx(left.get("remaining_fraction_per_card") as float, right.get("remaining_fraction_per_card") as float) \
+		and is_equal_approx(left.get("progress_fraction_per_card") as float, right.get("progress_fraction_per_card") as float) \
 		and left.get("max_applications_per_drop") as int == right.get("max_applications_per_drop") as int \
 		and left.get("required_target_card_type") as ScopeEnums.CardType == right.get("required_target_card_type") as ScopeEnums.CardType \
 		and left.get("consume_cards_on_success") as bool == right.get("consume_cards_on_success") as bool \
