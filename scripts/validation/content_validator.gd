@@ -23,6 +23,7 @@ const POC2_REQUIRED_CARD_TAGS: Dictionary = {
 	"card.value_source.customer": ["value_source", "customer"],
 	"card.value_source.coffee_machine": ["value_source", "coffee_machine"],
 	"card.value_source.order": ["value_source", "order"],
+	"card.value_source.freelance_order": ["value_source", "order", "freelance_order"],
 }
 const POC2_REQUIRED_RECIPE_INPUTS: Dictionary = {
 	"recipe.feature_from_idea.developer": ["card.input.idea", "card.employee.developer"],
@@ -43,6 +44,8 @@ const POC2_REQUIRED_RECIPE_INPUTS: Dictionary = {
 	"recipe.burnout_recovery.pizza": ["card.problem.burnout", "card.consumable.pizza_party"],
 	"recipe.burnout_recovery.stress_course": ["card.problem.burnout", "card.consumable.stress_course"],
 	"recipe.money_from_order.feature": ["card.value_source.order", "tag:feature"],
+	"recipe.money_from_freelance_order.feature": ["card.value_source.freelance_order", "card.output.feature"],
+	"recipe.money_from_freelance_order.checked_feature": ["card.value_source.freelance_order", "card.output.checked_feature"],
 }
 
 var _errors: PackedStringArray = PackedStringArray()

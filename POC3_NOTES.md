@@ -85,3 +85,28 @@ Booster/Shop:
 - Content-Version bleibt bewusst noch `poc2`, bis die PoC3-Kernsysteme stabil sind.
 - Headless-Test `tests/test_poc3_phase_1_software_status.gd`: bestanden.
 - Content-Validation: bestanden.
+
+## Phase 2 Feature-Integration
+
+- Die bestehenden Software-Recipes behalten ihre stabilen IDs, sind fachlich aber PoC3-Integration:
+  - `recipe.money_from_feature.software` zeigt `Feature integrieren`, erhoeht `feature_count` um 1, verbraucht die Funktion und behaelt Bug-Risiko.
+  - `recipe.money_from_checked_feature.software` zeigt `Geprueftes Feature integrieren`, erhoeht `feature_count` um 1, verbraucht die gepruefte Funktion und hat kein Bug-Risiko.
+- Software-Integration erzeugt kein Geld mehr. Der alte Recipe-ID-Name ist damit technisch unsauber, bleibt aber bis zu einer bewussten Save-/Content-Migration stabil.
+- Generischer Effect `modify_card_value` wurde ergaenzt, damit Runtime-Werte per Effect-Pipeline veraendert werden koennen.
+- Marco-Check: Software erzeugt sichtbar kein Geld mehr, Aktionstexte/Tooltips passen, Feature-Fortschritt bleibt bei gestapelter Software lesbar.
+- Headless-Test `tests/test_poc3_phase_2_feature_integration.gd`: bestanden.
+- Content-Validation: bestanden.
+
+## Phase 3 Freelance-Finanzierung
+
+- Neue Karte `card.value_source.freelance_order` trennt PoC3-Freelance fachlich von alten PoC2-Auftraegen.
+- Startsetup enthaelt jetzt 4 Geld und 1 Freelance-Auftrag.
+- Vor Launch ersetzt der Sprintstart einen verfallenen Freelance-Auftrag durch genau 1 neuen Auftrag.
+- Nach Launch endet dieser automatische Freelance-Zufluss.
+- Neue Recipes:
+  - `recipe.money_from_freelance_order.feature`: Funktion + Freelance-Auftrag -> 2 Geld, beide Inputs werden verbraucht.
+  - `recipe.money_from_freelance_order.checked_feature`: Gepruefte Funktion + Freelance-Auftrag -> 3 Geld, beide Inputs werden verbraucht.
+- Freelance-Auftraege tragen weiterhin den `order`-Tag und verfallen dadurch am Sprintstart. Das verhindert Pre-Launch-Auftragsbacklogs.
+- Marco-Check: Freelance-Auftrag ist visuell ausreichend unterscheidbar, Tooltip ohne `Vor Launch:` passt, Startgeld liegt als ein Geldstapel und die Startbalance passt fuer den naechsten Slice.
+- Headless-Test `tests/test_poc3_phase_3_freelance.gd`: bestanden.
+- Content-Validation: bestanden.

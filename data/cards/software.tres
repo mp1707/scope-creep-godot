@@ -20,8 +20,8 @@ id = "card.product.software"
 display_name = "Software"
 type = 8
 tags = PackedStringArray("software", "product")
-short_text = "Produktbasis"
-tooltip_text = "Produktbasis"
+short_text = "MVP-Feature-Fortschritt"
+tooltip_text = "Vor Launch sammeln integrierte Funktionen MVP-Features. Ab 10 Features ist die Software launchbereit."
 visual = SubResource("Resource_e23bo")
 base_values = {
 "feature_count": 0,

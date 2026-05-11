@@ -14,8 +14,8 @@ Der Plan bleibt bewusst phasenweise und abhakbar. Jede Phase ist so geschnitten,
 
 - [x] Phase 0 - Baseline sichern und PoC3-Scope einfrieren
 - [x] Phase 1 - Run-Metadaten und Software-Status vorbereiten
-- [ ] Phase 2 - Feature-Integration statt direkter Software-Einnahmen
-- [ ] Phase 3 - Freelance-Finanzierung vor Launch
+- [x] Phase 2 - Feature-Integration statt direkter Software-Einnahmen
+- [x] Phase 3 - Freelance-Finanzierung vor Launch
 - [ ] Phase 4 - Manueller Launch und Startkunden
 - [ ] Phase 5 - Kundenwirtschaft nach Launch
 - [ ] Phase 6 - Kundendruck, Unzufriedenheit und Kundenverlust
@@ -203,28 +203,28 @@ Ziel: Funktionen auf Software erzeugen keinen direkten Geldgewinn mehr, sondern 
 
 Codex:
 
-- [ ] Bestehende Recipes `money_from_feature_software` und `money_from_checked_feature_software` fachlich ersetzen oder fuer PoC3 deaktivieren.
-- [ ] Neue Integration-Recipes anlegen: `Funktion + Software -> Feature integrieren`.
-- [ ] Neue Integration-Recipes anlegen: `Gepruefte Funktion + Software -> Feature integrieren`.
-- [ ] Ungepruefte Integration darf weiterhin Bug-Risiko haben.
-- [ ] Gepruefte Integration hat kein Bug-Risiko.
-- [ ] Feature-Integration erhoeht `feature_count` um 1 und verbraucht die Feature-Karte.
-- [ ] Aktionstexte von `Release...` auf `Feature integrieren...` oder aehnlich umstellen.
-- [ ] Tests fuer Geld-Entfall, Featurezaehler, Bug-Risiko und checked/no-bug-Pfad schreiben.
+- [x] Bestehende Recipes `money_from_feature_software` und `money_from_checked_feature_software` fachlich ersetzen oder fuer PoC3 deaktivieren.
+- [x] Neue Integration-Recipes anlegen: `Funktion + Software -> Feature integrieren`.
+- [x] Neue Integration-Recipes anlegen: `Gepruefte Funktion + Software -> Feature integrieren`.
+- [x] Ungepruefte Integration darf weiterhin Bug-Risiko haben.
+- [x] Gepruefte Integration hat kein Bug-Risiko.
+- [x] Feature-Integration erhoeht `feature_count` um 1 und verbraucht die Feature-Karte.
+- [x] Aktionstexte von `Release...` auf `Feature integrieren...` oder aehnlich umstellen.
+- [x] Tests fuer Geld-Entfall, Featurezaehler, Bug-Risiko und checked/no-bug-Pfad schreiben.
 
 Marco:
 
-- [ ] Im Editor/Playtest pruefen, ob klar ist, dass Software vor Launch kein Geld erzeugt.
-- [ ] Aktionstexte und Tooltip-Texte der Software/Feature-Karten sprachlich abstimmen.
-- [ ] Sichtbarkeit von Feature-Fortschritt bei gestapelter Software pruefen.
+- [x] Im Editor/Playtest pruefen, ob klar ist, dass Software vor Launch kein Geld erzeugt.
+- [x] Aktionstexte und Tooltip-Texte der Software/Feature-Karten sprachlich abstimmen.
+- [x] Sichtbarkeit von Feature-Fortschritt bei gestapelter Software pruefen.
 
 Definition of Done:
 
-- [ ] `Funktion + Software` erzeugt kein Geld mehr.
-- [ ] Featurezaehler steigt nach erfolgreichem Processing.
-- [ ] Ungepruefte Features koennen weiter Bugs erzeugen.
-- [ ] Gepruefte Features bleiben der sichere Pfad.
-- [ ] PoC2-Qualitaetsregeln werden nicht aus Presentation-Code dupliziert.
+- [x] `Funktion + Software` erzeugt kein Geld mehr.
+- [x] Featurezaehler steigt nach erfolgreichem Processing.
+- [x] Ungepruefte Features koennen weiter Bugs erzeugen.
+- [x] Gepruefte Features bleiben der sichere Pfad.
+- [x] PoC2-Qualitaetsregeln werden nicht aus Presentation-Code dupliziert.
 
 Headless-Test:
 
@@ -232,39 +232,43 @@ Headless-Test:
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc3_phase_2_feature_integration.gd
 ```
 
+Status: bestanden.
+
 ## Phase 3 - Freelance-Finanzierung vor Launch
 
 Ziel: Vor Launch entsteht Geld ueber sichtbare Freelance-Auftraege statt ueber die eigene Software.
 
 Codex:
 
-- [ ] `card.value_source.freelance_order` als CardDefinition anlegen.
-- [ ] Recipes anlegen: `Funktion + Freelance-Auftrag -> 2 Geld`.
-- [ ] Recipes anlegen: `Gepruefte Funktion + Freelance-Auftrag -> 3 Geld`.
-- [ ] Sicherstellen, dass die Feature-Karte und der Freelance-Auftrag dabei verbraucht werden.
-- [ ] Sprintstart-Regel vor Launch: 1 Freelance-Auftrag spawnt.
-- [ ] Sprintstart-Regel nach Launch: automatischer Freelance-Zufluss endet.
-- [ ] Startsetup um 1 Freelance-Auftrag erweitern.
-- [ ] Tests fuer Startsetup, Pre-Launch-Spawn, Post-Launch-Nicht-Spawn und Geldmenge schreiben.
+- [x] `card.value_source.freelance_order` als CardDefinition anlegen.
+- [x] Recipes anlegen: `Funktion + Freelance-Auftrag -> 2 Geld`.
+- [x] Recipes anlegen: `Gepruefte Funktion + Freelance-Auftrag -> 3 Geld`.
+- [x] Sicherstellen, dass die Feature-Karte und der Freelance-Auftrag dabei verbraucht werden.
+- [x] Sprintstart-Regel vor Launch: 1 Freelance-Auftrag spawnt.
+- [x] Sprintstart-Regel nach Launch: automatischer Freelance-Zufluss endet.
+- [x] Startsetup um 1 Freelance-Auftrag erweitern.
+- [x] Tests fuer Startsetup, Pre-Launch-Spawn, Post-Launch-Nicht-Spawn und Geldmenge schreiben.
 
 Marco:
 
-- [ ] Freelance-Auftrag im Editor visuell von altem Auftrag/Kundenwunsch unterscheidbar machen.
-- [ ] Tooltip pruefen: Entscheidung `ins Produkt integrieren` vs. `fuer Geld abgeben` muss sofort klar sein.
-- [ ] Im Playtest bewerten, ob 4 Startgeld plus 1 Freelance-Auftrag zu hart oder zu weich wirkt.
+- [x] Freelance-Auftrag im Editor visuell von altem Auftrag/Kundenwunsch unterscheidbar machen.
+- [x] Tooltip pruefen: Entscheidung `ins Produkt integrieren` vs. `fuer Geld abgeben` muss sofort klar sein.
+- [x] Im Playtest bewerten, ob 4 Startgeld plus 1 Freelance-Auftrag zu hart oder zu weich wirkt.
 
 Definition of Done:
 
-- [ ] Vor Launch gibt es regelmaessig mindestens eine Geldchance.
-- [ ] Freelance-Geld entsteht durch Karteninteraktion, nicht als abstrakter Tick.
-- [ ] Gepruefte Funktionen sind fuer Freelance wertvoller.
-- [ ] Nach Launch endet der automatische Freelance-Spawn.
+- [x] Vor Launch gibt es regelmaessig mindestens eine Geldchance.
+- [x] Freelance-Geld entsteht durch Karteninteraktion, nicht als abstrakter Tick.
+- [x] Gepruefte Funktionen sind fuer Freelance wertvoller.
+- [x] Nach Launch endet der automatische Freelance-Spawn.
 
 Headless-Test:
 
 ```bash
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc3_phase_3_freelance.gd
 ```
+
+Status: bestanden.
 
 ## Phase 4 - Manueller Launch und Startkunden
 

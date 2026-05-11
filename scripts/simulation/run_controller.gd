@@ -16,6 +16,7 @@ const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
 const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
 const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
 const BURNOUT_PROGRESS_VALUE: String = "burnout_progress"
+const FREELANCE_ORDER_DEFINITION_ID: String = "card.value_source.freelance_order"
 const ActiveProcessingInteractionServiceScript: Script = preload("res://scripts/simulation/active_processing_interaction_service.gd")
 const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")
 const START_CARD_IDS: Array[String] = [
@@ -23,14 +24,16 @@ const START_CARD_IDS: Array[String] = [
 	"card.employee.developer",
 	"card.input.idea",
 	"card.consumable.coffee",
+	"card.value_source.freelance_order",
 	"card.shop.booster_slot",
+	"card.resource.money",
+	"card.resource.money",
+	"card.resource.money",
+	"card.resource.money",
 	"card.shop.booster_slot.talent_pool",
 	"card.shop.booster_slot.office_invest",
 	"card.shop.booster_slot.customer_chaos",
 	"card.shop.bugfix_patch_slot",
-	"card.resource.money",
-	"card.resource.money",
-	"card.resource.money",
 ]
 
 var content: ContentCatalog = null
@@ -455,7 +458,16 @@ func _run_sprint_start_effects() -> void:
 	_duplicate_remaining_bugs()
 	_expire_open_orders()
 	_expire_unused_external_devs()
+	_spawn_pre_launch_freelance_order()
 	_spawn_persistent_tick_cards()
+
+func _spawn_pre_launch_freelance_order() -> void:
+	var software: CardInstance = get_software_card()
+	if software == null:
+		return
+	if _product_lifecycle.get_product_stage(software) != ProductLifecycleService.PRODUCT_STAGE_MVP:
+		return
+	_spawn_card_as_new_stack(FREELANCE_ORDER_DEFINITION_ID, _get_spawn_position_near_stack(software.stack_id, 0))
 
 func _form_prod_crashes_from_bugs() -> void:
 	var bug_ids: PackedStringArray = _find_card_ids_with_tag("bug")

@@ -16,6 +16,8 @@ func execute(effects: Array[EffectDefinition], context: EffectContext) -> void:
 				_roll_chance(effect, context)
 			"set_card_value":
 				_set_card_value(effect, context)
+			"modify_card_value":
+				_modify_card_value(effect, context)
 			"open_booster":
 				_open_booster(effect, context)
 			_:
@@ -77,6 +79,18 @@ func _set_card_value(effect: EffectDefinition, context: EffectContext) -> void:
 	if key.is_empty():
 		return
 	card.values[key] = effect.parameters.get("value", null)
+
+func _modify_card_value(effect: EffectDefinition, context: EffectContext) -> void:
+	var card_definition_id: String = effect.parameters.get("card_definition_id", "") as String
+	var card: CardInstance = _find_card_in_stack(card_definition_id, context)
+	if card == null:
+		return
+
+	var key: String = effect.parameters.get("key", "") as String
+	if key.is_empty():
+		return
+	var delta: int = int(effect.parameters.get("delta", 0))
+	card.values[key] = int(card.values.get(key, 0)) + delta
 
 func _open_booster(effect: EffectDefinition, context: EffectContext) -> void:
 	var booster_id: String = effect.parameters.get("booster_definition_id", "") as String

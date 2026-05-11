@@ -19,13 +19,12 @@ parameters = {
 
 [sub_resource type="Resource" id="Effect_spawn_money_feature_value"]
 script = ExtResource("3_effect")
-id = "effect.spawn_money.checked_feature_value"
-effect_type = "spawn_money"
+id = "effect.modify_card_value.software_feature_count.checked"
+effect_type = "modify_card_value"
 parameters = {
-"count": 1,
-"count_from_card_definition_id": "card.output.checked_feature",
-"count_value_key": "feature_value",
-"skip_if_any_card_tag": "prod_crash"
+"card_definition_id": "card.product.software",
+"delta": 1,
+"key": "feature_count"
 }
 
 [sub_resource type="Resource" id="Input_checked_feature"]
@@ -39,7 +38,7 @@ card_definition_id = "card.product.software"
 [resource]
 script = ExtResource("4_recipe")
 id = "recipe.money_from_checked_feature.software"
-display_text = "Geprueftes Feature releasen"
+display_text = "Geprueftes Feature integrieren"
 inputs = Array[ExtResource("1_matcher")]([SubResource("Input_checked_feature"), SubResource("Input_software")])
 duration = SubResource("Duration_release_checked")
 priority = 20

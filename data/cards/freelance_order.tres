@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_card"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+
+[sub_resource type="Resource" id="Resource_visual"]
+script = ExtResource("2_visual")
+background_color = Color(0.86, 0.78, 0.58, 1)
+accent_color = Color(0.48, 0.34, 0.12, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+marker_text = "FREE"
+
+[resource]
+script = ExtResource("1_card")
+id = "card.value_source.freelance_order"
+display_name = "Freelance-Auftrag"
+type = 7
+tags = PackedStringArray("value_source", "order", "freelance_order")
+short_text = "Feature gegen Geld"
+tooltip_text = "Funktion abliefern fuer 2 Geld, gepruefte Funktion fuer 3 Geld. Verfaellt am Sprintstart."
+visual = SubResource("Resource_visual")
+auto_stack_on_spawn = true
