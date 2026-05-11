@@ -164,6 +164,7 @@ Beispiele fuer `type`:
 - `VALUE_SOURCE`
 - `PRODUCT`
 - `CONSUMABLE`
+- `GOAL`
 
 Tags ermoeglichen generisches Matching, z. B. `employee`, `developer`, `problem`, `bug`, `money`, `conflict`, `burnout`, `feature`.
 
@@ -268,6 +269,11 @@ Beispiele:
 - Stack-Offset
 - Spawn-Placement-Radius
 - Auto-Stack-Radius fuer gespawnte Karten
+- MVP-Feature-Schwelle
+- Freelance-Auszahlung fuer ungepruefte und gepruefte Features
+- Business-Goal-Werte
+- Kundengeld pro Sprintstart
+- Unzufriedenheits-Schwelle fuer Kundenverlust
 
 ## 5. Runtime-State
 
@@ -281,6 +287,7 @@ Mindestfelder:
 - `sprint_index: int`
 - `phase: RunPhase`
 - `is_paused: bool`
+- `terminal_state` oder aequivalente Run-End-Metadaten
 - `rng_state`
 - `cards: Dictionary[String, CardInstance]`
 - `stacks: Dictionary[String, StackState]`
@@ -290,6 +297,8 @@ Mindestfelder:
 - `content_version: String`
 
 `RunState` ist die einzige Quelle fuer Simulation-Wahrheit. Presentation darf daraus Views erzeugen, aber keine eigenen Spielregelzustaende fuehren.
+
+`phase` beschreibt den zeitlichen Lifecycle des Runs, nicht den fachlichen Produktstatus. Pre-Launch, launchbereit und live werden deshalb nicht als eigene `RunPhase` modelliert, sondern ueber die Softwarekarte und Product-Lifecycle-Queries. Sieg, Game Over und konkrete Endgruende gehoeren in serialisierbare Run-End-Metadaten, damit Application und Presentation dieselbe Wahrheit anzeigen.
 
 ### CardInstance
 
@@ -310,6 +319,41 @@ Mindestfelder:
 `parent_card_id` und `attachment_slot` modellieren angeheftete Karten wie Burnout oder Konflikt. Eine Konfliktkarte bleibt eine normale CardInstance, klebt aber an Bob und referenziert Alice ueber `values.target_employee_id`.
 
 Geld ist immer eine CardInstance mit Definition `card.resource.money` und Wert 1. Groessere Betraege sind mehrere Geldkarten, nicht ein Instance-Wert.
+
+### Product Lifecycle
+
+Der Produktstatus ist Teil der Softwarekarte und bleibt damit dem Prinzip "Alles ist eine Karte" treu.
+
+Empfohlene Runtime-Werte auf `card.product.software`:
+
+- `product_stage: String` mit stabilen Werten wie `mvp` und `live`
+- `feature_count: int`
+- `mvp_required_features: int`
+- `launch_feature_count: int`
+- optional `next_customer_feature_threshold: int`
+
+Ein `ProductLifecycleService` oder aequivalenter Simulation-Service kapselt Queries und Mutationen:
+
+- Softwarekarte im Run finden
+- Feature-Fortschritt erhoehen
+- Launchbereitschaft pruefen
+- Launch durchfuehren
+- Startkunden aus Featurezahl berechnen
+- optional spaeter Kundenwachstum durch weitere Live-Features pruefen
+
+Recipes und Presentation duerfen Launchbereitschaft nicht jeweils selbst nachbauen. Recipes nutzen Constraints oder Effects, die diesen Service fragen. Presentation zeigt nur die Runtime-Werte an, z. B. `MVP 7/10`, `Launchbereit 10/10` oder `Live 14 Features`.
+
+### Goal Cards
+
+Business-Ziele sind normale Karten, nicht HUD-Zahlen. Sie duerfen Runtime-Werte tragen, solange sie mit sichtbaren Karten bezahlt und von der Simulation geprueft werden.
+
+Empfohlene Runtime-Werte auf `card.goal.business_goal`:
+
+- `goal_index: int`
+- `required_money: int`
+- `paid_money: int`
+
+Geldzahlungen auf Goals verbrauchen einzelne 1-Geld-Karten. Die Simulation aktualisiert `paid_money`; Presentation zeigt nur den Fortschritt. Business-Goal-Pruefung findet beim Start des naechsten Sprints aus der Bezahlphase statt, nicht kontinuierlich im UI.
 
 ### StackState
 
@@ -437,6 +481,9 @@ Beispiele:
 - Prod-Crash fragt, ob mindestens ein Prod-Crash auf dem Board existiert, und blockiert Geld-Spawn aus Releases.
 - Burnout-Counter wird nach produktiven Taetigkeiten ueber einen Employee-Modifier/Effect erhoeht.
 - Karten wie Kaffee koennen eine `ProcessingInteractionDefinition` besitzen und beim Drop auf laufendes Processing Fortschritt addieren, ohne das Recipe-Matching zu umgehen.
+- Product-Lifecycle-Queries pruefen, ob Software launchbereit oder live ist.
+- Customer-Queries zaehlen Kunden, offene Kundenwuensche und Unzufriedenheitskarten.
+- Business-Goal-Queries pruefen aktuelles Goal, Zahlungsfortschritt und erreichte Goal-Anzahl.
 
 Dieses System soll als `RuleQueryService` oder aehnlicher Simulation-Service modelliert werden. Recipes fragen keine globalen Nodes ab.
 
@@ -446,6 +493,8 @@ Es gibt zwei Run-Phasen:
 
 - `SPRINT`
 - `PAYMENT`
+
+Der Code darf zusaetzlich terminale Phasen oder End-Metadaten nutzen, z. B. `GAME_OVER` oder `VICTORY`. Diese terminalen Zustaende sind keine aktive Spielphase und lassen keine Processing-/Sprintstart-Regeln mehr laufen.
 
 ### SPRINT
 
@@ -478,6 +527,18 @@ Nach Klick auf `Sprint N+1 starten` werden Effects in exakt dieser Reihenfolge a
 6. Persistente Tick-Karten wie Kunde und Kaffeemaschine spawnen ihre Karten.
 
 Danach startet die neue Sprint-Phase und der Sprint-Timer laeuft wieder.
+
+PoC3 erweitert diese Pipeline, ohne die GDD-Reihenfolge fuer Gehaelter und Bugs zu veraendern. Die fachliche Reihenfolge fuer neue Regeln ist:
+
+1. bestehende Pflichtschritte aus GDD/PoC2 ausfuehren: Kuendigungen, Bug-Formation, Bug-Verdopplung, Auftrag-Verfall, Externer Dev
+2. Business Goal aus der Bezahlphase pruefen, falls der Run live ist
+3. alte Kundenwuensche auswerten und Unzufriedenheit erzeugen
+4. Kundenverlust aus Unzufriedenheit anwenden
+5. 0-Kunden-nach-Launch pruefen und ggf. Investorenpanik erzeugen
+6. terminale Bedingungen pruefen, z. B. 0 Mitarbeiter, 2 Investorenpanik, 3 erfuellte Goals
+7. neue Sprintstart-Spawns erzeugen: Pre-Launch-Freelance-Auftrag oder Post-Launch-Kundengeld/Kundenwuensche, Kaffeemaschine und andere Tick-Karten
+
+Diese Reihenfolge soll als zentrale Sprintstart-Pipeline umgesetzt werden. Einzelne Karten liefern Daten oder Effects, aber Presentation und einzelne Recipes duerfen die Pipeline nicht direkt steuern.
 
 ## 10. Board, Stacks und Attachments
 

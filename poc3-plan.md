@@ -12,7 +12,7 @@ Der Plan bleibt bewusst phasenweise und abhakbar. Jede Phase ist so geschnitten,
 
 ## Fortschritt
 
-- [ ] Phase 0 - Baseline sichern und PoC3-Scope einfrieren
+- [x] Phase 0 - Baseline sichern und PoC3-Scope einfrieren
 - [ ] Phase 1 - Run-Metadaten und Software-Status vorbereiten
 - [ ] Phase 2 - Feature-Integration statt direkter Software-Einnahmen
 - [ ] Phase 3 - Freelance-Finanzierung vor Launch
@@ -134,31 +134,34 @@ Ziel: PoC3 beginnt auf einem stabilen PoC2-Stand, ohne versehentlich PoC2-Regeln
 
 Codex:
 
-- [ ] `git status --short` pruefen und lokale User-Aenderungen nicht ueberschreiben.
-- [ ] Aktuellen PoC2-Testlauf oder die relevanten Headless-Tests ausfuehren.
-- [ ] Bestehende Content-IDs fuer Software, Feature, Checked Feature, Kunde, Kundenwunsch, Auftrag, Booster und Shop erfassen.
-- [ ] In `POC2_NOTES.md` oder einem neuen Abschnitt in diesem Plan offene Altlasten notieren, die PoC3 beeinflussen.
-- [ ] Entscheiden und dokumentieren, ob bestehender `card.value_source.order` unveraendert bleibt oder `freelance_order` als neue Karte angelegt wird. Empfehlung: neue Karte, damit PoC2-Auftrag und PoC3-Freelance fachlich getrennt bleiben.
+- [x] `git status --short` pruefen und lokale User-Aenderungen nicht ueberschreiben.
+- [x] Aktuellen PoC2-Testlauf oder die relevanten Headless-Tests ausfuehren.
+- [x] Bestehende Content-IDs fuer Software, Feature, Checked Feature, Kunde, Kundenwunsch, Auftrag, Booster und Shop erfassen.
+- [x] In `POC3_NOTES.md` offene Altlasten notieren, die PoC3 beeinflussen.
+- [x] `architecture.md` vor PoC3 um Product Lifecycle, Goal Cards, terminale Zustaende, RuleQueryService-Queries und Sprintstart-Pipeline ergaenzen.
+- [x] Entscheiden und dokumentieren, ob bestehender `card.value_source.order` unveraendert bleibt oder `freelance_order` als neue Karte angelegt wird. Empfehlung: neue Karte, damit PoC2-Auftrag und PoC3-Freelance fachlich getrennt bleiben.
 
 Marco:
 
-- [ ] Aktuellen PoC2 im Editor starten.
-- [ ] Kurz bestaetigen, dass der letzte erfolgreiche Playtest-Stand weiterhin spielbar ist.
-- [ ] Entscheiden, ob PoC3 auf einem neuen Branch umgesetzt wird.
-- [ ] Scope bestaetigen: Talent-Pool bleibt im normalen PoC3-Run deaktiviert, Hiring-Rework kommt spaeter.
+- [x] Aktuellen PoC2 im Editor starten.
+- [x] Kurz bestaetigen, dass der letzte erfolgreiche Playtest-Stand weiterhin spielbar ist.
+- [x] Entscheiden, ob PoC3 auf einem neuen Branch umgesetzt wird.
+- [x] Scope bestaetigen: Talent-Pool bleibt im normalen PoC3-Run deaktiviert, Hiring-Rework kommt spaeter.
 
 Definition of Done:
 
-- [ ] PoC2-Baseline ist bekannt und testbar.
-- [ ] PoC3-Scope ist schriftlich eingefroren.
-- [ ] Keine ID-Umbenennungen ohne Migration/Alias-Regel.
-- [ ] Offene Risiken sind dokumentiert statt still ueberbrueckt.
+- [x] PoC2-Baseline ist bekannt und testbar.
+- [x] PoC3-Scope ist schriftlich eingefroren.
+- [x] Keine ID-Umbenennungen ohne Migration/Alias-Regel.
+- [x] Offene Risiken sind dokumentiert statt still ueberbrueckt.
 
 Headless-Check:
 
 ```bash
 tools/check_poc.sh
 ```
+
+Status: ausgefuehrt. Content-Validation bestanden; alte/PoC2-Tests zeigen bekannte Spawn-Placement- und Auto-Stacking-Baselinefehler. Details stehen in `POC3_NOTES.md`.
 
 ## Phase 1 - Run-Metadaten und Software-Status vorbereiten
 
