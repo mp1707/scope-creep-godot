@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_card"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+
+[sub_resource type="Resource" id="Resource_visual"]
+script = ExtResource("2_visual")
+background_color = Color(0.50, 0.08, 0.14, 1)
+accent_color = Color(0.98, 0.74, 0.18, 1)
+text_color = Color(0.98, 0.94, 0.88, 1)
+marker_text = "PAN"
+
+[resource]
+script = ExtResource("1_card")
+id = "card.problem.investor_panic"
+display_name = "Investorenpanik"
+type = 4
+tags = PackedStringArray("problem", "investor_panic")
+short_text = "2 Panik = Game Over"
+tooltip_text = "Entsteht durch verfehlte Business Goals. Bei 2 Investorenpanik-Karten endet der Run."
+visual = SubResource("Resource_visual")
+auto_stack_on_spawn = true

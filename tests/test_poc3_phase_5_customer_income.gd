@@ -48,7 +48,8 @@ func _test_prod_crash_blocks_customer_tick() -> void:
 	_enter_next_sprint(controller)
 
 	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before - 1, "Prod crash should block customer money after salary payment.")
-	_assert_equal(_count_cards_by_definition(state, "card.input.customer_request"), requests_before, "Prod crash should block normal customer requests until Phase 6 unhappy customers exist.")
+	_assert_equal(_count_cards_by_definition(state, "card.input.customer_request"), requests_before, "Prod crash should block normal customer requests.")
+	_assert_equal(_count_cards_by_definition(state, "card.problem.unhappy_customer"), 2, "Prod crash should attach Unzufrieden to each satisfied customer.")
 
 func _test_software_integration_still_does_not_spawn_money_after_launch() -> void:
 	var controller: RunController = _create_controller()

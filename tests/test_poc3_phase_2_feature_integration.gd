@@ -37,13 +37,14 @@ func _test_checked_feature_integrates_without_bug_risk() -> void:
 	var software: CardInstance = controller.get_software_card()
 	var checked_feature: CardInstance = _spawn_card(controller, "card.output.checked_feature", Vector2(820.0, 360.0))
 	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
+	var checked_features_before: int = _count_cards_by_definition(state, "card.output.checked_feature")
 
 	controller.move_card_to_stack(checked_feature.instance_id, software.stack_id)
 	_assert_equal(state.get_stack(software.stack_id).processing_state.active_recipe_id, "recipe.money_from_checked_feature.software", "Checked feature + software should start checked integration recipe.")
 	controller.advance_time(6.0)
 
 	_assert_equal(int(software.values[FEATURE_COUNT_VALUE]), 1, "Checked integration should increase software feature_count.")
-	_assert_equal(_count_cards_by_definition(state, "card.output.checked_feature"), 0, "Checked feature should be consumed.")
+	_assert_equal(_count_cards_by_definition(state, "card.output.checked_feature"), checked_features_before - 1, "Checked integration should consume one checked feature.")
 	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before, "Checked software integration must not spawn money.")
 	_assert_equal(_count_cards_by_definition(state, "card.problem.bug"), 0, "Checked integration should not roll bug risk.")
 

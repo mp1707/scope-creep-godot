@@ -273,7 +273,7 @@ Beispiele:
 - Freelance-Auszahlung fuer ungepruefte und gepruefte Features
 - Business-Goal-Werte
 - Kundengeld pro Sprintstart
-- Unzufriedenheits-Schwelle fuer Kundenverlust
+- Kundenwunsch-Dauer fuer Product Owner und Entwickler
 
 ## 5. Runtime-State
 
@@ -482,7 +482,7 @@ Beispiele:
 - Burnout-Counter wird nach produktiven Taetigkeiten ueber einen Employee-Modifier/Effect erhoeht.
 - Karten wie Kaffee koennen eine `ProcessingInteractionDefinition` besitzen und beim Drop auf laufendes Processing Fortschritt addieren, ohne das Recipe-Matching zu umgehen.
 - Product-Lifecycle-Queries pruefen, ob Software launchbereit oder live ist.
-- Customer-Queries zaehlen Kunden, offene Kundenwuensche und Unzufriedenheitskarten.
+- Customer-Queries zaehlen Kunden, offene Kundenwuensche, zufriedene Kunden und als Attachment angeheftete Unzufriedenheitskarten.
 - Business-Goal-Queries pruefen aktuelles Goal, Zahlungsfortschritt und erreichte Goal-Anzahl.
 
 Dieses System soll als `RuleQueryService` oder aehnlicher Simulation-Service modelliert werden. Recipes fragen keine globalen Nodes ab.
@@ -531,12 +531,10 @@ Danach startet die neue Sprint-Phase und der Sprint-Timer laeuft wieder.
 PoC3 erweitert diese Pipeline, ohne die GDD-Reihenfolge fuer Gehaelter und Bugs zu veraendern. Die fachliche Reihenfolge fuer neue Regeln ist:
 
 1. bestehende Pflichtschritte aus GDD/PoC2 ausfuehren: Kuendigungen, Bug-Formation, Bug-Verdopplung, Auftrag-Verfall, Externer Dev
-2. Business Goal aus der Bezahlphase pruefen, falls der Run live ist
-3. alte Kundenwuensche auswerten und Unzufriedenheit erzeugen
-4. Kundenverlust aus Unzufriedenheit anwenden
-5. 0-Kunden-nach-Launch pruefen und ggf. Investorenpanik erzeugen
-6. terminale Bedingungen pruefen, z. B. 0 Mitarbeiter, 2 Investorenpanik, 3 erfuellte Goals
-7. neue Sprintstart-Spawns erzeugen: Pre-Launch-Freelance-Auftrag oder Post-Launch-Kundengeld/Kundenwuensche, Kaffeemaschine und andere Tick-Karten
+2. alte Kundenwuensche auswerten: pro altem Kundenwunsch wird ein zufaelliger zufriedener Kunde unzufrieden; sind alle Kunden unzufrieden, passiert nichts
+3. Business Goal aus der Bezahlphase pruefen, falls der Run live ist
+4. terminale Bedingungen pruefen, z. B. 0 Mitarbeiter, 2 Investorenpanik, 3 erfuellte Goals
+5. neue Sprintstart-Spawns erzeugen: Pre-Launch-Freelance-Auftrag oder Post-Launch-Kundengeld/Kundenwuensche nur von zufriedenen Kunden, Kaffeemaschine und andere Tick-Karten
 
 Diese Reihenfolge soll als zentrale Sprintstart-Pipeline umgesetzt werden. Einzelne Karten liefern Daten oder Effects, aber Presentation und einzelne Recipes duerfen die Pipeline nicht direkt steuern.
 
@@ -577,6 +575,7 @@ Beispiele:
 
 - Burnout klebt an einem Mitarbeiter.
 - Konflikt klebt an einem Mitarbeiter und referenziert eine Zielperson.
+- Unzufriedenheit klebt an einem Kunden und blockiert dessen Kundentick, bis ein Product Owner die Erwartungen managt.
 - Spaetere Upgrades koennen an Mitarbeiter oder Software angeheftet werden.
 
 Attachments bewegen sich mit dem Parent. Ob sie fuer ein Recipe zaehlen, entscheidet das Recipe-Matching. Konflikt wird fuer normale Solo-Recipes ignoriert, zaehlt aber fuer Konflikt-Recipes.

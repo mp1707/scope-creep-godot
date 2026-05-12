@@ -18,8 +18,8 @@ Der Plan bleibt bewusst phasenweise und abhakbar. Jede Phase ist so geschnitten,
 - [x] Phase 3 - Freelance-Finanzierung vor Launch
 - [x] Phase 4 - Manueller Launch und Startkunden
 - [x] Phase 5 - Kundenwirtschaft nach Launch
-- [ ] Phase 6 - Kundendruck, Unzufriedenheit und Kundenverlust
-- [ ] Phase 7 - Business Goals, Investorenpanik und PoC3-Endzustand
+- [x] Phase 6 - Kundendruck und Unzufriedenheit
+- [x] Phase 7 - Business Goals, Investorenpanik und PoC3-Endzustand
 - [ ] Phase 8 - Booster-/Shop-Scope fuer PoC3
 - [ ] Phase 9 - Save/Load, Validation und Migration auf Content-Version `poc3`
 - [ ] Phase 10 - Balancing, Playtest-Script und QA
@@ -36,7 +36,7 @@ Am Ende von PoC3 soll ein Run mit klarer Dramaturgie spielbar sein:
 5. Launch erzeugt Live-Software, Startkunden und das erste Business Goal.
 6. Kunden erzeugen nach Launch Geld und Kundenwuensche.
 7. Unbearbeitete Kundenwuensche erzeugen Unzufriedenheit.
-8. Unzufriedenheit kann Kundenverlust ausloesen.
+8. Unzufriedene Kunden erzeugen kein Geld und keine Kundenwuensche, bis ein Product Owner die Erwartungen managt.
 9. Business Goals konkurrieren mit Gehaeltern, Boostern und Notfallkarten um Geld.
 10. PoC3 ist gewonnen, wenn 3 Business Goals erfuellt wurden.
 11. Der Run ist verloren, wenn alle Mitarbeiter weg sind oder 2 Investorenpanik-Karten existieren.
@@ -63,7 +63,7 @@ Neu:
 - `card.value_source.freelance_order` - Freelance-Auftrag
 - `card.goal.business_goal` - Business Goal
 - `card.problem.investor_panic` - Investorenpanik
-- `card.problem.unhappy_customer` - Unzufriedener Kunde
+- `card.problem.unhappy_customer` - Unzufrieden
 
 Geaendert:
 
@@ -119,7 +119,8 @@ Launchbereite Software + Entwickler -> Launch vorbereiten -> Live-Software + Sta
 Kundendruck:
 
 ```text
-Unzufriedener Kunde + Product Owner -> Erwartungen managen -> Unzufriedener Kunde entfernen
+Kunde + angeheftetes Unzufrieden + Product Owner -> Erwartungen managen -> Unzufrieden entfernen
+Kundenwunsch + Entwickler -> Kundenwunsch improvisieren -> Vielversprechende User Story
 ```
 
 Business Goal:
@@ -340,35 +341,43 @@ Headless-Test:
 
 Status: bestanden. Marco-Editor-/Playtest-Check erledigt.
 
-## Phase 6 - Kundendruck, Unzufriedenheit und Kundenverlust
+## Phase 6 - Kundendruck und Unzufriedenheit
 
 Ziel: Kundenwuensche werden zu echtem Druck, ohne schon ein vollstaendiges CRM-System zu bauen.
 
 Codex:
 
-- [ ] `card.problem.unhappy_customer` als CardDefinition anlegen.
-- [ ] Kundenwunsch beim Spawn mit `spawned_sprint_index` markieren.
-- [ ] Sprintstart-Regel nach Launch: unbearbeitete Kundenwuensche aus vorherigen Sprints erzeugen je 1 Unzufriedener-Kunde-Karte.
-- [ ] Verarbeitete Kundenwuensche verschwinden wie bisher als Recipe-Input und erzeugen keine Unzufriedenheit mehr.
-- [ ] Recipe anlegen: `Unzufriedener Kunde + Product Owner -> Erwartungen managen -> Unzufriedener Kunde entfernen`.
-- [ ] Globale Kuendigungsregel: je 2 Unzufriedener-Kunde-Karten entfernen 1 Kundenkarte.
-- [ ] Bei 0 Kunden nach Launch 1 Investorenpanik erzeugen, sobald Phase 7 verfuegbar ist.
-- [ ] Reihenfolge sauber festlegen und testen: alte Kundenwuensche auswerten, Kundenkuendigung anwenden, dann neue Kundenspawns erzeugen.
-- [ ] Tests fuer ignorierte Kundenwuensche, erledigte Kundenwuensche, PO-Behandlung und 2:1-Kundenverlust schreiben.
+- [x] `card.problem.unhappy_customer` als CardDefinition anlegen. Anzeigename: `Unzufrieden`.
+- [x] Kundenwunsch beim Spawn mit `spawned_sprint_index` markieren.
+- [x] Sprintstart-Regel nach Launch: pro unbearbeitetem Kundenwunsch aus vorherigen Sprints wird ein zufaelliger zufriedener Kunde unzufrieden.
+- [x] `Unzufrieden` wird an eine Kundenkarte geheftet und ist nicht per Maus entfernbar.
+- [x] Sind bereits alle Kunden unzufrieden, erzeugen unbearbeitete Kundenwuensche keine weitere Unzufriedenheit.
+- [x] Verarbeitete Kundenwuensche verschwinden wie bisher als Recipe-Input und erzeugen keine Unzufriedenheit mehr.
+- [x] Recipe anlegen: `Kunde + angeheftetes Unzufrieden + Product Owner -> Erwartungen managen -> Unzufrieden entfernen`.
+- [x] Unzufriedene Kunden erzeugen kein Geld und keine Kundenwuensche.
+- [x] Kunden bleiben dauerhaft im Run; es gibt keine Kundenkuendigungsregel.
+- [x] Investorenpanik entsteht nicht aus Kundenanzahl, sondern aus verfehlten Business Goals.
+- [x] Developer-Recipe anlegen: `Kundenwunsch + Entwickler -> Vielversprechende User Story`, 50% langsamer als Product Owner.
+- [x] Reihenfolge sauber festlegen und testen: alte Kundenwuensche auswerten, Business Goal pruefen, dann neue Kundenspawns nur fuer zufriedene Kunden erzeugen.
+- [x] Tests fuer ignorierte Kundenwuensche, erledigte Kundenwuensche, angeheftete Unzufriedenheit, PO-Behandlung, ausbleibenden Kundentick, dauerhaft bleibende Kunden und Developer-Recipe schreiben.
 
 Marco:
 
-- [ ] Unzufriedener Kunde visuell klar als Problemkarte abstimmen.
-- [ ] Playtest pruefen: Ist globale Unzufriedenheit verstaendlich genug, obwohl sie noch nicht an konkrete Kunden attached ist?
-- [ ] Falls es sich fachlich zu abstrakt anfuehlt, fuer spaeteres Attachment-System notieren, aber nicht in PoC3 ausufern.
+- [x] Unzufrieden visuell klar als Problemkarte abstimmen.
+- [x] Playtest pruefen: Ist klar genug, dass Unzufriedenheit am konkreten Kunden haengt und nur per Product Owner entfernt wird?
+- [x] Board-Lesbarkeit pruefen, wenn mehrere Kunden angeheftete Unzufrieden-Karten haben.
 
 Definition of Done:
 
-- [ ] Ignorierte Kundenwuensche werden am naechsten Sprintstart bestraft.
-- [ ] Bearbeitete Kundenwuensche erzeugen keine Strafe.
-- [ ] 2 Unzufriedene Kunden kosten 1 Kundenkarte.
-- [ ] Product Owner kann Unzufriedenheit aktiv bearbeiten.
-- [ ] Kein neues Support-/CRM-System ist fuer PoC3 erforderlich.
+- [x] Ignorierte Kundenwuensche werden am naechsten Sprintstart bestraft.
+- [x] Bearbeitete Kundenwuensche erzeugen keine Strafe.
+- [x] Unzufriedenheit ist an konkrete Kunden angeheftet und nicht per Maus entfernbar.
+- [x] Sind alle Kunden unzufrieden, erzeugen weitere alte Kundenwuensche keine Zusatzstrafe.
+- [x] Unzufriedene Kunden erzeugen kein Geld und keine Kundenwuensche.
+- [x] Kunden gehen durch Unzufriedenheit nicht verloren.
+- [x] Product Owner kann Unzufriedenheit aktiv bearbeiten.
+- [x] Entwickler koennen Kundenwuensche langsamer zu vielversprechenden User Stories verarbeiten.
+- [x] Kein neues Support-/CRM-System ist fuer PoC3 erforderlich.
 
 Headless-Test:
 
@@ -376,45 +385,49 @@ Headless-Test:
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc3_phase_6_customer_pressure.gd
 ```
 
+Status: bestanden. Marco-Editor-/Playtest-Check erledigt.
+
 ## Phase 7 - Business Goals, Investorenpanik und PoC3-Endzustand
 
 Ziel: PoC3 bekommt einen klaren Post-Launch-Druck und einen klaren Erfolg-/Scheiterzustand.
 
 Codex:
 
-- [ ] `card.goal.business_goal` als CardDefinition anlegen.
-- [ ] `card.problem.investor_panic` als CardDefinition anlegen.
-- [ ] Business-Goal-Werte implementieren: 3, 5, 7 Geld. Falls Playtest zu hart: spaeter 2, 4, 6 als Balance-Resource-Werte.
-- [ ] Business Goal mit Runtime-Werten `goal_index`, `required_money`, `paid_money` anzeigen.
-- [ ] Recipe/Interaktion: Geld auf Business Goal erhoeht `paid_money` um 1 und verbraucht genau 1 Geldkarte.
-- [ ] Beim Start des naechsten Sprints aus der Bezahlphase Business Goal pruefen.
-- [ ] Erfuelltes Goal entfernen und naechstes Goal mit hoeherem Wert spawnen.
-- [ ] Verfehltes Goal entfernen, 1 Investorenpanik erzeugen und naechstes Goal vorbereiten.
-- [ ] Bei 3 erfuellten Goals PoC3-Sieg ausloesen.
-- [ ] Bei 2 Investorenpanik-Karten Game Over ausloesen.
-- [ ] Bestehendes Game Over bei 0 Mitarbeitern unveraendert lassen.
-- [ ] Tests fuer Zahlung, Goal-Erfuellung, Goal-Verfehlen, 3-Goal-Sieg und 2-Panik-Niederlage schreiben.
+- [x] `card.goal.business_goal` als CardDefinition anlegen.
+- [x] `card.problem.investor_panic` als CardDefinition anlegen.
+- [x] Business-Goal-Werte implementieren: 3, 5, 7 Geld. Falls Playtest zu hart: spaeter 2, 4, 6 als Balance-Resource-Werte.
+- [x] Business Goal mit Runtime-Werten `goal_index`, `required_money`, `paid_money` anzeigen.
+- [x] Recipe/Interaktion: Geld auf Business Goal erhoeht `paid_money` um 1 und verbraucht genau 1 Geldkarte.
+- [x] Beim Start des naechsten Sprints aus der Bezahlphase Business Goal pruefen.
+- [x] Erfuelltes Goal entfernen und naechstes Goal mit hoeherem Wert spawnen.
+- [x] Verfehltes Goal entfernen, 1 Investorenpanik erzeugen und naechstes Goal vorbereiten.
+- [x] Bei 3 erfuellten Goals PoC3-Sieg ausloesen.
+- [x] Bei 2 Investorenpanik-Karten Game Over ausloesen.
+- [x] Bestehendes Game Over bei 0 Mitarbeitern unveraendert lassen.
+- [x] Tests fuer Zahlung, Goal-Erfuellung, Goal-Verfehlen, 3-Goal-Sieg und 2-Panik-Niederlage schreiben.
 
 Marco:
 
-- [ ] Business Goal Karte visuell als Pflicht/Ziel abstimmen, nicht wie normaler Auftrag.
-- [ ] Investorenpanik visuell als Fehlerkarte abstimmen.
-- [ ] Victory-/Game-Over-Anzeige im Editor pruefen. Falls eine neue UI-Scene noetig wird, Codex soll Script/Signale vorbereiten und Marco platziert/gestaltet sie im Editor.
-- [ ] Playtest pruefen, ob Bezahlphase-Entscheidung `Team vs. Goal vs. Booster` klar entsteht.
+- [x] Business Goal Karte visuell als Pflicht/Ziel abstimmen, nicht wie normaler Auftrag.
+- [x] Investorenpanik visuell als Fehlerkarte abstimmen.
+- [x] Victory-/Game-Over-Anzeige im Editor pruefen. Falls eine neue UI-Scene noetig wird, Codex soll Script/Signale vorbereiten und Marco platziert/gestaltet sie im Editor.
+- [x] Playtest pruefen, ob Bezahlphase-Entscheidung `Team vs. Goal vs. Booster` klar entsteht.
 
 Definition of Done:
 
-- [ ] Business Goal ist eine sichtbare Karte mit sichtbarem Rest-/Fortschritt.
-- [ ] Geldkarten bezahlen Goals einzeln.
-- [ ] Goals werden beim Sprintstart aus der Bezahlphase geprueft.
-- [ ] PoC3 hat einen erreichbaren Siegzustand.
-- [ ] Investorenpanik bleibt Karte, kein HUD-Fehlerzaehler.
+- [x] Business Goal ist eine sichtbare Karte mit sichtbarem Rest-/Fortschritt.
+- [x] Geldkarten bezahlen Goals einzeln.
+- [x] Goals werden beim Sprintstart aus der Bezahlphase geprueft.
+- [x] PoC3 hat einen erreichbaren Siegzustand.
+- [x] Investorenpanik bleibt Karte, kein HUD-Fehlerzaehler.
 
 Headless-Test:
 
 ```bash
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc3_phase_7_business_goals.gd
 ```
+
+Status: bestanden. Marco-Editor-/Playtest-Check erledigt.
 
 ## Phase 8 - Booster-/Shop-Scope fuer PoC3
 
@@ -457,17 +470,17 @@ Ziel: Der neue Run-State ist speicherbar, validierbar und bricht alte PoC2-Saves
 Codex:
 
 - [ ] `CONTENT_VERSION` auf `poc3` umstellen, sobald die Kernsysteme stabil sind.
-- [ ] Save/Load fuer neue Software-, Kundenwunsch- und Business-Goal-Runtime-Werte testen.
+- [ ] Save/Load fuer neue Software-, Kundenwunsch-, Unzufrieden-Attachment- und Business-Goal-Runtime-Werte testen.
 - [ ] Serializer so erweitern, dass neue Runtime-Werte stabil erhalten bleiben.
 - [ ] Falls alte PoC2-Saves geladen werden koennen sollen: Defaultwerte oder klare Inkompatibilitaetsmeldung implementieren.
 - [ ] Content-Validator um neue Pflichtkarten, Recipes, Shop-Eintraege und Runtime-relevante IDs erweitern.
-- [ ] Validator prueft, dass Business-Goal-/Investorenpanik-/Unhappy-Customer-Karten vorhanden sind.
+- [ ] Validator prueft, dass Business-Goal-/Investorenpanik-/Unzufrieden-Karten vorhanden sind.
 - [ ] Tests fuer Save/Load mitten in Pre-Launch, launchbereit, Post-Launch mit aktivem Goal und Kundendruck schreiben.
 
 Marco:
 
 - [ ] Im Editor einmal speichern/laden pruefen, besonders pausierter/frozen Zustand.
-- [ ] Sichtbar pruefen, dass Software-Featurezahl, Goal-Fortschritt und Kundenwuensche nach Load korrekt angezeigt werden.
+- [ ] Sichtbar pruefen, dass Software-Featurezahl, Goal-Fortschritt, Kundenwuensche und angeheftete Unzufriedenheit nach Load korrekt angezeigt werden.
 
 Definition of Done:
 
@@ -488,16 +501,16 @@ Ziel: PoC3 wird als Mini-Run testbar, ohne finale Balance vorzutaeuschen.
 
 Codex:
 
-- [ ] Balance-Werte in `data/balance/poc_default.tres` oder einer PoC3-Balance-Resource buendeln: MVP-Schwelle, Freelance-Geld, Startgeld, Goal-Werte, Kunden-Tick, Unzufriedenheitsschwelle.
+- [ ] Balance-Werte in `data/balance/poc_default.tres` oder einer PoC3-Balance-Resource buendeln: MVP-Schwelle, Freelance-Geld, Startgeld, Goal-Werte, Kunden-Tick und Developer-Kundenwunsch-Dauer.
 - [ ] Ein Playtest-Script in diesem Plan oder `POC3_NOTES.md` dokumentieren: erwarteter Ablauf von Start bis 3 Goals.
 - [ ] Headless-Test-Suite fuer alle PoC3-Phasen einmal zusammen ausfuehren.
 - [ ] Offene Balancing-Fragen dokumentieren, statt sie mit Hardcode zu verstecken.
-- [ ] Bekannte technische Schulden markieren, besonders globale Unzufriedenheit ohne Kunden-Attachment.
+- [ ] Bekannte technische Schulden markieren, besonders noch hardcodierte PoC3-Balancewerte.
 
 Marco:
 
 - [ ] Mindestens 2 manuelle Playtests im Editor: einmal frueher Launch bei 10 Features, einmal spaeter Launch bei 15+ Features.
-- [ ] Notieren, ob 30 Playtest-Startgeld, 10 Features, 3/5/7 Goals und 2-Unhappy-zu-1-Kunde fair wirken. Spaeter echten Startgeldwert wieder reduzieren.
+- [ ] Notieren, ob 30 Playtest-Startgeld, 10 Features, 3/5/7 Goals und angeheftete Unzufriedenheit fair wirken. Spaeter echten Startgeldwert wieder reduzieren.
 - [ ] Pruefen, ob PoC3-Siegmeldung und Niederlage klar genug sind.
 - [ ] UI/Lesbarkeit bei vielen Kundenwuenschen, Geldkarten und Problemen bewerten.
 
@@ -541,9 +554,9 @@ Definition of Done:
 
 ## Technische Risiken und bewusste Entscheidungen
 
-- Globale Unzufriedenheit ist fuer PoC3 akzeptabel, aber langfristig weniger sauber als Kunden-Attachments. Wenn sie spielerisch unklar ist, wird das Attachment-System nach PoC3 geplant.
+- Unzufriedenheit ist in PoC3 ein Kunden-Attachment. Das verhindert globale, schwer erklaerbare Strafen und macht klar, welcher Kunde gerade keinen Wert liefert.
 - Business Goal als Runtime-Zahl auf einer Karte widerspricht nicht dem GDD, solange die Pflicht selbst eine Karte bleibt und mit einzelnen Geldkarten bezahlt wird.
-- Sprintstart-Reihenfolge muss explizit getestet werden. Fachliche Empfehlung fuer PoC3: unbezahlte Mitarbeiter und alte Probleme auswerten, dann Kundenverlust/Panik, dann neue Sprintstart-Spawns.
+- Sprintstart-Reihenfolge muss explizit getestet werden. Fachliche Empfehlung fuer PoC3: unbezahlte Mitarbeiter und alte Probleme auswerten, alte Kundenwuensche an zufriedene Kunden als Unzufriedenheit anheften, Business Goals pruefen, dann neue Sprintstart-Spawns nur fuer zufriedene Kunden erzeugen.
 - Talent-Pool-Deaktivierung ist eine bewusste PoC3-Scope-Entscheidung, kein finales Hiring-Design.
 - Product Owner und Tester muessen erreichbar bleiben, aber nicht zwingend im Startsetup liegen. Falls Playtests dadurch zu zufaellig werden, ist ein spaeterer kontrollierter Angebotspfad besser als Hiring-Spam.
 
@@ -558,4 +571,4 @@ Definition of Done:
 - Konkurrieren Business Goals wirklich mit Gehaeltern, Boostern und Notfall-Bugfixes?
 - Sind 3 Business Goals ein guter Mini-Run-Abschluss?
 - Ist Talent-Pool-Deaktivierung fuer PoC3 richtig?
-- Sind die Startwerte 30 Playtest-Geld, 10 MVP-Features, 3/5/7 Goals und 2 Unzufriedenheit pro Kundenverlust passend?
+- Sind die Startwerte 30 Playtest-Geld, 10 MVP-Features, 3/5/7 Goals und angeheftete Kunden-Unzufriedenheit passend?

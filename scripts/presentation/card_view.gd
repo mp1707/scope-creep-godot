@@ -384,7 +384,23 @@ func _update_runtime_marker(card: CardInstance, definition: CardDefinition) -> v
 func _update_runtime_short_text(card: CardInstance, definition: CardDefinition) -> void:
 	_short_text_label.text = ""
 	_short_text_label.visible = false
-	if definition == null or not definition.tags.has("software"):
+	if definition == null:
+		return
+	if definition.tags.has("business_goal"):
+		_short_text_label.text = "Goal %d\n%d/%d Geld" % [
+			maxi(1, int(card.values.get("goal_index", 1))),
+			maxi(0, int(card.values.get("paid_money", 0))),
+			maxi(1, int(card.values.get("required_money", 1))),
+		]
+		_short_text_label.visible = true
+		_short_text_label.position = Vector2(12.0, DEFAULT_ICON_CENTER.y - 44.0)
+		_short_text_label.size = Vector2(120.0, 88.0)
+		_short_text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_short_text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_short_text_label.add_theme_font_size_override("font_size", 22)
+		return
+	if not definition.tags.has("software"):
 		return
 	var status_text: String = _product_lifecycle.get_status_text(card)
 	if status_text.is_empty():
@@ -442,6 +458,11 @@ func _update_tooltip(card: CardInstance, definition: CardDefinition) -> void:
 		details.append("Wert: %d" % int(card.values.get("feature_value", 1)))
 		if bool(card.values.get("is_checked", false)) or definition.tags.has("checked"):
 			details.append("Status: geprueft")
+	if definition.tags.has("business_goal"):
+		details.append("Fortschritt: %d/%d Geld" % [
+			maxi(0, int(card.values.get("paid_money", 0))),
+			maxi(1, int(card.values.get("required_money", 1))),
+		])
 	if card.state != null and card.state.is_paid:
 		details.append("Bezahlt fuer den naechsten Sprint")
 	elif card.state != null and card.state.is_payment_target:

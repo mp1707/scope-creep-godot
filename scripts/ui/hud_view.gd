@@ -77,6 +77,8 @@ func _get_phase_display_text(phase: ScopeEnums.RunPhase) -> String:
 			return "Bezahlen"
 		ScopeEnums.RunPhase.GAME_OVER:
 			return "Game Over"
+		ScopeEnums.RunPhase.VICTORY:
+			return "Gewonnen"
 		_:
 			return ScopeEnums.RunPhase.keys()[phase].capitalize()
 

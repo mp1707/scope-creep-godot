@@ -114,11 +114,13 @@ func _launch_software(effect: EffectDefinition, context: EffectContext) -> void:
 
 	var goal_card_definition_id: String = effect.parameters.get("goal_card_definition_id", "card.goal.business_goal") as String
 	if not goal_card_definition_id.is_empty():
+		context.state.completed_business_goal_count = 0
 		var goal: CardInstance = context.spawn_card.call(goal_card_definition_id, _get_spawn_position(context, customer_count)) as CardInstance
 		if goal != null:
 			goal.values["goal_index"] = 1
 			goal.values["required_money"] = 3
 			goal.values["paid_money"] = 0
+			goal.state.markers = PackedStringArray(["G1"])
 
 func _open_booster(effect: EffectDefinition, context: EffectContext) -> void:
 	var booster_id: String = effect.parameters.get("booster_definition_id", "") as String

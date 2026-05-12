@@ -19,6 +19,7 @@ enum RunPhase {
 	SPRINT,
 	PAYMENT,
 	GAME_OVER,
+	VICTORY,
 }
 
 enum ProcessingStatus {

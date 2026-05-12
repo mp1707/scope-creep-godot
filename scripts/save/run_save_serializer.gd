@@ -70,6 +70,7 @@ func serialize_run(state: RunState) -> Dictionary:
 		"rng_seed": state.rng_seed,
 		"rng_state": str(state.rng_state),
 		"content_version": state.content_version,
+		"completed_business_goal_count": state.completed_business_goal_count,
 		"active_timers": _encode_value(state.active_timers),
 		"paid_employee_ids": _packed_string_array_to_array(state.paid_employee_ids),
 		"board": _serialize_board(state.board),
@@ -94,6 +95,7 @@ func deserialize_run(data: Dictionary, content: ContentCatalog) -> RunState:
 	loaded_state.rng_seed = int(data.get("rng_seed", 0))
 	loaded_state.rng_state = int(str(data.get("rng_state", "0")))
 	loaded_state.content_version = data.get("content_version", "") as String
+	loaded_state.completed_business_goal_count = int(data.get("completed_business_goal_count", 0))
 	loaded_state.active_timers = _decode_value(data.get("active_timers", {})) as Dictionary
 	loaded_state.paid_employee_ids = _array_to_packed_string_array(data.get("paid_employee_ids", []))
 	loaded_state.board = _deserialize_board(data.get("board", {}) as Dictionary)

@@ -13,6 +13,7 @@ extends Resource
 @export var active_timers: Dictionary = {}
 @export var paid_employee_ids: PackedStringArray = PackedStringArray()
 @export var content_version: String = ""
+@export var completed_business_goal_count: int = 0
 
 func get_card(card_id: String) -> CardInstance:
 	return cards.get(card_id, null) as CardInstance

@@ -6,7 +6,7 @@ const PRODUCT_STAGE_LIVE: String = "live"
 var _failed: bool = false
 
 func _init() -> void:
-	_test_start_setup_contains_freelance_order_and_four_money()
+	_test_start_setup_contains_playtest_resources()
 	_test_pre_launch_sprint_start_keeps_one_freelance_order_available()
 	_test_post_launch_sprint_start_stops_freelance_spawn()
 	_test_freelance_order_pays_two_money_and_consumes_inputs()
@@ -19,13 +19,14 @@ func _init() -> void:
 	print("PoC3 phase 3 freelance tests passed.")
 	quit(0)
 
-func _test_start_setup_contains_freelance_order_and_four_money() -> void:
+func _test_start_setup_contains_playtest_resources() -> void:
 	var controller: RunController = _create_controller()
 	var state: RunState = controller.start_new_run(3301)
 
 	_assert_equal(_count_cards_by_definition(state, "card.value_source.freelance_order"), 1, "Start setup should include one freelance order.")
 	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), 30, "PoC3 playtest start setup should include thirty money cards.")
 	_assert_equal(_count_pure_stacks_by_definition(state, "card.resource.money"), 1, "PoC3 start money should spawn as one money stack.")
+	_assert_equal(_count_cards_by_definition(state, "card.output.checked_feature"), 10, "PoC3 playtest start setup should include ten checked features for faster launch testing.")
 
 func _test_pre_launch_sprint_start_keeps_one_freelance_order_available() -> void:
 	var controller: RunController = _create_controller()
@@ -68,6 +69,7 @@ func _test_checked_freelance_order_pays_three_money_and_consumes_inputs() -> voi
 	var order: CardInstance = _find_card_by_definition(state, "card.value_source.freelance_order")
 	var checked_feature: CardInstance = _spawn_card(controller, "card.output.checked_feature", Vector2(820.0, 360.0))
 	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
+	var checked_features_before: int = _count_cards_by_definition(state, "card.output.checked_feature")
 
 	controller.move_card_to_stack(checked_feature.instance_id, order.stack_id)
 	_assert_equal(state.get_stack(order.stack_id).processing_state.active_recipe_id, "recipe.money_from_freelance_order.checked_feature", "Checked feature + freelance order should start checked freelance delivery.")
@@ -75,7 +77,7 @@ func _test_checked_freelance_order_pays_three_money_and_consumes_inputs() -> voi
 
 	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before + 3, "Checked freelance order should pay three money cards.")
 	_assert_equal(_count_cards_by_definition(state, "card.value_source.freelance_order"), 0, "Fulfilled checked freelance order should be consumed.")
-	_assert_equal(_count_cards_by_definition(state, "card.output.checked_feature"), 0, "Freelance delivery should consume the checked feature.")
+	_assert_equal(_count_cards_by_definition(state, "card.output.checked_feature"), checked_features_before - 1, "Freelance delivery should consume one checked feature.")
 
 func _enter_next_sprint(controller: RunController) -> void:
 	controller.advance_time(60.0)
