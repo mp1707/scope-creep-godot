@@ -6,7 +6,7 @@
 [sub_resource type="Resource" id="Resource_t84vb"]
 script = ExtResource("1_x90nf")
 id = "shop_entry.booster.founder_test_pack"
-display_name = "Gruender-Testpack"
+display_name = "Gründerpanik"
 cost_money_cards = 1
 card_definition_id = "card.resource.booster_pack"
 booster_definition_id = "booster.founder.test_pack"
@@ -22,7 +22,7 @@ booster_definition_id = "booster.talent_pool"
 [sub_resource type="Resource" id="Resource_office_invest"]
 script = ExtResource("1_x90nf")
 id = "shop_entry.booster.office_invest"
-display_name = "Office-Invest"
+display_name = "Wohlbefinden"
 cost_money_cards = 1
 card_definition_id = "card.resource.booster_pack"
 booster_definition_id = "booster.office_invest"
@@ -38,7 +38,7 @@ booster_definition_id = "booster.customer_chaos"
 [sub_resource type="Resource" id="Resource_bugfix_patch"]
 script = ExtResource("1_x90nf")
 id = "shop_entry.card.bugfix_patch"
-display_name = "Bugfix-Patch"
+display_name = "Bugfix (extern)"
 cost_money_cards = 1
 card_definition_id = "card.consumable.bugfix_patch"
 

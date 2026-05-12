@@ -241,7 +241,7 @@ func _save_recipes() -> int:
 func _save_booster() -> int:
 	var booster: BoosterDefinition = BoosterDefinition.new()
 	booster.id = "booster.founder.test_pack"
-	booster.display_name = "Gruender-Testpack"
+	booster.display_name = "Gründerpanik"
 	booster.cost_money_cards = 1
 	booster.draw_count = 3
 	booster.pool_entries = [
@@ -254,7 +254,7 @@ func _save_booster() -> int:
 func _save_shop() -> int:
 	var entry: ShopEntryDefinition = ShopEntryDefinition.new()
 	entry.id = "shop_entry.booster.founder_test_pack"
-	entry.display_name = "Gruender-Testpack"
+	entry.display_name = "Gründerpanik"
 	entry.cost_money_cards = 1
 	entry.card_definition_id = "card.resource.booster_pack"
 	entry.booster_definition_id = "booster.founder.test_pack"

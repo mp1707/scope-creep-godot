@@ -16,9 +16,9 @@ func _init() -> void:
 	quit(0)
 
 func _test_themed_booster_slots_create_matching_pack() -> void:
-	_assert_slot_creates_booster("card.shop.booster_slot.talent_pool", "booster.talent_pool")
+	_assert_slot_creates_booster("card.shop.booster_slot", "booster.founder.test_pack")
 	_assert_slot_creates_booster("card.shop.booster_slot.office_invest", "booster.office_invest")
-	_assert_slot_creates_booster("card.shop.booster_slot.customer_chaos", "booster.customer_chaos")
+	_assert_spawned_slot_creates_booster("card.shop.booster_slot.customer_chaos", "booster.customer_chaos")
 
 func _test_bugfix_patch_shop_buys_patch() -> void:
 	var controller: RunController = _create_controller(703)
@@ -30,13 +30,14 @@ func _test_bugfix_patch_shop_buys_patch() -> void:
 	controller.move_card_to_stack(money.instance_id, slot.stack_id)
 	controller.advance_time(1.0)
 
-	_assert_equal(_count_cards_by_definition(state, "card.consumable.bugfix_patch"), patches_before + 1, "Patch shop should spawn one Bugfix-Patch.")
+	_assert_equal(_count_cards_by_definition(state, "card.consumable.bugfix_patch"), patches_before + 1, "Externe Hilfe should spawn one Bugfix (extern).")
 
 func _test_paused_multiple_shop_payments_queue_booster_purchases() -> void:
 	var controller: RunController = _create_controller(704)
 	var state: RunState = controller.start_new_run(704)
-	var slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.talent_pool")
+	var slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.office_invest")
 	var money_ids: PackedStringArray = _find_card_ids_by_definition(state, "card.resource.money")
+	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
 	controller.set_paused(true)
 
 	controller.move_card_to_stack(money_ids[0], slot.stack_id)
@@ -53,7 +54,7 @@ func _test_paused_multiple_shop_payments_queue_booster_purchases() -> void:
 
 	controller.advance_time(0.2)
 	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 2, "Second queued shop payment should spawn a second booster pack.")
-	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), 1, "Two queued shop payments should consume exactly two money cards.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before - 2, "Two queued shop payments should consume exactly two money cards.")
 
 func _test_each_booster_draws_deterministically_from_own_pool() -> void:
 	for booster_id: String in ["booster.talent_pool", "booster.office_invest", "booster.customer_chaos", "booster.hot_fix_kit"]:
@@ -74,6 +75,18 @@ func _assert_slot_creates_booster(slot_definition_id: String, booster_id: String
 
 	var pack: CardInstance = _find_card_by_definition(state, "card.resource.booster_pack")
 	_assert_equal(pack.values.get("booster_definition_id", ""), booster_id, "Themed slot should stamp the bought booster pack.")
+
+func _assert_spawned_slot_creates_booster(slot_definition_id: String, booster_id: String) -> void:
+	var controller: RunController = _create_controller(702)
+	var state: RunState = controller.start_new_run(702)
+	var slot: CardInstance = _spawn_card(controller, slot_definition_id, Vector2(920.0, 360.0))
+	var money: CardInstance = _find_card_by_definition(state, "card.resource.money")
+
+	controller.move_card_to_stack(money.instance_id, slot.stack_id)
+	controller.advance_time(1.0)
+
+	var pack: CardInstance = _find_card_by_definition(state, "card.resource.booster_pack")
+	_assert_equal(pack.values.get("booster_definition_id", ""), booster_id, "Spawned themed slot should stamp the bought booster pack.")
 
 func _open_booster_and_get_draws(booster_id: String, run_seed: int) -> Array[String]:
 	var controller: RunController = _create_controller(run_seed)

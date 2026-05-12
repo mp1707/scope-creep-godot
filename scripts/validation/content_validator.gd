@@ -52,6 +52,45 @@ const POC2_REQUIRED_RECIPE_INPUTS: Dictionary = {
 	"recipe.money_from_freelance_order.feature": ["card.value_source.freelance_order", "card.output.feature"],
 	"recipe.money_from_freelance_order.checked_feature": ["card.value_source.freelance_order", "card.output.checked_feature"],
 }
+const POC3_REQUIRED_CARD_IDS: Array[String] = [
+	"card.product.software",
+	"card.employee.developer",
+	"card.input.idea",
+	"card.consumable.coffee",
+	"card.resource.money",
+	"card.value_source.freelance_order",
+	"card.value_source.customer",
+	"card.input.customer_request",
+	"card.problem.unhappy_customer",
+	"card.goal.business_goal",
+	"card.problem.investor_panic",
+	"card.shop.booster_slot",
+	"card.shop.booster_slot.office_invest",
+	"card.shop.booster_slot.customer_chaos",
+	"card.shop.bugfix_patch_slot",
+]
+const POC3_REQUIRED_BOOSTER_IDS: Array[String] = [
+	"booster.founder.test_pack",
+	"booster.office_invest",
+	"booster.customer_chaos",
+]
+const POC3_ACTIVE_BOOSTER_SLOT_TARGETS: Dictionary = {
+	"card.shop.booster_slot": "booster.founder.test_pack",
+	"card.shop.booster_slot.office_invest": "booster.office_invest",
+	"card.shop.booster_slot.customer_chaos": "booster.customer_chaos",
+}
+const POC3_REQUIRED_RECIPE_IDS: Array[String] = [
+	"recipe.booster_pack_from_money.slot",
+	"recipe.bugfix_patch_from_money.slot",
+	"recipe.launch_software.developer",
+]
+const EFFECT_CARD_REFERENCE_KEYS: Array[String] = [
+	"card_definition_id",
+	"customer_card_definition_id",
+	"goal_card_definition_id",
+	"shop_slot_card_definition_id",
+	"copy_values_from_card_definition_id",
+]
 
 var _errors: PackedStringArray = PackedStringArray()
 var _seen_ids: Dictionary = {}
@@ -73,14 +112,17 @@ func validate_content() -> PackedStringArray:
 	for card_resource: Resource in cards:
 		_validate_card(card_resource as CardDefinition)
 	_validate_poc2_cross_card_rules(cards)
+	_validate_poc3_required_cards()
 	for booster_resource: Resource in boosters:
 		var booster: BoosterDefinition = booster_resource as BoosterDefinition
 		_booster_ids[booster.id] = booster.resource_path
+	_validate_poc3_required_boosters()
 
 	for recipe_resource: Resource in recipes:
 		_validate_recipe(recipe_resource as RecipeDefinition)
 	_validate_ambiguous_recipes(recipes)
 	_validate_poc2_recipe_patterns(recipes)
+	_validate_poc3_recipe_patterns(recipes)
 
 	for booster_resource: Resource in boosters:
 		_validate_booster(booster_resource as BoosterDefinition)
@@ -210,6 +252,27 @@ func _validate_poc2_cross_card_rules(cards: Array) -> void:
 		elif not _card_ids.has(spawned_card_id):
 			_errors.append("%s: Sprint tick spawner '%s' references missing card '%s'." % [card.resource_path, card.id, spawned_card_id])
 
+func _validate_poc3_required_cards() -> void:
+	for card_id: String in POC3_REQUIRED_CARD_IDS:
+		if not _card_ids.has(card_id):
+			_errors.append("PoC3 requires card '%s'." % card_id)
+
+	for slot_card_id: String in POC3_ACTIVE_BOOSTER_SLOT_TARGETS.keys():
+		if not _card_ids.has(slot_card_id):
+			continue
+		var card: CardDefinition = ResourceLoader.load(_card_ids[slot_card_id]) as CardDefinition
+		if card == null:
+			continue
+		var booster_id: String = card.base_values.get("booster_definition_id", "") as String
+		var expected_booster_id: String = POC3_ACTIVE_BOOSTER_SLOT_TARGETS[slot_card_id] as String
+		if booster_id != expected_booster_id:
+			_errors.append("%s: PoC3 shop slot '%s' must target booster '%s'." % [card.resource_path, slot_card_id, expected_booster_id])
+
+func _validate_poc3_required_boosters() -> void:
+	for booster_id: String in POC3_REQUIRED_BOOSTER_IDS:
+		if not _booster_ids.has(booster_id):
+			_errors.append("PoC3 requires booster '%s'." % booster_id)
+
 func _validate_recipe(recipe: RecipeDefinition) -> void:
 	var path: String = recipe.resource_path
 	if recipe.display_text.strip_edges().is_empty():
@@ -275,6 +338,27 @@ func _validate_poc2_recipe_patterns(recipes: Array) -> void:
 		if stress_recipe.specificity_score < pizza_recipe.specificity_score:
 			_errors.append("%s: Stress course recovery must be at least as specific as pizza recovery." % stress_recipe.resource_path)
 
+func _validate_poc3_recipe_patterns(recipes: Array) -> void:
+	var recipes_by_id: Dictionary = {}
+	for recipe_resource: Resource in recipes:
+		var recipe: RecipeDefinition = recipe_resource as RecipeDefinition
+		if recipe != null:
+			recipes_by_id[recipe.id] = recipe
+
+	for recipe_id: String in POC3_REQUIRED_RECIPE_IDS:
+		if not recipes_by_id.has(recipe_id):
+			_errors.append("PoC3 requires recipe '%s'." % recipe_id)
+
+	var launch_recipe: RecipeDefinition = recipes_by_id.get("recipe.launch_software.developer", null) as RecipeDefinition
+	if launch_recipe == null:
+		return
+	var launches_customer_chaos: bool = false
+	for effect: EffectDefinition in launch_recipe.effects_on_complete:
+		if effect != null and effect.effect_type == "launch_software":
+			launches_customer_chaos = effect.parameters.get("shop_slot_card_definition_id", "") == "card.shop.booster_slot.customer_chaos"
+	if not launches_customer_chaos:
+		_errors.append("%s: PoC3 launch recipe must activate the Kundenchaos shop slot after launch." % launch_recipe.resource_path)
+
 func _recipe_has_required_input(recipe: RecipeDefinition, required_input: String) -> bool:
 	if required_input.begins_with("tag:"):
 		return _recipe_has_tag_input(recipe, required_input.trim_prefix("tag:"))
@@ -333,10 +417,12 @@ func _validate_effects(path: String, owner_id: String, effects: Array[EffectDefi
 			continue
 		if effect.effect_type.strip_edges().is_empty():
 			_errors.append("%s: Effect on '%s' needs effect_type." % [path, owner_id])
-		if effect.parameters.has("card_definition_id"):
-			var card_definition_id: String = effect.parameters["card_definition_id"] as String
-			if not _card_ids.has(card_definition_id):
-				_errors.append("%s: Effect on '%s' references missing card '%s'." % [path, owner_id, card_definition_id])
+		for card_reference_key: String in EFFECT_CARD_REFERENCE_KEYS:
+			if not effect.parameters.has(card_reference_key):
+				continue
+			var card_definition_id: String = effect.parameters[card_reference_key] as String
+			if not card_definition_id.is_empty() and not _card_ids.has(card_definition_id):
+				_errors.append("%s: Effect on '%s' references missing card '%s' via '%s'." % [path, owner_id, card_definition_id, card_reference_key])
 		if effect.parameters.has("booster_definition_id"):
 			var booster_definition_id: String = effect.parameters["booster_definition_id"] as String
 			if not _booster_ids.has(booster_definition_id):

@@ -13,12 +13,12 @@ marker_text = "FIX"
 [resource]
 script = ExtResource("1_card")
 id = "card.shop.bugfix_patch_slot"
-display_name = "Patch-Shop"
+display_name = "Externe Hilfe"
 type = 6
 tags = PackedStringArray("shop", "bugfix_patch_slot")
-short_text = "Kauft Bugfix-Patch"
-tooltip_text = "Lege 1 Geld auf den Slot, um gezielt einen Bugfix-Patch zu kaufen."
+short_text = "Kauft Bugfix"
+tooltip_text = "Lege 1 Geld auf den Slot, um gezielt Bugfix (extern) zu kaufen."
 visual = SubResource("Resource_visual")
 base_values = {
-"shop_dock_order": 40
+"shop_dock_order": 30
 }

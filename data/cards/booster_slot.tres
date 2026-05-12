@@ -19,13 +19,13 @@ marker_text = "$"
 [resource]
 script = ExtResource("1_vy2m0")
 id = "card.shop.booster_slot"
-display_name = "Booster-Slot"
+display_name = "Gründerpanik"
 type = 6
 tags = PackedStringArray("shop", "booster_slot")
-short_text = "Kauft ein Pack"
-tooltip_text = "Lege 1 Geld auf den Slot, um ein Boosterpack zu kaufen."
+short_text = "Fruehes Notfall-Pack"
+tooltip_text = "Lege 1 Geld auf den Slot, um ein Gründerpanik-Pack mit Ideen, Kaffee oder Geld zu kaufen."
 visual = SubResource("Resource_7u6xq")
 base_values = {
 "booster_definition_id": "booster.founder.test_pack",
-"shop_dock_order": 50
+"shop_dock_order": 10
 }

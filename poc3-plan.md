@@ -20,8 +20,8 @@ Der Plan bleibt bewusst phasenweise und abhakbar. Jede Phase ist so geschnitten,
 - [x] Phase 5 - Kundenwirtschaft nach Launch
 - [x] Phase 6 - Kundendruck und Unzufriedenheit
 - [x] Phase 7 - Business Goals, Investorenpanik und PoC3-Endzustand
-- [ ] Phase 8 - Booster-/Shop-Scope fuer PoC3
-- [ ] Phase 9 - Save/Load, Validation und Migration auf Content-Version `poc3`
+- [x] Phase 8 - Booster-/Shop-Scope fuer PoC3
+- [x] Phase 9 - Save/Load, Validation und Migration auf Content-Version `poc3`
 - [ ] Phase 10 - Balancing, Playtest-Script und QA
 - [ ] Stretch - Kundenwachstum durch zusaetzliche Live-Features
 
@@ -435,27 +435,27 @@ Ziel: Booster unterstuetzen den neuen Run-Bogen, ohne das Hiring-Rework vorzuzie
 
 Codex:
 
-- [ ] Startsetup auf PoC3 umstellen: Software MVP, Entwickler, Idee, Kaffee, aktuell 30 Geld als Playtest-Hilfe, 1 Freelance-Auftrag, Gruenderpanik-Slot, Office-Invest-Slot, Patch-Shop.
-- [ ] Talent-Pool aus normalem PoC3-Startsetup entfernen oder deaktivieren.
-- [ ] `Gruenderpanik` als fruehes 1-Geld-Pack definieren oder bestehendes Founder-Test-Pack fachlich entsprechend umbauen.
-- [ ] Office-Invest fuer PoC3 pruefen: Kaffee, Kaffeemaschine, Pizza Party, Stresskurs.
-- [ ] Patch-Shop als deterministische Bugfix-Patch-Quelle aktiv lassen.
-- [ ] Kundenchaos entweder erst nach Launch aktivieren oder vorerst aus dem Startsetup entfernen. Empfehlung: erst nach Launch, damit Pre-Launch nicht durch zufaellige Kunden verwischt.
-- [ ] Shop-/Booster-Validator erweitern, damit deaktivierte Packs nicht als fehlende Referenzen oder tote Startkarten durchrutschen.
-- [ ] Tests fuer Startsetup und kaufbare PoC3-Shop-Eintraege schreiben.
+- [x] Startsetup auf PoC3 umstellen: Software MVP, Entwickler, Idee, Kaffee, aktuell 30 Geld als Playtest-Hilfe, 1 Freelance-Auftrag, Gründerpanik-Slot, Wohlbefinden-Slot, Externe-Hilfe-Slot.
+- [x] Talent-Pool aus normalem PoC3-Startsetup entfernen oder deaktivieren.
+- [x] `Gründerpanik` als fruehes 1-Geld-Pack definieren oder bestehendes Founder-Test-Pack fachlich entsprechend umbauen.
+- [x] Wohlbefinden fuer PoC3 pruefen: Kaffee, Kaffeemaschine, Pizza Party, Stresskurs.
+- [x] Externe Hilfe als deterministische Bugfix-Quelle aktiv lassen.
+- [x] Kundenchaos entweder erst nach Launch aktivieren oder vorerst aus dem Startsetup entfernen. Empfehlung: erst nach Launch, damit Pre-Launch nicht durch zufaellige Kunden verwischt.
+- [x] Shop-/Booster-Validator erweitern, damit deaktivierte Packs nicht als fehlende Referenzen oder tote Startkarten durchrutschen.
+- [x] Tests fuer Startsetup und kaufbare PoC3-Shop-Eintraege schreiben.
 
 Marco:
 
-- [ ] Shop-Dock im Editor pruefen: aktive Slots muessen lesbar und nicht ueberladen sein.
-- [ ] Entscheiden, ob Kundenchaos im Playtest direkt nach Launch sichtbar sein soll oder erst als Stretch.
-- [ ] Packnamen und Tooltips sprachlich abstimmen.
+- [x] Shop-Dock im Editor pruefen: aktive Slots muessen lesbar und nicht ueberladen sein.
+- [x] Entscheiden, ob Kundenchaos im Playtest direkt nach Launch sichtbar sein soll oder erst als Stretch.
+- [x] Packnamen und Tooltips sprachlich abstimmen.
 
 Definition of Done:
 
-- [ ] Talent-Pool stoert den PoC3-Test nicht.
-- [ ] Spieler hat fruehe Hilfe, aber kein zufaelliges Hiring-Spam.
-- [ ] Patch-Shop bleibt als bewusstes Notfallventil erhalten.
-- [ ] Aktive Packs zahlen auf MVP/Launch/Kundenloop ein.
+- [x] Talent-Pool stoert den PoC3-Test nicht.
+- [x] Spieler hat fruehe Hilfe, aber kein zufaelliges Hiring-Spam.
+- [x] Externe Hilfe bleibt als bewusstes Notfallventil erhalten.
+- [x] Aktive Packs zahlen auf MVP/Launch/Kundenloop ein.
 
 Headless-Test:
 
@@ -463,37 +463,41 @@ Headless-Test:
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc3_phase_8_shop_scope.gd
 ```
 
+Status: bestanden.
+
 ## Phase 9 - Save/Load, Validation und Migration auf Content-Version `poc3`
 
 Ziel: Der neue Run-State ist speicherbar, validierbar und bricht alte PoC2-Saves nicht still.
 
 Codex:
 
-- [ ] `CONTENT_VERSION` auf `poc3` umstellen, sobald die Kernsysteme stabil sind.
-- [ ] Save/Load fuer neue Software-, Kundenwunsch-, Unzufrieden-Attachment- und Business-Goal-Runtime-Werte testen.
-- [ ] Serializer so erweitern, dass neue Runtime-Werte stabil erhalten bleiben.
-- [ ] Falls alte PoC2-Saves geladen werden koennen sollen: Defaultwerte oder klare Inkompatibilitaetsmeldung implementieren.
-- [ ] Content-Validator um neue Pflichtkarten, Recipes, Shop-Eintraege und Runtime-relevante IDs erweitern.
-- [ ] Validator prueft, dass Business-Goal-/Investorenpanik-/Unzufrieden-Karten vorhanden sind.
-- [ ] Tests fuer Save/Load mitten in Pre-Launch, launchbereit, Post-Launch mit aktivem Goal und Kundendruck schreiben.
+- [x] `CONTENT_VERSION` auf `poc3` umstellen, sobald die Kernsysteme stabil sind.
+- [x] Save/Load fuer neue Software-, Kundenwunsch-, Unzufrieden-Attachment- und Business-Goal-Runtime-Werte testen.
+- [x] Serializer so erweitern, dass neue Runtime-Werte stabil erhalten bleiben.
+- [x] Falls alte PoC2-Saves geladen werden koennen sollen: Defaultwerte oder klare Inkompatibilitaetsmeldung implementieren.
+- [x] Content-Validator um neue Pflichtkarten, Recipes, Shop-Eintraege und Runtime-relevante IDs erweitern.
+- [x] Validator prueft, dass Business-Goal-/Investorenpanik-/Unzufrieden-Karten vorhanden sind.
+- [x] Tests fuer Save/Load mitten in Pre-Launch, launchbereit, Post-Launch mit aktivem Goal und Kundendruck schreiben.
 
 Marco:
 
-- [ ] Im Editor einmal speichern/laden pruefen, besonders pausierter/frozen Zustand.
-- [ ] Sichtbar pruefen, dass Software-Featurezahl, Goal-Fortschritt, Kundenwuensche und angeheftete Unzufriedenheit nach Load korrekt angezeigt werden.
+- [x] Im Editor einmal speichern/laden pruefen, besonders pausierter/frozen Zustand.
+- [x] Sichtbar pruefen, dass Software-Featurezahl, Goal-Fortschritt, Kundenwuensche und angeheftete Unzufriedenheit nach Load korrekt angezeigt werden.
 
 Definition of Done:
 
-- [ ] Neue PoC3-Runtime-Werte ueberleben Save/Load.
-- [ ] Content-Validator meldet fehlende PoC3-Referenzen klar.
-- [ ] Alte inkompatible Saves scheitern kontrolliert oder werden bewusst migriert.
-- [ ] Save bleibt nur im pausierten/frozen Zustand erlaubt.
+- [x] Neue PoC3-Runtime-Werte ueberleben Save/Load.
+- [x] Content-Validator meldet fehlende PoC3-Referenzen klar.
+- [x] Alte inkompatible Saves scheitern kontrolliert oder werden bewusst migriert.
+- [x] Save bleibt nur im pausierten/frozen Zustand erlaubt.
 
 Headless-Test:
 
 ```bash
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc3_phase_9_save_validation.gd
 ```
+
+Status: bestanden.
 
 ## Phase 10 - Balancing, Playtest-Script und QA
 

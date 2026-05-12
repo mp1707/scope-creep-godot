@@ -11,7 +11,7 @@ const START_LAYOUT_ORIGIN: Vector2 = Vector2(420.0, 322.0)
 const START_LAYOUT_COLUMNS: int = 6
 const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
 const DEFAULT_BOOSTER_DEFINITION_ID: String = "booster.founder.test_pack"
-const CONTENT_VERSION: String = "poc2"
+const CONTENT_VERSION: String = "poc3"
 const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
 const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
 const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
@@ -26,7 +26,7 @@ const UNHAPPY_CUSTOMER_DEFINITION_ID: String = "card.problem.unhappy_customer"
 const BUSINESS_GOAL_DEFINITION_ID: String = "card.goal.business_goal"
 const INVESTOR_PANIC_DEFINITION_ID: String = "card.problem.investor_panic"
 const START_MONEY_CARD_COUNT: int = 30
-const START_CHECKED_FEATURE_CARD_COUNT: int = 10
+const START_CHECKED_FEATURE_CARD_COUNT: int = 0
 const BUSINESS_GOAL_REQUIRED_MONEY: Array[int] = [3, 5, 7]
 const BUSINESS_GOAL_WIN_COUNT: int = 3
 const INVESTOR_PANIC_GAME_OVER_COUNT: int = 2
@@ -40,9 +40,7 @@ const START_CARD_IDS: Array[String] = [
 	"card.value_source.freelance_order",
 	"card.shop.booster_slot",
 	"card.resource.money",
-	"card.shop.booster_slot.talent_pool",
 	"card.shop.booster_slot.office_invest",
-	"card.shop.booster_slot.customer_chaos",
 	"card.shop.bugfix_patch_slot",
 ]
 

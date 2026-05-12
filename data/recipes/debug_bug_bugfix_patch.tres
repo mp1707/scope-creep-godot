@@ -37,7 +37,7 @@ card_definition_id = "card.consumable.bugfix_patch"
 [resource]
 script = ExtResource("4_recipe")
 id = "recipe.debug_bug.bugfix_patch"
-display_text = "Patch anwenden..."
+display_text = "Bugfix anwenden..."
 inputs = Array[ExtResource("1_matcher")]([SubResource("Input_bug"), SubResource("Input_patch")])
 duration = SubResource("Duration_bugfix_patch")
 priority = 30

@@ -13,13 +13,13 @@ marker_text = "OI"
 [resource]
 script = ExtResource("1_card")
 id = "card.shop.booster_slot.office_invest"
-display_name = "Office-Invest"
+display_name = "Wohlbefinden"
 type = 6
 tags = PackedStringArray("shop", "booster_slot")
-short_text = "Buerohilfe"
-tooltip_text = "Lege 1 Geld auf den Slot, um ein Office-Invest-Pack zu kaufen."
+short_text = "Team stabilisieren"
+tooltip_text = "Lege 1 Geld auf den Slot, um ein Wohlbefinden-Pack zu kaufen."
 visual = SubResource("Resource_visual")
 base_values = {
 "booster_definition_id": "booster.office_invest",
-"shop_dock_order": 30
+"shop_dock_order": 20
 }

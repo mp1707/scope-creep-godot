@@ -2,6 +2,7 @@ class_name RunSaveSerializer
 extends RefCounted
 
 const SCHEMA_VERSION: int = 1
+const SUPPORTED_CONTENT_VERSION: String = "poc3"
 
 var errors: PackedStringArray = PackedStringArray()
 
@@ -86,6 +87,10 @@ func deserialize_run(data: Dictionary, content: ContentCatalog) -> RunState:
 	if int(data.get("schema_version", 0)) != SCHEMA_VERSION:
 		errors.append("Unsupported save schema version: %s" % str(data.get("schema_version", null)))
 		return null
+	var content_version: String = data.get("content_version", "") as String
+	if content_version != SUPPORTED_CONTENT_VERSION:
+		errors.append("Unsupported save content version: '%s'. This build loads '%s' saves only." % [content_version, SUPPORTED_CONTENT_VERSION])
+		return null
 
 	var loaded_state: RunState = RunState.new()
 	loaded_state.run_id = data.get("run_id", "") as String
@@ -94,7 +99,7 @@ func deserialize_run(data: Dictionary, content: ContentCatalog) -> RunState:
 	loaded_state.is_paused = bool(data.get("is_paused", false))
 	loaded_state.rng_seed = int(data.get("rng_seed", 0))
 	loaded_state.rng_state = int(str(data.get("rng_state", "0")))
-	loaded_state.content_version = data.get("content_version", "") as String
+	loaded_state.content_version = content_version
 	loaded_state.completed_business_goal_count = int(data.get("completed_business_goal_count", 0))
 	loaded_state.active_timers = _decode_value(data.get("active_timers", {})) as Dictionary
 	loaded_state.paid_employee_ids = _array_to_packed_string_array(data.get("paid_employee_ids", []))

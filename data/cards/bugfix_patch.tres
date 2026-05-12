@@ -13,7 +13,7 @@ marker_text = "FIX"
 [resource]
 script = ExtResource("1_card")
 id = "card.consumable.bugfix_patch"
-display_name = "Bugfix-Patch"
+display_name = "Bugfix (extern)"
 type = 9
 tags = PackedStringArray("consumable", "bugfix_patch")
 short_text = "Entfernt Bug sofort"

@@ -38,7 +38,7 @@ card_definition_id = "card.shop.bugfix_patch_slot"
 [resource]
 script = ExtResource("4_recipe")
 id = "recipe.bugfix_patch_from_money.slot"
-display_text = "Patch kaufen"
+display_text = "Externe Hilfe kaufen"
 inputs = Array[ExtResource("1_matcher")]([SubResource("Input_money"), SubResource("Input_patch_slot")])
 duration = SubResource("Duration_buy")
 priority = 10

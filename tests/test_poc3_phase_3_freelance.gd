@@ -26,7 +26,7 @@ func _test_start_setup_contains_playtest_resources() -> void:
 	_assert_equal(_count_cards_by_definition(state, "card.value_source.freelance_order"), 1, "Start setup should include one freelance order.")
 	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), 30, "PoC3 playtest start setup should include thirty money cards.")
 	_assert_equal(_count_pure_stacks_by_definition(state, "card.resource.money"), 1, "PoC3 start money should spawn as one money stack.")
-	_assert_equal(_count_cards_by_definition(state, "card.output.checked_feature"), 10, "PoC3 playtest start setup should include ten checked features for faster launch testing.")
+	_assert_equal(_count_cards_by_definition(state, "card.output.checked_feature"), 0, "PoC3 start setup should not include checked-feature launch scaffolding.")
 
 func _test_pre_launch_sprint_start_keeps_one_freelance_order_available() -> void:
 	var controller: RunController = _create_controller()

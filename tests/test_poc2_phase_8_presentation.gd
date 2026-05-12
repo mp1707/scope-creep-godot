@@ -211,7 +211,7 @@ func _test_empty_board_drag_requests_camera_pan() -> void:
 func _test_shop_cards_are_docked_and_not_rendered_on_board() -> void:
 	var controller: RunController = _create_controller(804)
 	var state: RunState = controller.start_new_run(804)
-	var shop_card: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.talent_pool")
+	var shop_card: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.office_invest")
 	var money: CardInstance = _find_card_by_definition(state, "card.resource.money")
 
 	var board: BoardView = BoardView.new()
@@ -243,7 +243,7 @@ func _test_board_drag_can_drop_money_on_shop_dock() -> void:
 	var money: CardInstance = _find_card_by_definition(state, "card.resource.money")
 	var money_stack: StackState = state.get_stack(money.stack_id)
 	money = state.get_card(money_stack.card_ids[money_stack.card_ids.size() - 1])
-	var shop_card: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.talent_pool")
+	var shop_card: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.office_invest")
 
 	var board: BoardView = BoardView.new()
 	var dock: Control = _create_shop_dock()

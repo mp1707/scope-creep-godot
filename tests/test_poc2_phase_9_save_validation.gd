@@ -6,10 +6,10 @@ const PAYMENT_SAVE_PATH: String = "user://scope_creep_poc2_phase_9_payment_test.
 var _failed: bool = false
 
 func _init() -> void:
-	_test_new_runs_use_poc2_content_version()
-	_test_save_load_keeps_poc2_runtime_state()
+	_test_new_runs_use_current_content_version()
+	_test_save_load_keeps_runtime_state()
 	_test_save_is_allowed_only_when_frozen()
-	_test_content_validator_accepts_poc2_content()
+	_test_content_validator_accepts_current_content()
 
 	if _failed:
 		quit(1)
@@ -18,12 +18,12 @@ func _init() -> void:
 	print("PoC2 phase 9 save/validation tests passed.")
 	quit(0)
 
-func _test_new_runs_use_poc2_content_version() -> void:
+func _test_new_runs_use_current_content_version() -> void:
 	var controller: RunController = _create_controller(901)
 	var state: RunState = controller.start_new_run(901)
-	_assert_equal(state.content_version, "poc2", "New runs should stamp the PoC2 content version.")
+	_assert_equal(state.content_version, "poc3", "New runs should stamp the current content version.")
 
-func _test_save_load_keeps_poc2_runtime_state() -> void:
+func _test_save_load_keeps_runtime_state() -> void:
 	var controller: RunController = _create_controller(902)
 	var state: RunState = controller.start_new_run(902)
 	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
@@ -47,10 +47,10 @@ func _test_save_load_keeps_poc2_runtime_state() -> void:
 	var recovery_stack: StackState = state.get_stack(developer.stack_id)
 	var rng_before_save: int = state.rng_state
 	var remaining_before: PackedStringArray = _variant_to_packed_string_array(pack.values["booster_remaining_card_ids"])
-	_assert_true(controller.save_current_run(SAVE_PATH), "Paused PoC2 run should save.")
+	_assert_true(controller.save_current_run(SAVE_PATH), "Paused run should save.")
 
 	var loaded_controller: RunController = _create_controller(903)
-	_assert_true(loaded_controller.load_run_from_file(SAVE_PATH), "PoC2 save should load.")
+	_assert_true(loaded_controller.load_run_from_file(SAVE_PATH), "Current-version save should load.")
 	var loaded_state: RunState = loaded_controller.state
 	var loaded_feature: CardInstance = loaded_state.get_card(feature.instance_id)
 	var loaded_burnout: CardInstance = loaded_state.get_card(burnout.instance_id)
@@ -60,7 +60,7 @@ func _test_save_load_keeps_poc2_runtime_state() -> void:
 	var loaded_recovery_stack: StackState = loaded_state.get_stack(recovery_stack.stack_id)
 
 	_assert_true(loaded_state.is_paused, "Loaded sprint run should be frozen.")
-	_assert_equal(loaded_state.content_version, "poc2", "Loaded run should keep content version.")
+	_assert_equal(loaded_state.content_version, "poc3", "Loaded run should keep content version.")
 	_assert_equal(loaded_feature.values["feature_value"], 3, "Feature value should survive save/load.")
 	_assert_equal(loaded_feature.values["is_checked"], true, "Checked feature state should survive save/load.")
 	_assert_equal(loaded_feature.values["source_quality"], "checked", "Source quality should survive save/load.")
@@ -86,12 +86,12 @@ func _test_save_is_allowed_only_when_frozen() -> void:
 	_assert_equal(state.phase, ScopeEnums.RunPhase.PAYMENT, "Test run should enter payment phase.")
 	_assert_true(controller.save_current_run(PAYMENT_SAVE_PATH), "Payment phase run should save.")
 
-func _test_content_validator_accepts_poc2_content() -> void:
+func _test_content_validator_accepts_current_content() -> void:
 	var validator: ContentValidator = ContentValidator.new()
 	var errors: PackedStringArray = validator.validate_content()
 	for error: String in errors:
 		printerr(error)
-	_assert_equal(errors.size(), 0, "PoC2 content validation should pass.")
+	_assert_equal(errors.size(), 0, "Current content validation should pass.")
 
 func _create_controller(run_seed: int) -> RunController:
 	var catalog: ContentCatalog = ContentCatalog.new()
