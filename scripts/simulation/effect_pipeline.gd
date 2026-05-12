@@ -108,7 +108,7 @@ func _launch_software(effect: EffectDefinition, context: EffectContext) -> void:
 	software.values[ProductLifecycleService.LAUNCH_FEATURE_COUNT_VALUE] = feature_count
 
 	var customer_card_definition_id: String = effect.parameters.get("customer_card_definition_id", "card.value_source.customer") as String
-	var customer_count: int = floori(float(feature_count) / 5.0)
+	var customer_count: int = floori(float(feature_count) / float(_get_launch_features_per_start_customer(context)))
 	for index: int in customer_count:
 		context.spawn_card.call(customer_card_definition_id, _get_spawn_position(context, index))
 
@@ -118,7 +118,7 @@ func _launch_software(effect: EffectDefinition, context: EffectContext) -> void:
 		var goal: CardInstance = context.spawn_card.call(goal_card_definition_id, _get_spawn_position(context, customer_count)) as CardInstance
 		if goal != null:
 			goal.values["goal_index"] = 1
-			goal.values["required_money"] = 3
+			goal.values["required_money"] = _get_business_goal_required_money(context, 1)
 			goal.values["paid_money"] = 0
 			goal.state.markers = PackedStringArray(["G1"])
 
@@ -195,8 +195,24 @@ func _get_spawn_count(effect: EffectDefinition, context: EffectContext) -> int:
 		match count_key:
 			"order_bonus_money_cards":
 				return maxi(0, context.content.balance.order_bonus_money_cards)
+			"poc3_freelance_feature_money_cards":
+				return maxi(0, context.content.balance.poc3_freelance_feature_money_cards)
+			"poc3_freelance_checked_feature_money_cards":
+				return maxi(0, context.content.balance.poc3_freelance_checked_feature_money_cards)
 
 	return maxi(0, effect.parameters.get("count", 1) as int)
+
+func _get_launch_features_per_start_customer(context: EffectContext) -> int:
+	if context.content.balance == null:
+		return 5
+	return maxi(1, context.content.balance.poc3_launch_features_per_start_customer)
+
+func _get_business_goal_required_money(context: EffectContext, goal_index: int) -> int:
+	if context.content.balance == null or context.content.balance.poc3_business_goal_required_money.is_empty():
+		return [3, 5, 7][clampi(goal_index - 1, 0, 2)]
+	var required_money_values: Array[int] = context.content.balance.poc3_business_goal_required_money
+	var index: int = clampi(goal_index - 1, 0, required_money_values.size() - 1)
+	return maxi(1, required_money_values[index])
 
 func _apply_spawn_parameters(spawned_card: CardInstance, effect: EffectDefinition, context: EffectContext) -> void:
 	if spawned_card == null:

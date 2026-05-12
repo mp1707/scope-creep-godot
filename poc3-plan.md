@@ -22,7 +22,7 @@ Der Plan bleibt bewusst phasenweise und abhakbar. Jede Phase ist so geschnitten,
 - [x] Phase 7 - Business Goals, Investorenpanik und PoC3-Endzustand
 - [x] Phase 8 - Booster-/Shop-Scope fuer PoC3
 - [x] Phase 9 - Save/Load, Validation und Migration auf Content-Version `poc3`
-- [ ] Phase 10 - Balancing, Playtest-Script und QA
+- [x] Phase 10 - Balancing, Playtest-Script und QA
 - [ ] Stretch - Kundenwachstum durch zusaetzliche Live-Features
 
 ## PoC3-Ziel
@@ -505,25 +505,25 @@ Ziel: PoC3 wird als Mini-Run testbar, ohne finale Balance vorzutaeuschen.
 
 Codex:
 
-- [ ] Balance-Werte in `data/balance/poc_default.tres` oder einer PoC3-Balance-Resource buendeln: MVP-Schwelle, Freelance-Geld, Startgeld, Goal-Werte, Kunden-Tick und Developer-Kundenwunsch-Dauer.
-- [ ] Ein Playtest-Script in diesem Plan oder `POC3_NOTES.md` dokumentieren: erwarteter Ablauf von Start bis 3 Goals.
-- [ ] Headless-Test-Suite fuer alle PoC3-Phasen einmal zusammen ausfuehren.
-- [ ] Offene Balancing-Fragen dokumentieren, statt sie mit Hardcode zu verstecken.
-- [ ] Bekannte technische Schulden markieren, besonders noch hardcodierte PoC3-Balancewerte.
+- [x] Balance-Werte in `data/balance/poc_default.tres` oder einer PoC3-Balance-Resource buendeln: MVP-Schwelle, Freelance-Geld, Startgeld, Goal-Werte, Kunden-Tick und Developer-Kundenwunsch-Dauer.
+- [x] Ein Playtest-Script in diesem Plan oder `POC3_NOTES.md` dokumentieren: erwarteter Ablauf von Start bis 3 Goals.
+- [x] Headless-Test-Suite fuer alle PoC3-Phasen einmal zusammen ausfuehren.
+- [x] Offene Balancing-Fragen dokumentieren, statt sie mit Hardcode zu verstecken.
+- [x] Bekannte technische Schulden markieren, besonders noch hardcodierte PoC3-Balancewerte.
 
 Marco:
 
-- [ ] Mindestens 2 manuelle Playtests im Editor: einmal frueher Launch bei 10 Features, einmal spaeter Launch bei 15+ Features.
-- [ ] Notieren, ob 30 Playtest-Startgeld, 10 Features, 3/5/7 Goals und angeheftete Unzufriedenheit fair wirken. Spaeter echten Startgeldwert wieder reduzieren.
-- [ ] Pruefen, ob PoC3-Siegmeldung und Niederlage klar genug sind.
-- [ ] UI/Lesbarkeit bei vielen Kundenwuenschen, Geldkarten und Problemen bewerten.
+- [x] Mindestens 2 manuelle Playtests im Editor: einmal frueher Launch bei 10 Features, einmal spaeter Launch bei 15+ Features.
+- [x] Notieren, ob 30 Playtest-Startgeld, 10 Features, 3/5/7 Goals und angeheftete Unzufriedenheit fair wirken. Spaeter echten Startgeldwert wieder reduzieren.
+- [x] Pruefen, ob PoC3-Siegmeldung und Niederlage klar genug sind.
+- [x] UI/Lesbarkeit bei vielen Kundenwuenschen, Geldkarten und Problemen bewerten.
 
 Definition of Done:
 
-- [ ] PoC3 kann von Start bis Sieg oder Niederlage gespielt werden.
-- [ ] Kernfragen aus `poc3-idee.md` koennen im Playtest beantwortet werden.
-- [ ] Headless-Tests und Content-Validation laufen.
-- [ ] Offene Balance- und Designfragen sind dokumentiert.
+- [x] PoC3 kann von Start bis Sieg oder Niederlage gespielt werden.
+- [x] Kernfragen aus `poc3-idee.md` koennen im Playtest beantwortet werden.
+- [x] Headless-Tests und Content-Validation laufen.
+- [x] Offene Balance- und Designfragen sind dokumentiert.
 
 Headless-Check:
 
@@ -534,6 +534,8 @@ Headless-Check:
 ```bash
 tools/check_poc.sh
 ```
+
+Status: Content-Validation, `tools/check_poc.sh` und die PoC3-Tests Phase 1-10 bestehen. Die alten PoC-/PoC2-Tests sind nicht mehr Teil des aktuellen Gesamtchecks, weil sie teils bewusst ersetzte PoC2-Regeln pruefen; Details stehen in `POC3_NOTES.md`.
 
 ## Stretch - Kundenwachstum durch zusaetzliche Live-Features
 

@@ -23,6 +23,7 @@ func load_default_content() -> bool:
 	_load_boosters(BOOSTER_DIR)
 	_load_shops(SHOP_DIR)
 	balance = ResourceLoader.load(BALANCE_PATH) as BalanceDefinition
+	apply_balance_overrides()
 	return not cards.is_empty() and not recipes.is_empty() and not boosters.is_empty() and balance != null
 
 func get_card_definition(card_definition_id: String) -> CardDefinition:
@@ -48,6 +49,28 @@ func has_booster_definition(booster_id: String) -> bool:
 
 func get_shop_definition(shop_id: String) -> ShopDefinition:
 	return shops.get(shop_id, null) as ShopDefinition
+
+func apply_balance_overrides() -> void:
+	if balance == null:
+		return
+	_set_recipe_duration("recipe.promising_user_story_from_customer_request.developer", balance.poc3_developer_customer_request_duration_seconds)
+	_set_spawn_money_count_key("recipe.money_from_freelance_order.feature", "poc3_freelance_feature_money_cards")
+	_set_spawn_money_count_key("recipe.money_from_freelance_order.checked_feature", "poc3_freelance_checked_feature_money_cards")
+
+func _set_recipe_duration(recipe_id: String, duration_seconds: float) -> void:
+	var recipe: RecipeDefinition = get_recipe_definition(recipe_id)
+	if recipe == null or recipe.duration == null:
+		return
+	recipe.duration.base_seconds = maxf(0.1, duration_seconds)
+
+func _set_spawn_money_count_key(recipe_id: String, count_key: String) -> void:
+	var recipe: RecipeDefinition = get_recipe_definition(recipe_id)
+	if recipe == null:
+		return
+	for effect: EffectDefinition in recipe.effects_on_complete:
+		if effect != null and effect.effect_type == "spawn_money":
+			effect.parameters.erase("count")
+			effect.parameters["count_key"] = count_key
 
 func _load_cards(directory_path: String) -> void:
 	var directory: DirAccess = DirAccess.open(directory_path)

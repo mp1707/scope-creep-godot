@@ -6,6 +6,17 @@
 script = ExtResource("1_0xr8k")
 id = "balance.poc.default"
 release_duration_seconds = 6.0
+poc3_mvp_required_features = 10
+poc3_start_money_cards = 30
+poc3_freelance_feature_money_cards = 2
+poc3_freelance_checked_feature_money_cards = 3
+poc3_launch_features_per_start_customer = 5
+poc3_customer_tick_money_cards = 1
+poc3_customer_tick_request_cards = 1
+poc3_business_goal_required_money = Array[int]([3, 5, 7])
+poc3_business_goal_win_count = 3
+poc3_investor_panic_game_over_count = 2
+poc3_developer_customer_request_duration_seconds = 9.0
 board_snap_distance = 50.0
 stack_offset = Vector2(0, 33)
 auto_stack_spawn_radius = 800.0

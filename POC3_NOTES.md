@@ -131,3 +131,53 @@ Booster/Shop:
 - Headless-Test `tests/test_poc3_phase_5_customer_income.gd`: bestanden.
 - Content-Validation: bestanden.
 - Marco-Check fuer Phase 4 und 5: Launch, Startkunden, Kundentick und Tooltip passen fuer den naechsten Slice.
+
+## Phase 10 Balancing und QA
+
+- PoC3-Balancewerte sind in `data/balance/poc_default.tres` gebuendelt:
+  - `poc3_mvp_required_features = 10`
+  - `poc3_start_money_cards = 30`
+  - `poc3_freelance_feature_money_cards = 2`
+  - `poc3_freelance_checked_feature_money_cards = 3`
+  - `poc3_launch_features_per_start_customer = 5`
+  - `poc3_customer_tick_money_cards = 1`
+  - `poc3_customer_tick_request_cards = 1`
+  - `poc3_business_goal_required_money = [3, 5, 7]`
+  - `poc3_business_goal_win_count = 3`
+  - `poc3_investor_panic_game_over_count = 2`
+  - `poc3_developer_customer_request_duration_seconds = 9.0`
+- `ContentCatalog.apply_balance_overrides()` wendet PoC3-Balance auf die betroffenen Recipe-Resources an. Das haelt die Recipe-Dateien stabil, aber macht die Playtest-Werte zentral aenderbar.
+- `tests/test_poc3_phase_10_balance_qa.gd` prueft, dass PoC3-Balancewerte geladen und fuer Startsetup sowie balancierte Recipes verwendet werden.
+- `tools/check_poc.sh` ist jetzt die aktuelle PoC3-Akzeptanzsuite: Content-Validation plus PoC3 Phase 1-10. Alte PoC-/PoC2-Tests bleiben im Repo, sind aber wegen PoC3-Regelaenderungen kein Gesamtcheck mehr.
+- Headless-Status:
+  - Content-Validation: bestanden.
+  - PoC3 Phase 1-10 gemeinsam: bestanden.
+  - `tools/check_poc.sh`: bestanden.
+  - Sandbox-Hinweis: Save-Tests mit `user://` koennen in der Codex-Sandbox fehlschlagen; ausserhalb der Sandbox bestanden sie.
+
+### PoC3-Playtest-Script
+
+1. Starte einen neuen Run. Erwartet: Software zeigt `MVP 0/10`, 30 Geld liegen als Playtest-Hilfe bereit, 1 Freelance-Auftrag ist sichtbar, Talent-Pool ist nicht im Startsetup.
+2. Baue Features aus Ideen. Entscheide pro Feature: auf Software integrieren fuer MVP-Fortschritt oder mit Freelance-Auftrag fuer Geld abliefern.
+3. Spiele Variante A mit fruehem Launch: bei genau 10 Features Entwickler auf Software legen und `Launch vorbereiten` abschliessen.
+4. Spiele Variante B mit spaetem Launch: bis 15+ Features weiterbauen und erst dann launchen. Erwartet: mehr Startkunden durch `floor(feature_count / 5)`.
+5. Nach Launch: Starte den naechsten Sprint. Zufriedene Kunden sollen je 1 Geld und 1 Kundenwunsch erzeugen.
+6. Bearbeite Kundenwuensche aktiv. Product Owner klaert sie normal, Entwickler improvisiert langsamer zu vielversprechenden User Stories.
+7. Ignoriere in einem Test bewusst Kundenwuensche. Erwartet: am naechsten Sprintstart wird pro altem Wunsch ein zufriedener Kunde unzufrieden, solange zufriedene Kunden existieren.
+8. Entferne Unzufriedenheit mit Product Owner + Kunde + angeheftetem `Unzufrieden`.
+9. Bezahle Business Goals mit einzelnen Geldkarten. Erwartet: Goal 1 braucht 3 Geld, Goal 2 braucht 5 Geld, Goal 3 braucht 7 Geld.
+10. Gewinne den Mini-Run durch 3 erfuellte Business Goals oder verliere bewusst durch 2 Investorenpanik-Karten bzw. 0 Mitarbeiter.
+
+### Offene Balance- und Designfragen
+
+- 30 Startgeld ist weiter ein Playtest-Hilfswert. Vor einem staerkeren Demo-Slice sollte der echte Startwert wieder reduziert und gegen Freelance-Druck getestet werden.
+- 10 MVP-Features koennen sich je nach Feature-Erzeugungstempo zu lang oder zu kurz anfuehlen. Die konkrete Frage ist, ob der Launch als bewusster Wendepunkt wirkt oder nur als Pflichtklick.
+- Goal-Werte 3/5/7 muessen gegen Gehaelter, Booster und Notfallkarten getestet werden. Wenn Goals zu leicht sind, sollte eher das Wachstum der Goal-Leiter angepasst werden als versteckter Druck eingebaut werden.
+- Kunden erzeugen aktuell je 1 Geld und 1 Kundenwunsch. Das ist klar, kann aber bei vielen Kunden schnell Board-Druck erzeugen.
+- Unzufriedenheit bleibt in PoC3 als Kunden-Attachment sichtbar. Falls mehrere Kunden mit Attachments unlesbar werden, ist das zuerst ein Presentation-/Layout-Thema, kein Grund fuer unsichtbare Meter.
+
+### Technische Schuld nach Phase 10
+
+- Die alten PoC-/PoC2-Tests enthalten mehrere fachlich ueberholte Erwartungen: Software-Release erzeugt Geld, Startsetup hat 3 Geld/12 Karten, `poc2`-Saves laden noch, Kunden ticken vor Launch. Diese Tests sollten vor PoC4 entweder migriert, geloescht oder als historische Tests getrennt werden.
+- Einige stabile IDs tragen alte Fachnamen, besonders `recipe.money_from_feature.software` und `recipe.money_from_checked_feature.software`, obwohl sie jetzt Feature-Integration machen. Das ist bewusst fuer Save-/Content-Stabilitaet stehen geblieben.
+- `ContentCatalog.apply_balance_overrides()` mutiert geladene Recipe-Resources beim Content-Load. Das ist fuer PoC3 akzeptabel, sollte langfristig durch echte Balance-Keys auf `DurationDefinition`/Effects oder einen Content-Build-Schritt ersetzt werden.

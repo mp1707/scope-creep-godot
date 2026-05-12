@@ -481,3 +481,29 @@ func _validate_balance(balance: BalanceDefinition) -> void:
 		_errors.append("%s: Balance '%s' needs tech_debt_chance between 0 and 1." % [path, balance.id])
 	if balance.order_bonus_money_cards < 0:
 		_errors.append("%s: Balance '%s' needs non-negative order_bonus_money_cards." % [path, balance.id])
+	if balance.poc3_mvp_required_features <= 0:
+		_errors.append("%s: Balance '%s' needs positive poc3_mvp_required_features." % [path, balance.id])
+	if balance.poc3_start_money_cards < 0:
+		_errors.append("%s: Balance '%s' needs non-negative poc3_start_money_cards." % [path, balance.id])
+	if balance.poc3_freelance_feature_money_cards < 0:
+		_errors.append("%s: Balance '%s' needs non-negative poc3_freelance_feature_money_cards." % [path, balance.id])
+	if balance.poc3_freelance_checked_feature_money_cards < 0:
+		_errors.append("%s: Balance '%s' needs non-negative poc3_freelance_checked_feature_money_cards." % [path, balance.id])
+	if balance.poc3_launch_features_per_start_customer <= 0:
+		_errors.append("%s: Balance '%s' needs positive poc3_launch_features_per_start_customer." % [path, balance.id])
+	if balance.poc3_customer_tick_money_cards < 0:
+		_errors.append("%s: Balance '%s' needs non-negative poc3_customer_tick_money_cards." % [path, balance.id])
+	if balance.poc3_customer_tick_request_cards < 0:
+		_errors.append("%s: Balance '%s' needs non-negative poc3_customer_tick_request_cards." % [path, balance.id])
+	if balance.poc3_business_goal_required_money.is_empty():
+		_errors.append("%s: Balance '%s' needs at least one poc3_business_goal_required_money entry." % [path, balance.id])
+	for required_money: int in balance.poc3_business_goal_required_money:
+		if required_money <= 0:
+			_errors.append("%s: Balance '%s' needs positive poc3_business_goal_required_money values." % [path, balance.id])
+			break
+	if balance.poc3_business_goal_win_count <= 0:
+		_errors.append("%s: Balance '%s' needs positive poc3_business_goal_win_count." % [path, balance.id])
+	if balance.poc3_investor_panic_game_over_count <= 0:
+		_errors.append("%s: Balance '%s' needs positive poc3_investor_panic_game_over_count." % [path, balance.id])
+	if balance.poc3_developer_customer_request_duration_seconds <= 0.0:
+		_errors.append("%s: Balance '%s' needs positive poc3_developer_customer_request_duration_seconds." % [path, balance.id])

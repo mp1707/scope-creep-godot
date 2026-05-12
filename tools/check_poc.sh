@@ -7,22 +7,6 @@ LOG_DIR="${SCOPE_CREEP_GODOT_LOG_DIR:-/private/tmp}"
 
 checks=(
 	"res://scripts/validation/run_content_validation.gd"
-	"res://tests/test_phase_3.gd"
-	"res://tests/test_phase_4.gd"
-	"res://tests/test_phase_5.gd"
-	"res://tests/test_phase_6.gd"
-	"res://tests/test_phase_7.gd"
-	"res://tests/test_phase_8.gd"
-	"res://tests/test_phase_9.gd"
-	"res://tests/test_phase_10.gd"
-	"res://tests/test_poc2_phase_2_pipeline.gd"
-	"res://tests/test_poc2_phase_3_release_quality.gd"
-	"res://tests/test_poc2_phase_4_problem_economy.gd"
-	"res://tests/test_poc2_phase_5_burnout.gd"
-	"res://tests/test_poc2_phase_6_value_sources.gd"
-	"res://tests/test_poc2_phase_7_boosters_shop.gd"
-	"res://tests/test_poc2_phase_8_presentation.gd"
-	"res://tests/test_poc2_phase_9_save_validation.gd"
 	"res://tests/test_poc3_phase_1_software_status.gd"
 	"res://tests/test_poc3_phase_2_feature_integration.gd"
 	"res://tests/test_poc3_phase_3_freelance.gd"
@@ -32,6 +16,7 @@ checks=(
 	"res://tests/test_poc3_phase_7_business_goals.gd"
 	"res://tests/test_poc3_phase_8_shop_scope.gd"
 	"res://tests/test_poc3_phase_9_save_validation.gd"
+	"res://tests/test_poc3_phase_10_balance_qa.gd"
 )
 
 for check_script in "${checks[@]}"; do

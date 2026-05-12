@@ -25,11 +25,7 @@ const CHECKED_FEATURE_DEFINITION_ID: String = "card.output.checked_feature"
 const UNHAPPY_CUSTOMER_DEFINITION_ID: String = "card.problem.unhappy_customer"
 const BUSINESS_GOAL_DEFINITION_ID: String = "card.goal.business_goal"
 const INVESTOR_PANIC_DEFINITION_ID: String = "card.problem.investor_panic"
-const START_MONEY_CARD_COUNT: int = 30
 const START_CHECKED_FEATURE_CARD_COUNT: int = 0
-const BUSINESS_GOAL_REQUIRED_MONEY: Array[int] = [3, 5, 7]
-const BUSINESS_GOAL_WIN_COUNT: int = 3
-const INVESTOR_PANIC_GAME_OVER_COUNT: int = 2
 const ActiveProcessingInteractionServiceScript: Script = preload("res://scripts/simulation/active_processing_interaction_service.gd")
 const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")
 const START_CARD_IDS: Array[String] = [
@@ -85,7 +81,7 @@ func start_new_run(run_seed: int = 1) -> RunState:
 		var position: Vector2 = START_LAYOUT_ORIGIN + Vector2(float(column), float(row)) * START_LAYOUT_STEP
 		var card_definition_id: String = START_CARD_IDS[index]
 		if card_definition_id == MONEY_DEFINITION_ID:
-			for money_index: int in START_MONEY_CARD_COUNT:
+			for money_index: int in _get_start_money_card_count():
 				_spawn_card_as_new_stack(MONEY_DEFINITION_ID, position)
 		else:
 			_spawn_card_as_new_stack(card_definition_id, position)
@@ -96,7 +92,10 @@ func start_new_run(run_seed: int = 1) -> RunState:
 		var row: int = floori(float(layout_index) / float(START_LAYOUT_COLUMNS))
 		var position: Vector2 = START_LAYOUT_ORIGIN + Vector2(float(column), float(row)) * START_LAYOUT_STEP
 		_spawn_card_as_new_stack(CHECKED_FEATURE_DEFINITION_ID, position)
-	_product_lifecycle.ensure_software_defaults(state)
+	_product_lifecycle.ensure_software_defaults(state, _get_mvp_required_features())
+	var software: CardInstance = get_software_card()
+	if software != null:
+		software.values[ProductLifecycleService.MVP_REQUIRED_FEATURES_VALUE] = _get_mvp_required_features()
 
 	_emit(SimulationEvent.phase_changed(state.phase))
 	_emit(SimulationEvent.timer_updated(SPRINT_TIMER_ID, state.active_timers[SPRINT_TIMER_ID] as float))
@@ -139,7 +138,7 @@ func load_run(loaded_state: RunState) -> void:
 	_rng.state = state.rng_state
 	_sync_next_runtime_ids()
 	_prune_stale_spawn_history()
-	_product_lifecycle.ensure_software_defaults(state)
+	_product_lifecycle.ensure_software_defaults(state, _get_mvp_required_features())
 	_refresh_attachment_runtime_states()
 	_emit(SimulationEvent.phase_changed(state.phase))
 	_emit(SimulationEvent.pause_changed(state.is_paused))
@@ -590,10 +589,15 @@ func _spawn_customer_tick_cards(customer: CardInstance) -> void:
 		_spawn_attached_card(customer.instance_id, UNHAPPY_CUSTOMER_DEFINITION_ID, UNHAPPY_CUSTOMER_ATTACHMENT_SLOT)
 		return
 
-	_spawn_card_as_new_stack(MONEY_DEFINITION_ID, _get_spawn_position_near_stack(customer.stack_id, 0))
-	var request: CardInstance = _spawn_card_as_new_stack(CUSTOMER_REQUEST_DEFINITION_ID, _get_spawn_position_near_stack(customer.stack_id, 1))
-	if request != null:
-		request.values["spawned_sprint_index"] = state.sprint_index
+	var spawn_index: int = 0
+	for money_index: int in _get_customer_tick_money_card_count():
+		_spawn_card_as_new_stack(MONEY_DEFINITION_ID, _get_spawn_position_near_stack(customer.stack_id, spawn_index))
+		spawn_index += 1
+	for request_index: int in _get_customer_tick_request_card_count():
+		var request: CardInstance = _spawn_card_as_new_stack(CUSTOMER_REQUEST_DEFINITION_ID, _get_spawn_position_near_stack(customer.stack_id, spawn_index))
+		spawn_index += 1
+		if request != null:
+			request.values["spawned_sprint_index"] = state.sprint_index
 
 func _attach_unhappy_customers_from_old_requests() -> void:
 	if not _is_software_live():
@@ -625,7 +629,7 @@ func _resolve_active_business_goal() -> void:
 
 	var goal: CardInstance = _find_active_business_goal()
 	if goal == null:
-		if state.completed_business_goal_count < BUSINESS_GOAL_WIN_COUNT:
+		if state.completed_business_goal_count < _get_business_goal_win_count():
 			_spawn_business_goal(state.completed_business_goal_count + 1, _get_business_goal_spawn_source_stack_id())
 		return
 
@@ -637,7 +641,7 @@ func _resolve_active_business_goal() -> void:
 
 	if was_fulfilled:
 		state.completed_business_goal_count += 1
-		if state.completed_business_goal_count >= BUSINESS_GOAL_WIN_COUNT:
+		if state.completed_business_goal_count >= _get_business_goal_win_count():
 			_enter_victory()
 			return
 	else:
@@ -662,7 +666,7 @@ func _spawn_business_goal_at_position(goal_index: int, position: Vector2) -> Car
 	return goal
 
 func _enter_game_over_if_investor_panic_limit_reached() -> void:
-	if _find_card_ids_by_definition(INVESTOR_PANIC_DEFINITION_ID).size() >= INVESTOR_PANIC_GAME_OVER_COUNT:
+	if _find_card_ids_by_definition(INVESTOR_PANIC_DEFINITION_ID).size() >= _get_investor_panic_game_over_count():
 		_enter_game_over()
 
 func _find_business_goal_in_stack(stack: StackState) -> CardInstance:
@@ -695,8 +699,47 @@ func _get_business_goal_required_money(goal: CardInstance) -> int:
 	return maxi(1, int(goal.values.get("required_money", _get_required_money_for_business_goal_index(_get_business_goal_index(goal)))))
 
 func _get_required_money_for_business_goal_index(goal_index: int) -> int:
-	var index: int = clampi(goal_index - 1, 0, BUSINESS_GOAL_REQUIRED_MONEY.size() - 1)
-	return BUSINESS_GOAL_REQUIRED_MONEY[index]
+	var required_money_values: Array[int] = _get_business_goal_required_money_values()
+	var index: int = clampi(goal_index - 1, 0, required_money_values.size() - 1)
+	return required_money_values[index]
+
+func _get_mvp_required_features() -> int:
+	if content.balance == null:
+		return ProductLifecycleService.DEFAULT_MVP_REQUIRED_FEATURES
+	return maxi(1, content.balance.poc3_mvp_required_features)
+
+func _get_start_money_card_count() -> int:
+	if content.balance == null:
+		return 30
+	return maxi(0, content.balance.poc3_start_money_cards)
+
+func _get_customer_tick_money_card_count() -> int:
+	if content.balance == null:
+		return 1
+	return maxi(0, content.balance.poc3_customer_tick_money_cards)
+
+func _get_customer_tick_request_card_count() -> int:
+	if content.balance == null:
+		return 1
+	return maxi(0, content.balance.poc3_customer_tick_request_cards)
+
+func _get_business_goal_required_money_values() -> Array[int]:
+	if content.balance == null or content.balance.poc3_business_goal_required_money.is_empty():
+		return [3, 5, 7]
+	var values: Array[int] = []
+	for value: int in content.balance.poc3_business_goal_required_money:
+		values.append(maxi(1, value))
+	return values
+
+func _get_business_goal_win_count() -> int:
+	if content.balance == null:
+		return 3
+	return maxi(1, content.balance.poc3_business_goal_win_count)
+
+func _get_investor_panic_game_over_count() -> int:
+	if content.balance == null:
+		return 2
+	return maxi(1, content.balance.poc3_investor_panic_game_over_count)
 
 func _get_business_goal_spawn_source_stack_id() -> String:
 	var software: CardInstance = get_software_card()
@@ -919,7 +962,7 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 	card.created_at_sprint = state.sprint_index
 	if definition != null:
 		card.values = definition.base_values.duplicate(true)
-	_product_lifecycle.ensure_card_defaults(card)
+	_product_lifecycle.ensure_card_defaults(card, _get_mvp_required_features())
 	stack.card_ids.append(card.instance_id)
 	state.cards[card.instance_id] = card
 
@@ -993,7 +1036,7 @@ func _spawn_attached_card(parent_card_id: String, card_definition_id: String, at
 	var definition: CardDefinition = content.get_card_definition(card_definition_id)
 	if definition != null:
 		card.values = definition.base_values.duplicate(true)
-	_product_lifecycle.ensure_card_defaults(card)
+	_product_lifecycle.ensure_card_defaults(card, _get_mvp_required_features())
 
 	var parent_index: int = stack.card_ids.find(parent_card_id)
 	if parent_index < 0 or parent_index == stack.card_ids.size() - 1:

@@ -18,20 +18,21 @@ func get_software_card(state: RunState) -> CardInstance:
 			return card
 	return null
 
-func ensure_software_defaults(state: RunState) -> void:
+func ensure_software_defaults(state: RunState, default_mvp_required_features: int = DEFAULT_MVP_REQUIRED_FEATURES) -> void:
 	var software: CardInstance = get_software_card(state)
 	if software != null:
-		ensure_card_defaults(software)
+		ensure_card_defaults(software, default_mvp_required_features)
 
-func ensure_card_defaults(card: CardInstance) -> void:
+func ensure_card_defaults(card: CardInstance, default_mvp_required_features: int = DEFAULT_MVP_REQUIRED_FEATURES) -> void:
 	if card == null or card.definition_id != SOFTWARE_DEFINITION_ID:
 		return
+	var safe_required_features: int = maxi(1, default_mvp_required_features)
 	if not card.values.has(PRODUCT_STAGE_VALUE):
 		card.values[PRODUCT_STAGE_VALUE] = PRODUCT_STAGE_MVP
 	if not card.values.has(FEATURE_COUNT_VALUE):
 		card.values[FEATURE_COUNT_VALUE] = 0
 	if not card.values.has(MVP_REQUIRED_FEATURES_VALUE):
-		card.values[MVP_REQUIRED_FEATURES_VALUE] = DEFAULT_MVP_REQUIRED_FEATURES
+		card.values[MVP_REQUIRED_FEATURES_VALUE] = safe_required_features
 	if not card.values.has(LAUNCH_FEATURE_COUNT_VALUE):
 		card.values[LAUNCH_FEATURE_COUNT_VALUE] = 0
 
