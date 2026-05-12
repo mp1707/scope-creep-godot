@@ -17,6 +17,7 @@ checks=(
 	"res://tests/test_poc3_phase_8_shop_scope.gd"
 	"res://tests/test_poc3_phase_9_save_validation.gd"
 	"res://tests/test_poc3_phase_10_balance_qa.gd"
+	"res://tests/test_poc3_feinschliff.gd"
 )
 
 for check_script in "${checks[@]}"; do

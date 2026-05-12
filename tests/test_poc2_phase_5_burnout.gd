@@ -44,7 +44,8 @@ func _test_burnout_blocks_normal_work() -> void:
 	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
 	var stack: StackState = state.get_stack(developer.stack_id)
 
-	_assert_equal(stack.processing_state.active_recipe_id, "", "Burned-out employee should not start normal feature work.")
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.burnout_recovery.employee", "Burned-out employee should keep recovering instead of starting normal feature work.")
+	_assert_true(stack.card_ids.has(idea.instance_id), "New work should wait in the stack while burnout recovery is active.")
 
 func _test_pizza_recovery_is_more_specific() -> void:
 	var controller: RunController = _create_controller()

@@ -203,6 +203,7 @@ func _deserialize_stack(data: Dictionary) -> StackState:
 func _serialize_processing_state(processing: ProcessingState) -> Dictionary:
 	return {
 		"active_recipe_id": processing.active_recipe_id,
+		"active_input_card_ids": _packed_string_array_to_array(processing.active_input_card_ids),
 		"status": int(processing.status),
 		"elapsed": processing.elapsed,
 		"duration": processing.duration,
@@ -211,6 +212,7 @@ func _serialize_processing_state(processing: ProcessingState) -> Dictionary:
 func _deserialize_processing_state(data: Dictionary) -> ProcessingState:
 	var processing: ProcessingState = ProcessingState.new()
 	processing.active_recipe_id = data.get("active_recipe_id", "") as String
+	processing.active_input_card_ids = _array_to_packed_string_array(data.get("active_input_card_ids", []))
 	processing.status = int(data.get("status", ScopeEnums.ProcessingStatus.IDLE)) as ScopeEnums.ProcessingStatus
 	processing.elapsed = float(data.get("elapsed", 0.0))
 	processing.duration = float(data.get("duration", 0.0))

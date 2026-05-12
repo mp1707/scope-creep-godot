@@ -245,6 +245,11 @@ func _find_card_in_stack(card_definition_id: String, context: EffectContext) -> 
 	if card_definition_id.is_empty():
 		return null
 
+	for card_id: String in context.active_input_card_ids:
+		var active_card: CardInstance = context.state.get_card(card_id)
+		if active_card != null and active_card.definition_id == card_definition_id:
+			return active_card
+
 	for card_id: String in context.stack.card_ids:
 		var card: CardInstance = context.state.get_card(card_id)
 		if card != null and card.definition_id == card_definition_id:
@@ -255,6 +260,14 @@ func _find_card_in_stack(card_definition_id: String, context: EffectContext) -> 
 func _find_card_in_stack_by_tag(tag: String, context: EffectContext) -> CardInstance:
 	if tag.is_empty():
 		return null
+
+	for card_id: String in context.active_input_card_ids:
+		var active_card: CardInstance = context.state.get_card(card_id)
+		if active_card == null:
+			continue
+		var active_definition: CardDefinition = context.content.get_card_definition(active_card.definition_id)
+		if active_definition != null and active_definition.tags.has(tag):
+			return active_card
 
 	for card_id: String in context.stack.card_ids:
 		var card: CardInstance = context.state.get_card(card_id)

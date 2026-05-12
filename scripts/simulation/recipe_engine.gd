@@ -3,21 +3,26 @@ extends RefCounted
 
 func find_best_match(stack: StackState, state: RunState, content: ContentCatalog) -> RecipeMatchResult:
 	var result: RecipeMatchResult = RecipeMatchResult.new()
-	var matches: Array[RecipeDefinition] = []
+	var matches: Array[Dictionary] = []
 
 	for recipe: RecipeDefinition in content.get_recipe_definitions():
-		if _recipe_matches_stack(recipe, stack, state, content):
-			matches.append(recipe)
+		var match_data: Dictionary = _get_recipe_match_data(recipe, stack, state, content)
+		if not match_data.is_empty():
+			matches.append(match_data)
 
 	if matches.is_empty():
 		return result
 
-	matches.sort_custom(_compare_recipe_rank)
-	var best: RecipeDefinition = matches[0]
+	matches.sort_custom(_compare_match_rank)
+	var best_data: Dictionary = matches[0]
+	var best: RecipeDefinition = best_data["recipe"] as RecipeDefinition
 	result.recipe = best
+	result.active_input_card_ids = best_data["active_input_card_ids"] as PackedStringArray
+	result.active_queue_index = best_data["active_queue_index"] as int
 
 	for index: int in range(1, matches.size()):
-		var candidate: RecipeDefinition = matches[index]
+		var candidate_data: Dictionary = matches[index]
+		var candidate: RecipeDefinition = candidate_data["recipe"] as RecipeDefinition
 		if candidate.specificity_score == best.specificity_score and candidate.priority == best.priority:
 			result.ambiguous_recipe_ids.append(candidate.id)
 
@@ -26,30 +31,42 @@ func find_best_match(stack: StackState, state: RunState, content: ContentCatalog
 
 	return result
 
-func _recipe_matches_stack(recipe: RecipeDefinition, stack: StackState, state: RunState, content: ContentCatalog) -> bool:
+func _get_recipe_match_data(recipe: RecipeDefinition, stack: StackState, state: RunState, content: ContentCatalog) -> Dictionary:
 	if stack.card_ids.is_empty():
-		return false
+		return {}
 
 	var used_card_ids: Dictionary = {}
 	for input: RecipeInputMatcher in recipe.inputs:
 		for index: int in input.count:
 			var card_id: String = _find_matching_unused_card(input, stack, state, content, used_card_ids)
 			if card_id.is_empty():
-				return false
+				return {}
 			used_card_ids[card_id] = true
 
 	if not _constraints_match(recipe, stack, state, content, used_card_ids):
-		return false
+		return {}
 	if _has_blocked_employee_input(recipe, state, content, used_card_ids):
-		return false
+		return {}
+
+	var anchor_card_id: String = _find_queue_anchor_card_id(used_card_ids, state, content)
 
 	for card_id: String in stack.card_ids:
 		if used_card_ids.has(card_id):
 			continue
 		if not _matches_any_extra_input(card_id, recipe.allowed_extra_inputs, state, content):
-			return false
+			if anchor_card_id.is_empty() or not _is_queue_extra_card(card_id, anchor_card_id, state, content):
+				return {}
 
-	return true
+	var active_input_card_ids: PackedStringArray = PackedStringArray()
+	for card_id: String in stack.card_ids:
+		if used_card_ids.has(card_id):
+			active_input_card_ids.append(card_id)
+
+	return {
+		"recipe": recipe,
+		"active_input_card_ids": active_input_card_ids,
+		"active_queue_index": _get_active_queue_index(stack, active_input_card_ids, state, content),
+	}
 
 func _matches_any_extra_input(
 	card_id: String,
@@ -69,7 +86,8 @@ func _find_matching_unused_card(
 	content: ContentCatalog,
 	used_card_ids: Dictionary
 ) -> String:
-	for card_id: String in stack.card_ids:
+	for reverse_index: int in stack.card_ids.size():
+		var card_id: String = stack.card_ids[stack.card_ids.size() - 1 - reverse_index]
 		if used_card_ids.has(card_id):
 			continue
 		if _card_matches_input(card_id, input, state, content):
@@ -214,6 +232,90 @@ func _has_burnout_attachment(parent_card_id: String, state: RunState, content: C
 		if definition != null and definition.tags.has("burnout"):
 			return true
 	return false
+
+func _find_queue_anchor_card_id(used_card_ids: Dictionary, state: RunState, content: ContentCatalog) -> String:
+	var anchor_card_id: String = ""
+	for card_id: String in used_card_ids.keys():
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition == null:
+			continue
+		if definition.type == ScopeEnums.CardType.EMPLOYEE or definition.type == ScopeEnums.CardType.PRODUCT:
+			if not anchor_card_id.is_empty():
+				return ""
+			anchor_card_id = card.instance_id
+	return anchor_card_id
+
+func _is_queue_extra_card(card_id: String, anchor_card_id: String, state: RunState, content: ContentCatalog) -> bool:
+	var extra_card: CardInstance = state.get_card(card_id)
+	var anchor_card: CardInstance = state.get_card(anchor_card_id)
+	if extra_card == null or anchor_card == null:
+		return false
+	if not extra_card.parent_card_id.is_empty():
+		return false
+	var extra_definition: CardDefinition = content.get_card_definition(extra_card.definition_id)
+	if extra_definition == null:
+		return false
+	if not _is_queueable_card_type(extra_definition.type):
+		return false
+
+	for recipe: RecipeDefinition in content.get_recipe_definitions():
+		if _recipe_has_anchor_and_card(recipe, anchor_card_id, card_id, state, content):
+			return true
+	return false
+
+func _recipe_has_anchor_and_card(
+	recipe: RecipeDefinition,
+	anchor_card_id: String,
+	queue_card_id: String,
+	state: RunState,
+	content: ContentCatalog
+) -> bool:
+	var has_anchor: bool = false
+	var has_queue_card: bool = false
+	for input: RecipeInputMatcher in recipe.inputs:
+		if _card_matches_input(anchor_card_id, input, state, content):
+			has_anchor = true
+		if _card_matches_input(queue_card_id, input, state, content):
+			has_queue_card = true
+	return has_anchor and has_queue_card
+
+func _is_queueable_card_type(card_type: ScopeEnums.CardType) -> bool:
+	if card_type == ScopeEnums.CardType.INPUT:
+		return true
+	if card_type == ScopeEnums.CardType.TASK:
+		return true
+	if card_type == ScopeEnums.CardType.OUTPUT:
+		return true
+	return card_type == ScopeEnums.CardType.PROBLEM
+
+func _get_active_queue_index(
+	stack: StackState,
+	active_input_card_ids: PackedStringArray,
+	state: RunState,
+	content: ContentCatalog
+) -> int:
+	var best_index: int = -1
+	for card_id: String in active_input_card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition == null:
+			continue
+		if definition.type == ScopeEnums.CardType.EMPLOYEE or definition.type == ScopeEnums.CardType.PRODUCT:
+			continue
+		best_index = maxi(best_index, stack.card_ids.find(card_id))
+	return best_index
+
+func _compare_match_rank(left: Dictionary, right: Dictionary) -> bool:
+	var left_queue_index: int = left["active_queue_index"] as int
+	var right_queue_index: int = right["active_queue_index"] as int
+	if left_queue_index != right_queue_index:
+		return left_queue_index > right_queue_index
+	return _compare_recipe_rank(left["recipe"] as RecipeDefinition, right["recipe"] as RecipeDefinition)
 
 func _compare_recipe_rank(left: RecipeDefinition, right: RecipeDefinition) -> bool:
 	if left.specificity_score != right.specificity_score:

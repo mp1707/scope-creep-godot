@@ -426,10 +426,12 @@ func _try_pay_employee_with_money(card: CardInstance, moving_card_ids: PackedStr
 	return true
 
 func _try_pay_business_goal_with_money(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
-	if moving_card_ids.size() != 1:
-		return false
 	if not _is_money_card(card):
 		return false
+	for moving_card_id: String in moving_card_ids:
+		var moving_card: CardInstance = state.get_card(moving_card_id)
+		if moving_card == null or not _is_money_card(moving_card):
+			return false
 
 	var goal: CardInstance = _find_business_goal_in_stack(target_stack)
 	if goal == null:
@@ -440,10 +442,18 @@ func _try_pay_business_goal_with_money(card: CardInstance, moving_card_ids: Pack
 	if paid_money >= required_money:
 		return false
 
-	if not _consume_money_card(card.instance_id):
+	var needed_money: int = required_money - paid_money
+	var consumed_count: int = 0
+	for moving_card_id: String in moving_card_ids:
+		if consumed_count >= needed_money:
+			break
+		if _consume_money_card(moving_card_id):
+			consumed_count += 1
+
+	if consumed_count <= 0:
 		return false
 
-	goal.values["paid_money"] = paid_money + 1
+	goal.values["paid_money"] = paid_money + consumed_count
 	_refresh_business_goal_runtime_state(goal)
 	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
 	return true
@@ -635,8 +645,7 @@ func _resolve_active_business_goal() -> void:
 
 	var goal_index: int = _get_business_goal_index(goal)
 	var was_fulfilled: bool = _get_business_goal_paid_money(goal) >= _get_business_goal_required_money(goal)
-	var panic_spawn_position: Vector2 = _get_spawn_position_near_stack(goal.stack_id, 0)
-	var next_goal_spawn_position: Vector2 = _get_spawn_position_near_stack(goal.stack_id, 1)
+	var goal_position: Vector2 = goal.position
 	_remove_card_instance(goal.instance_id)
 
 	if was_fulfilled:
@@ -645,11 +654,13 @@ func _resolve_active_business_goal() -> void:
 			_enter_victory()
 			return
 	else:
+		var panic_spawn_position: Vector2 = _get_spawn_position_near_position(goal_position, 0)
 		_spawn_card_as_new_stack(INVESTOR_PANIC_DEFINITION_ID, panic_spawn_position)
 		_enter_game_over_if_investor_panic_limit_reached()
 		if state.phase == ScopeEnums.RunPhase.GAME_OVER:
 			return
 
+	var next_goal_spawn_position: Vector2 = _get_spawn_position_near_position(goal_position, 1)
 	_spawn_business_goal_at_position(goal_index + 1, next_goal_spawn_position)
 
 func _spawn_business_goal(goal_index: int, source_stack_id: String) -> CardInstance:
@@ -886,15 +897,17 @@ func _refresh_stack_recipe(stack: StackState) -> void:
 		matched_recipe_id = match_result.recipe.id
 
 	if not current_recipe_id.is_empty():
-		if current_recipe_id == matched_recipe_id:
+		if current_recipe_id == matched_recipe_id and _active_processing_inputs_still_present(stack):
 			return
 		_cancel_processing(stack)
 
 	if match_result.recipe != null:
-		_start_processing(stack, match_result.recipe)
+		_start_processing(stack, match_result)
 
-func _start_processing(stack: StackState, recipe: RecipeDefinition) -> void:
+func _start_processing(stack: StackState, match_result: RecipeMatchResult) -> void:
+	var recipe: RecipeDefinition = match_result.recipe
 	stack.processing_state.active_recipe_id = recipe.id
+	stack.processing_state.active_input_card_ids = match_result.active_input_card_ids
 	stack.processing_state.status = ScopeEnums.ProcessingStatus.ACTIVE
 	stack.processing_state.elapsed = 0.0
 	stack.processing_state.duration = _tech_debt_modifiers.get_duration_seconds(recipe, state, content)
@@ -908,13 +921,14 @@ func _cancel_processing(stack: StackState) -> void:
 
 func _complete_processing(stack: StackState) -> void:
 	var recipe: RecipeDefinition = content.get_recipe_definition(stack.processing_state.active_recipe_id)
+	var active_input_card_ids: PackedStringArray = stack.processing_state.active_input_card_ids
 	var productive_employee_ids: PackedStringArray = _get_productive_employee_ids(stack, recipe)
 	_clear_processing(stack)
 	if recipe == null:
 		_emit(SimulationEvent.stack_changed(stack.stack_id))
 		return
 
-	_execute_effects(recipe.effects_on_complete, stack, recipe)
+	_execute_effects(recipe.effects_on_complete, stack, recipe, active_input_card_ids)
 	_apply_burnout_risk(productive_employee_ids)
 	_emit(SimulationEvent.recipe_completed(stack.stack_id))
 	if state.stacks.has(stack.stack_id):
@@ -923,16 +937,29 @@ func _complete_processing(stack: StackState) -> void:
 
 func _clear_processing(stack: StackState) -> void:
 	stack.processing_state.active_recipe_id = ""
+	stack.processing_state.active_input_card_ids = PackedStringArray()
 	stack.processing_state.status = ScopeEnums.ProcessingStatus.IDLE
 	stack.processing_state.elapsed = 0.0
 	stack.processing_state.duration = 0.0
 
-func _execute_effects(effects: Array[EffectDefinition], stack: StackState, recipe: RecipeDefinition) -> void:
+func _active_processing_inputs_still_present(stack: StackState) -> bool:
+	for card_id: String in stack.processing_state.active_input_card_ids:
+		if not stack.card_ids.has(card_id):
+			return false
+	return true
+
+func _execute_effects(
+	effects: Array[EffectDefinition],
+	stack: StackState,
+	recipe: RecipeDefinition,
+	active_input_card_ids: PackedStringArray = PackedStringArray()
+) -> void:
 	_rng.state = state.rng_state
 	var context: EffectContext = EffectContext.new()
 	context.state = state
 	context.stack = stack
 	context.recipe = recipe
+	context.active_input_card_ids = active_input_card_ids
 	context.content = content
 	context.rng = _rng
 	context.spawn_card = Callable(self, "_spawn_card_as_new_stack")
@@ -970,6 +997,12 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 	_emit(SimulationEvent.stack_changed(stack.stack_id))
 	_refresh_stack_recipe_if_present(stack.stack_id)
 	return card
+
+func _get_spawn_position_near_position(source_position: Vector2, spawn_index: int = 0) -> Vector2:
+	var temporary_source_stack: StackState = _create_stack(source_position)
+	var spawn_position: Vector2 = _get_spawn_position_near_stack(temporary_source_stack.stack_id, spawn_index)
+	state.stacks.erase(temporary_source_stack.stack_id)
+	return spawn_position
 
 func _find_auto_stack_spawn_target(definition: CardDefinition, position: Vector2) -> StackState:
 	if definition == null or not definition.auto_stack_on_spawn:
