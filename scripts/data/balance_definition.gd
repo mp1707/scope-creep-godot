@@ -18,7 +18,7 @@ extends Resource
 @export_range(0.0, 3600.0, 0.1, "or_greater") var prod_crash_fix_duration_seconds: float = 18.0
 @export_range(0, 100, 1, "or_greater") var order_bonus_money_cards: int = 2
 @export_group("PoC3")
-@export_range(1, 100, 1, "or_greater") var poc3_mvp_required_features: int = 10
+@export_range(1, 100, 1, "or_greater") var poc3_mvp_required_features: int = 5
 @export_range(0, 200, 1, "or_greater") var poc3_start_money_cards: int = 30
 @export_range(0, 100, 1, "or_greater") var poc3_freelance_feature_money_cards: int = 2
 @export_range(0, 100, 1, "or_greater") var poc3_freelance_checked_feature_money_cards: int = 3

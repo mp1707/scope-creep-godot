@@ -16,13 +16,13 @@ Das Spiel ist damit mehr als ein reiner Recipe-Prototyp. Es hat inzwischen einen
 
 Der Run startet als Pre-Launch-MVP. Auf dem Board liegen im PoC4-Startsetup:
 
-- Software mit MVP-Fortschritt `0 / 10 Features`
+- Software mit MVP-Fortschritt `0 / 5 Features`
 - Entwickler
 - Idee
 - Kaffee
 - Freelance-Auftrag
 - vier einzelne Geldkarten
-- Shop-/Booster-Zugaenge fuer Gruenderpanik, Wohlbefinden, Talent-Pool und externen Bugfix
+- Shop-/Booster-Zugaenge fuer Gruenderpanik, Wohlbefinden, Talent-Pool, externen Bugfix und Resteverwertung
 
 Geld ist wie im GDD vorgesehen keine Zahl im UI. Eine Geldkarte entspricht immer genau 1 Geld.
 
@@ -45,13 +45,13 @@ Der Spieler braucht genug Features fuer den Launch, muss aber gleichzeitig Gehae
 
 ### 2. Launch: bewusster Wendepunkt
 
-Ab 10 integrierten Features ist die Software launchbereit. Der Launch passiert nicht automatisch, sondern per Karteninteraktion:
+Ab 5 integrierten Features ist die Software launchbereit. Der Launch passiert nicht automatisch, sondern per Karteninteraktion:
 
 ```text
 Launchbereite Software + Entwickler -> Launch
 ```
 
-Beim Launch wird die Software live, Startkunden erscheinen, und das erste Business Goal kommt ins Spiel. Mehr Features vor Launch koennen mehr Startkunden bedeuten.
+Beim Launch wird die Software live, Startkunden erscheinen, und das erste Business Goal kommt ins Spiel. Pro 5 Launch-Features erscheint 1 Startkunde: 5 Features erzeugen 1 Kunden, 10 Features erzeugen 2 Kunden, 15 Features erzeugen 3 Kunden.
 
 ### 3. Post-Launch: Kunden, Druck und Business Goals
 
@@ -219,6 +219,7 @@ Aktuelle Shop-/Booster-Richtungen:
 - Talent-Pool: kostet 2 Geld, zieht Bewerber oder Werkstudenten.
 - Externer Bugfix: gezielter Bugfix-Patch.
 - Kundenchaos: existiert als Content und kann nach Launch durch Launch-/Shop-Setup relevant werden.
+- Resteverwertung: ganz rechter Shop-Slot; 3 verwertbare Restkarten werden sofort zu 1 Geld, ueberschuessige Karten fallen zurueck aufs Board.
 
 Booster-Ziehungen laufen ueber deterministischen Run-RNG und sind dadurch test- und save-kompatibel.
 
@@ -320,6 +321,7 @@ Save/Load funktioniert fuer eingefrorene Runs:
 - Pizza Party
 - Stressbewaeltigungskurs
 - Boosterpack
+- Resteverwertung
 
 ### Wertquellen und Ziele
 
@@ -346,6 +348,7 @@ Save/Load funktioniert fuer eingefrorene Runs:
 - Wohlbefinden / Office-Invest
 - Kundenchaos
 - Patch-Shop / externer Bugfix
+- Resteverwertung
 
 ## Wie umfangreich ist das aktuell?
 

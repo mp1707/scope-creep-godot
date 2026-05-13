@@ -12,6 +12,12 @@ func _init() -> void:
 	_test_save_is_only_allowed_when_frozen_and_restores_state()
 	_test_booster_draws_are_deterministic()
 	_test_talent_pool_costs_two_money_and_draws_no_regular_employee()
+	_test_recycling_bin_is_rightmost_shop_slot()
+	_test_recycling_bin_requires_three_recyclable_cards()
+	_test_recycling_bin_consumes_top_three_and_drops_leftovers()
+	_test_recycling_bin_rejects_money_and_mixed_stacks()
+	_test_recyclable_cards_do_not_drop_on_booster_slots()
+	_test_mvp_launch_threshold_and_customer_scaling()
 	_test_interview_recipes_are_deterministic_and_recruiter_specific()
 	_test_offer_hiring_in_payment_defers_salary_and_attaches_onboarding()
 	_test_onboarding_blocks_work_and_accepts_coffee()
@@ -172,6 +178,123 @@ func _test_talent_pool_costs_two_money_and_draws_no_regular_employee() -> void:
 	while seeded_state.get_card(seeded_pack.instance_id) != null:
 		_assert_true(seeded_controller.open_booster_pack_step(seeded_pack.instance_id), "Seeded Talent-Pool pack should open one card per step.")
 	_assert_true(_count_cards_by_definition(seeded_state, "card.candidate.recruiter") >= 1, "Default playtest seed should expose a recruiter candidate in the first Talent-Pool pack.")
+
+func _test_recycling_bin_is_rightmost_shop_slot() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1017)
+	var recycling_bin: CardInstance = _find_card_by_definition(state, "card.shop.recycling_bin")
+	_assert_true(recycling_bin != null, "Start run should include the recycling bin shop slot.")
+
+	var shop_dock: ShopDockView = ShopDockView.new()
+	shop_dock.state = state
+	shop_dock.content = controller.content
+	var shop_card_ids: PackedStringArray = shop_dock.call("_get_shop_card_ids") as PackedStringArray
+	_assert_true(not shop_card_ids.is_empty(), "Shop dock should find shop cards.")
+	var rightmost_card: CardInstance = state.get_card(shop_card_ids[shop_card_ids.size() - 1])
+	_assert_equal(rightmost_card.definition_id, "card.shop.recycling_bin", "Recycling bin should be the rightmost shop slot.")
+
+func _test_recycling_bin_requires_three_recyclable_cards() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1018)
+	var recycling_bin: CardInstance = _find_card_by_definition(state, "card.shop.recycling_bin")
+	var bottom: CardInstance = _spawn_card(controller, "card.input.idea", Vector2(5000.0, 300.0))
+	var top: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(5100.0, 300.0))
+	controller.move_card_to_stack(top.instance_id, bottom.stack_id)
+	var original_stack_id: String = bottom.stack_id
+	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
+
+	controller.move_card_to_stack(bottom.instance_id, recycling_bin.stack_id)
+
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before, "Two recyclable cards should not produce money.")
+	_assert_equal(bottom.stack_id, original_stack_id, "Too few recyclable cards should stay in their original stack.")
+	_assert_equal(top.stack_id, original_stack_id, "Too few recyclable cards should not move onto the recycling bin.")
+	_assert_equal(state.get_stack(recycling_bin.stack_id).card_ids.size(), 1, "Recycling bin stack should keep only the slot card after rejected drops.")
+
+func _test_recycling_bin_consumes_top_three_and_drops_leftovers() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1019)
+	var recycling_bin: CardInstance = _find_card_by_definition(state, "card.shop.recycling_bin")
+	var bottom: CardInstance = _spawn_card(controller, "card.input.idea", Vector2(5000.0, 600.0))
+	var consumed_a: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(5100.0, 600.0))
+	var consumed_b: CardInstance = _spawn_card(controller, "card.consumable.pizza_party", Vector2(5200.0, 600.0))
+	var consumed_c: CardInstance = _spawn_card(controller, "card.consumable.stress_course", Vector2(5300.0, 600.0))
+	controller.move_card_to_stack(consumed_a.instance_id, bottom.stack_id)
+	controller.move_card_to_stack(consumed_b.instance_id, bottom.stack_id)
+	controller.move_card_to_stack(consumed_c.instance_id, bottom.stack_id)
+	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
+
+	controller.move_card_to_stack(bottom.instance_id, recycling_bin.stack_id)
+
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before + 1, "Four recyclable cards should produce exactly one money.")
+	_assert_true(state.get_card(bottom.instance_id) != null, "Bottom leftover card should remain after recycling four cards.")
+	_assert_true(bottom.stack_id != recycling_bin.stack_id, "Leftover card should be dropped back onto the board.")
+	_assert_true(state.get_card(consumed_a.instance_id) == null, "First top card should be consumed.")
+	_assert_true(state.get_card(consumed_b.instance_id) == null, "Second top card should be consumed.")
+	_assert_true(state.get_card(consumed_c.instance_id) == null, "Third top card should be consumed.")
+
+func _test_recycling_bin_rejects_money_and_mixed_stacks() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1020)
+	var recycling_bin: CardInstance = _find_card_by_definition(state, "card.shop.recycling_bin")
+	var money: CardInstance = _spawn_card(controller, "card.resource.money", Vector2(5000.0, 900.0))
+	var money_stack_id: String = money.stack_id
+	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
+
+	controller.move_card_to_stack(money.instance_id, recycling_bin.stack_id)
+
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before, "Money on recycling bin should not create money.")
+	_assert_equal(money.stack_id, money_stack_id, "Money should not move onto the recycling bin.")
+
+	var bottom: CardInstance = _spawn_card(controller, "card.input.idea", Vector2(5200.0, 900.0))
+	var mixed_money: CardInstance = _spawn_card(controller, "card.resource.money", Vector2(5300.0, 900.0))
+	var top: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(5400.0, 900.0))
+	controller.move_card_to_stack(mixed_money.instance_id, bottom.stack_id)
+	controller.move_card_to_stack(top.instance_id, bottom.stack_id)
+	var mixed_stack_id: String = bottom.stack_id
+	var mixed_money_before: int = _count_cards_by_definition(state, "card.resource.money")
+
+	controller.move_card_to_stack(bottom.instance_id, recycling_bin.stack_id)
+
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), mixed_money_before, "Mixed stacks should not be recycled.")
+	_assert_equal(bottom.stack_id, mixed_stack_id, "Mixed stack should not move onto the recycling bin.")
+	_assert_equal(mixed_money.stack_id, mixed_stack_id, "Mixed money card should stay in the rejected stack.")
+	_assert_equal(top.stack_id, mixed_stack_id, "Mixed recyclable card should stay in the rejected stack.")
+
+func _test_recyclable_cards_do_not_drop_on_booster_slots() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1021)
+	var booster_slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot")
+	var bottom: CardInstance = _spawn_card(controller, "card.input.idea", Vector2(5000.0, 1200.0))
+	var middle: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(5100.0, 1200.0))
+	var top: CardInstance = _spawn_card(controller, "card.consumable.pizza_party", Vector2(5200.0, 1200.0))
+	controller.move_card_to_stack(middle.instance_id, bottom.stack_id)
+	controller.move_card_to_stack(top.instance_id, bottom.stack_id)
+	var original_stack_id: String = bottom.stack_id
+
+	controller.move_card_to_stack(bottom.instance_id, booster_slot.stack_id)
+
+	_assert_equal(bottom.stack_id, original_stack_id, "Recyclable stack should not drop onto normal booster slots.")
+	_assert_equal(middle.stack_id, original_stack_id, "Recyclable stack should stay together after rejected booster-slot drop.")
+	_assert_equal(top.stack_id, original_stack_id, "Recyclable stack should stay together after rejected booster-slot drop.")
+
+func _test_mvp_launch_threshold_and_customer_scaling() -> void:
+	var threshold_controller: RunController = _create_controller(60.0)
+	var threshold_state: RunState = threshold_controller.start_new_run(1022)
+	var threshold_software: CardInstance = _find_card_by_definition(threshold_state, "card.product.software")
+	threshold_software.values[ProductLifecycleService.FEATURE_COUNT_VALUE] = 4
+	_assert_true(not threshold_controller.is_software_launch_ready(), "Four features should not be launch-ready.")
+	threshold_software.values[ProductLifecycleService.FEATURE_COUNT_VALUE] = 5
+	_assert_true(threshold_controller.is_software_launch_ready(), "Five features should be launch-ready.")
+
+	for feature_count: int in [5, 10, 15]:
+		var controller: RunController = _create_controller(60.0)
+		var state: RunState = controller.start_new_run(1022 + feature_count)
+		var software: CardInstance = _find_card_by_definition(state, "card.product.software")
+		var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+		software.values[ProductLifecycleService.FEATURE_COUNT_VALUE] = feature_count
+		controller.move_card_to_stack(developer.instance_id, software.stack_id)
+		controller.advance_time(4.0)
+		_assert_equal(_count_cards_by_definition(state, "card.value_source.customer"), floori(float(feature_count) / 5.0), "Launch should spawn one customer per five launch features.")
 
 func _test_interview_recipes_are_deterministic_and_recruiter_specific() -> void:
 	var controller: RunController = _create_controller(60.0)

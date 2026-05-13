@@ -16,6 +16,9 @@ const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
 const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
 const BOOSTER_PACK_DEFINITION_ID: String = "card.resource.booster_pack"
 const BUGFIX_PATCH_DEFINITION_ID: String = "card.consumable.bugfix_patch"
+const RECYCLING_BIN_DEFINITION_ID: String = "card.shop.recycling_bin"
+const RECYCLABLE_TAG: String = "recyclable"
+const RECYCLING_CARD_COUNT: int = 3
 const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
 const UNHAPPY_CUSTOMER_ATTACHMENT_SLOT: String = "unhappy_customer"
 const ONBOARDING_ATTACHMENT_SLOT: String = "onboarding"
@@ -46,6 +49,7 @@ const START_CARD_IDS: Array[String] = [
 	"card.shop.booster_slot.office_invest",
 	"card.shop.bugfix_patch_slot",
 	"card.shop.booster_slot.talent_pool",
+	"card.shop.recycling_bin",
 ]
 
 var content: ContentCatalog = null
@@ -225,6 +229,8 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 	var moving_card_ids: PackedStringArray = source_stack.card_ids.slice(start_index)
 	if _try_buy_shop_with_money_stack(card, moving_card_ids, target_stack):
 		return
+	if _try_recycle_card_stack(moving_card_ids, target_stack):
+		return
 	if _try_hire_offer_with_money_stack(card, moving_card_ids, target_stack):
 		return
 	if _try_pay_employee_with_money(card, moving_card_ids, target_stack):
@@ -232,6 +238,8 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 	if _try_pay_business_goal_with_money(card, moving_card_ids, target_stack):
 		return
 	if not _can_interact_with_board():
+		return
+	if _is_shop_stack(target_stack):
 		return
 	if _try_apply_processing_interaction(moving_card_ids, target_stack):
 		return
@@ -354,12 +362,53 @@ func _try_buy_shop_with_money_stack(card: CardInstance, moving_card_ids: PackedS
 	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
 	return true
 
+func _try_recycle_card_stack(moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
+	if not _can_interact_with_board():
+		return false
+
+	var target_shop_card: CardInstance = _find_shop_card_in_stack(target_stack)
+	if target_shop_card == null or not _is_recycling_bin_card(target_shop_card):
+		return false
+	if moving_card_ids.size() < RECYCLING_CARD_COUNT:
+		return false
+	if not _are_all_recyclable_cards(moving_card_ids):
+		return false
+
+	var consumed_card_ids: PackedStringArray = PackedStringArray()
+	var leftover_card_ids: PackedStringArray = PackedStringArray()
+	var first_consumed_index: int = moving_card_ids.size() - RECYCLING_CARD_COUNT
+	for index: int in moving_card_ids.size():
+		if index >= first_consumed_index:
+			consumed_card_ids.append(moving_card_ids[index])
+		else:
+			leftover_card_ids.append(moving_card_ids[index])
+
+	for consumed_card_id: String in consumed_card_ids:
+		_remove_card_instance(consumed_card_id)
+
+	_spawn_card_as_new_stack(MONEY_DEFINITION_ID, _get_spawn_position_near_stack(target_stack.stack_id, 0))
+
+	if not leftover_card_ids.is_empty():
+		_move_existing_cards_to_new_stack(leftover_card_ids, _get_spawn_position_near_stack(target_stack.stack_id, 1))
+
+	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
+	return true
+
 func _are_all_money_cards(card_ids: PackedStringArray) -> bool:
 	if card_ids.is_empty():
 		return false
 	for card_id: String in card_ids:
 		var card: CardInstance = state.get_card(card_id)
 		if card == null or not _is_money_card(card):
+			return false
+	return true
+
+func _are_all_recyclable_cards(card_ids: PackedStringArray) -> bool:
+	if card_ids.is_empty():
+		return false
+	for card_id: String in card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null or not _is_recyclable_card(card):
 			return false
 	return true
 
@@ -372,6 +421,17 @@ func _find_shop_card_in_stack(stack: StackState) -> CardInstance:
 		if definition != null and definition.tags.has("shop"):
 			return card
 	return null
+
+func _is_recycling_bin_card(card: CardInstance) -> bool:
+	return card != null and card.definition_id == RECYCLING_BIN_DEFINITION_ID
+
+func _is_recyclable_card(card: CardInstance) -> bool:
+	if card == null:
+		return false
+	if not card.parent_card_id.is_empty():
+		return false
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition != null and definition.tags.has(RECYCLABLE_TAG)
 
 func _get_shop_purchase(shop_card: CardInstance) -> Dictionary:
 	var definition: CardDefinition = content.get_card_definition(shop_card.definition_id)

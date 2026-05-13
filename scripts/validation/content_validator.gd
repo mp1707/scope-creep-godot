@@ -68,6 +68,7 @@ const POC3_REQUIRED_CARD_IDS: Array[String] = [
 	"card.shop.booster_slot.office_invest",
 	"card.shop.booster_slot.customer_chaos",
 	"card.shop.bugfix_patch_slot",
+	"card.shop.recycling_bin",
 ]
 const POC3_REQUIRED_BOOSTER_IDS: Array[String] = [
 	"booster.founder.test_pack",
@@ -132,6 +133,7 @@ const POC4_REQUIRED_CARD_TAGS: Dictionary = {
 	"card.employee.recruiter": ["employee", "regular_employee", "salary_required", "recruiter"],
 	"card.temp_worker.work_student": ["employee", "temp_worker", "work_student", "no_salary", "one_task_lifetime"],
 	"card.blocker.onboarding": ["blocker", "attachment", "onboarding", "employee_blocker"],
+	"card.shop.recycling_bin": ["shop", "recycling_bin"],
 }
 const POC4_CANDIDATE_TO_OFFER: Dictionary = {
 	"card.candidate.developer": "card.offer.developer",

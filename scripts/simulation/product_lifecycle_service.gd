@@ -8,7 +8,7 @@ const MVP_REQUIRED_FEATURES_VALUE: String = "mvp_required_features"
 const LAUNCH_FEATURE_COUNT_VALUE: String = "launch_feature_count"
 const PRODUCT_STAGE_MVP: String = "mvp"
 const PRODUCT_STAGE_LIVE: String = "live"
-const DEFAULT_MVP_REQUIRED_FEATURES: int = 10
+const DEFAULT_MVP_REQUIRED_FEATURES: int = 5
 
 func get_software_card(state: RunState) -> CardInstance:
 	if state == null:
