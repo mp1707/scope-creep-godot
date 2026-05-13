@@ -108,7 +108,7 @@ Der Start ist bewusst simpel:
 
 ```text
 Idee + Entwickler → Prototyp / Funktion
-Funktion + Software → Geld / Kundenwunsch / Bug
+Funktion + Software → MVP-Fortschritt oder Feature-Wert + Bug-Risiko
 Geld + Entwickler am Sprintende → Mitarbeiter bleibt
 ```
 
@@ -328,7 +328,7 @@ Typische Outputs:
 ```text
 Idee + Entwickler → Funktion (langsam, Risiko: Technische Schulden)
 Bug + Entwickler → Bugfix
-Kundenwunsch + Entwickler → Funktion, aber Risiko auf falsche Funktion
+Kundenwunsch + Entwickler → Kundenwunsch abgearbeitet
 ```
 
 Der „Schnellschuss"-Spielstil (Idee direkt vom Entwickler bauen lassen) ist nur eine Bezeichnung für diese Spielweise — es gibt keine eigene Schnellschuss-Karte. Sauberer wird es, wenn die Idee zuerst durch einen Product Owner zur User Story wird (siehe Kap. 8.2).
@@ -469,7 +469,7 @@ Die Software selbst kann Problemkarten tragen:
 - Technische Schulden
 - Prod-Crash
 
-Diese Problemkarten sind sichtbar und können bearbeitet werden. Mehr Funktionen = mehr Geld pro Sprint. Mehr Probleme = weniger Geld + Kettenreaktionen.
+Diese Problemkarten sind sichtbar und können bearbeitet werden. Mehr Funktionen erhöhen Produktwert und Launch-Potenzial. Geld entsteht über Feature-Wert, Aufträge und aktive Kundenarbeit. Mehr Probleme verringern oder blockieren diese Wertquellen und erzeugen Kettenreaktionen.
 
 ### Prototyp
 
@@ -551,9 +551,9 @@ Die drei Bugs werden entfernt. Dafür entsteht genau eine Prod-Crash-Karte. Dies
 
 Effekt:
 
-- Solange mindestens ein Prod-Crash auf dem Board existiert, verdient die Software **kein Geld**.
-- Für das aktuelle v1-Geldsystem heißt das: Release-Abschlüsse werfen während eines Prod-Crashs keine Geldkarten aus. Falls später zusätzliche Sprintende-Einnahmen ergänzt werden, zahlen sie ebenfalls 0.
-- Bugs können weiterhin entstehen und bearbeitet werden; der Crash blockiert nur Einnahmen, nicht die Arbeit selbst.
+- Solange mindestens ein Prod-Crash auf dem Board existiert, verdient die Software **kein Geld** aus Feature-Releases oder Kundendemos.
+- Release-Abschlüsse werfen während eines Prod-Crashs keine Geldkarten aus. Kundendemos und Feedbackarbeit starten nicht, bis der Crash beseitigt ist.
+- Bugs können weiterhin entstehen und bearbeitet werden; der Crash blockiert Einnahmen und Kundenarbeit, nicht die technische Arbeit selbst.
 
 Behandlung:
 
@@ -935,7 +935,7 @@ Diese Karten belegen Platz und wirken passiv, solange sie nicht bearbeitet werde
 
 ### 9.3 Software wächst sichtbar, ohne Levelstufen
 
-Es gibt keine abstrakten Software-Level („Erste Version", „Plattform" o.ä.). Die Software ist eine einzelne Karte, an der Funktionen und Probleme sichtbar haften. Mehr Funktionen = mehr Geld pro Sprint. Mehr Probleme = weniger Geld plus Kettenreaktionen. Wachstum ist sichtbar durch die anwachsende Kartenmenge am Produkt, nicht durch ein Stufen-Etikett.
+Es gibt keine abstrakten Software-Level („Erste Version", „Plattform" o.ä.). Die Software ist eine einzelne Karte, an der Funktionen und Probleme sichtbar haften. Mehr Funktionen erhöhen Produktwert, Launch-Kunden und spätere Wertquellen; mehr Probleme blockieren oder verteuern diese Wertquellen. Wachstum ist sichtbar durch die anwachsende Kartenmenge am Produkt, nicht durch ein Stufen-Etikett.
 
 ---
 

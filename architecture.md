@@ -240,7 +240,7 @@ Mindestfelder:
 
 ## 4.1 Hiring Lifecycle und temporaere Arbeitskarten
 
-PoC4 fuehrt Teamwachstum als datengetriebene Pipeline ein, ohne Mitarbeiter direkt aus dem Talent-Pool zu spawnen:
+Der aktuelle Build fuehrt Teamwachstum als datengetriebene Pipeline, ohne Mitarbeiter direkt aus dem Talent-Pool zu spawnen:
 
 ```text
 Talent-Pool -> Bewerber -> Bewerbungsgespraech -> Angebot -> Einstellung -> Onboarding -> produktiver Mitarbeiter
@@ -585,9 +585,9 @@ Nach Klick auf `Sprint N+1 starten` werden Effects in exakt dieser Reihenfolge a
 
 Danach startet die neue Sprint-Phase und der Sprint-Timer laeuft wieder.
 
-PoC3 und spaetere PoCs erweitern diese Pipeline, ohne die GDD-Reihenfolge fuer Gehaelter und Bugs zu veraendern. Die fachliche Reihenfolge fuer neue Regeln ist:
+Aktuelle und spaetere PoCs erweitern diese Pipeline, ohne die GDD-Reihenfolge fuer Gehaelter und Bugs zu veraendern. Die fachliche Reihenfolge fuer neue Regeln ist:
 
-1. bestehende Pflichtschritte aus GDD/PoC2 ausfuehren: Kuendigungen, Bug-Formation, Bug-Verdopplung, Auftrag-Verfall, temporaere Arbeitskarten wie Externer Dev
+1. bestehende Pflichtschritte aus GDD ausfuehren: Kuendigungen, Bug-Formation, Bug-Verdopplung, Auftrag-Verfall, temporaere Arbeitskarten wie Externer Dev
 2. alte Kundenwuensche auswerten: wenn mindestens ein alter Kundenwunsch existiert, wird genau ein zufaelliger zufriedener Kunde unzufrieden; sind alle Kunden unzufrieden, passiert nichts
 3. Business Goal aus der Bezahlphase pruefen, falls der Run live ist
 4. terminale Bedingungen pruefen, z. B. 0 Mitarbeiter, 2 Investorenpanik, 3 erfuellte Goals

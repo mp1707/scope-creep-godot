@@ -1,8 +1,8 @@
 # Current Scope - Gameplay-Stand
 
-Stand: aktueller Build nach PoC1 bis PoC4.
+Stand: aktueller Build.
 
-Dieses Dokument beschreibt den aktuellen Spielumfang aus Spielersicht. Es ist keine Zielbeschreibung des fertigen Spiels, sondern eine Momentaufnahme: Was kann man im aktuellen Build tun, welche Systeme sind schon spielbar, welche Karten existieren, und wo endet der aktuelle PoC-Scope?
+Dieses Dokument beschreibt den aktuellen Spielumfang aus Spielersicht. Es ist keine Zielbeschreibung des fertigen Spiels, sondern eine Momentaufnahme: Was kann man im aktuellen Build tun, welche Systeme sind schon spielbar und welche Karten existieren?
 
 ## Kurzfazit
 
@@ -10,11 +10,11 @@ Der aktuelle Stand ist ein kleiner, aber geschlossener Management-Run auf Karten
 
 Man startet mit einer MVP-Software, baut Features, finanziert sich vor Launch ueber Freelance-Auftraege, entscheidet den Launch manuell, bedient danach Kunden, bezahlt Business Goals, verwaltet Bugs, Tech Debt, Prod-Crashes und Burnout und kann das Team ueber eine langsame Hiring-Pipeline aus Bewerbern, Angeboten und Onboarding vergroessern.
 
-Das Spiel ist damit mehr als ein reiner Recipe-Prototyp. Es hat inzwischen einen Anfang, einen Launch-Wendepunkt, Post-Launch-Druck, Sieg- und Niederlagebedingungen sowie kontrolliertes Teamwachstum. Es ist aber weiterhin ein PoC: Balance, Lesbarkeit, UI-Polish, Content-Breite, Konflikte, Workshops, finale Card-Art, Tutorial und Meta-Progression fehlen oder sind bewusst nicht final.
+Das Spiel ist damit mehr als ein reiner Recipe-Test. Es hat inzwischen einen Anfang, einen Launch-Wendepunkt, Post-Launch-Druck, Sieg- und Niederlagebedingungen sowie kontrolliertes Teamwachstum. Balance, Lesbarkeit, UI-Polish, Content-Breite, Konflikte, Workshops, finale Card-Art, Tutorial und Meta-Progression fehlen aber noch oder sind bewusst nicht final.
 
 ## Wie eine Runde aktuell startet
 
-Der Run startet als Pre-Launch-MVP. Auf dem Board liegen im PoC4-Startsetup:
+Der Run startet als Pre-Launch-MVP. Auf dem Board liegen im aktuellen Startsetup:
 
 - Software mit MVP-Fortschritt `0 / 5 Features`
 - Entwickler
@@ -100,7 +100,7 @@ Gepruefte Funktionen sind ausserdem bei Freelance-Auftraegen wertvoller als unge
 
 ### Freelance als Vor-Launch-Finanzierung nutzen
 
-Vor Launch spawnen Freelance-Auftraege als sichtbare Geldchance. Sie ersetzen die alte PoC-Regel, bei der Software-Releases direkt Geld erzeugt haben.
+Vor Launch spawnen Freelance-Auftraege als sichtbare Geldchance.
 
 ```text
 Funktion + Freelance-Auftrag -> 2 Geld
@@ -130,7 +130,7 @@ Entwickler + Kunde -> Demo zeigen
 Product Owner + Kunde -> Feedback sammeln
 ```
 
-Recruiter und Werkstudent haben ebenfalls langsame Fallback-Recipes fuer einzelne produktive Aufgaben, damit PoC4 naeher an "Jeder kann alles, aber nicht gleich gut" bleibt.
+Recruiter und Werkstudent haben ebenfalls langsame Fallback-Recipes fuer einzelne produktive Aufgaben, damit der aktuelle Build naeher an "Jeder kann alles, aber nicht gleich gut" bleibt.
 
 ### Probleme behandeln
 
@@ -211,7 +211,7 @@ Business Goals sind sichtbare Karten. Geld wird einzeln auf das aktive Goal gele
 Geld + Business Goal -> Goal-Fortschritt +1
 ```
 
-Die Zielwerte starten bei 1 Geld und steigen pro erledigtem Goal um 1: 1, 2, 3, 4, 5 usw. Im aktuellen PoC endet der Run weiterhin nach 3 erfuellten Business Goals.
+Die Zielwerte starten bei 1 Geld und steigen pro erledigtem Goal um 1: 1, 2, 3, 4, 5 usw. Der Run endet aktuell nach 3 erfuellten Business Goals.
 
 ### Booster und Shop nutzen
 
@@ -230,7 +230,7 @@ Booster-Ziehungen laufen ueber deterministischen Run-RNG und sind dadurch test- 
 
 ### Team ueber Hiring vergroessern
 
-PoC4 ersetzt direkte Mitarbeiter-Ziehungen aus dem Talent-Pool durch eine sichtbare Hiring-Pipeline:
+Der aktuelle Build ersetzt direkte Mitarbeiter-Ziehungen aus dem Talent-Pool durch eine sichtbare Hiring-Pipeline:
 
 ```text
 Talent-Pool -> Bewerber -> Bewerbungsgespraech -> Angebot -> Einstellung -> Onboarding -> produktiver Mitarbeiter
@@ -277,8 +277,8 @@ Save/Load funktioniert fuer eingefrorene Runs:
 - Speichern ist in Pause oder Bezahlphase erlaubt.
 - Speichern im laufenden, ungepausierten Sprint ist nicht erlaubt.
 - Laden stellt Karten, Stacks, Attachments, Timer, RNG-State, MVP-/Launch-State, Business Goals, Kundenzustand, Hiring-Karten und laufende Verarbeitung wieder her.
-- Neue Runs nutzen Content-Version `poc5`.
-- Alte `poc4`-Saves werden ohne Migration bewusst nicht still geladen, weil die Vielversprechende User Story aus dem Content entfernt wurde.
+- Neue Runs nutzen die aktuelle Content-Version.
+- Aeltere Saves werden ohne Migration bewusst nicht still geladen, wenn Content-IDs oder Kernregeln nicht mehr kompatibel sind.
 
 ## Bereits vorhandene Karten
 
@@ -388,9 +388,9 @@ Noch nicht vorhanden oder noch nicht final sind:
 
 Technische/Design-Schulden, die bewusst bleiben:
 
-- PoC4-Balancewerte sind Startwerte fuer Playtests.
+- Balancewerte sind Startwerte fuer Playtests.
 - Recruiter-Fallbacks fuer normale Arbeit sind langsam und datengetrieben, aber noch nicht das finale "Jeder kann alles"-System.
-- Einige alte PoC-/PoC2-Detailtests sind nicht mehr der aktuelle Gesamtcheck, weil PoC3/PoC4 Regeln bewusst ersetzt haben.
+- Einige alte Detailtests sind nicht mehr der aktuelle Gesamtcheck, weil spaetere Regeln sie bewusst ersetzt haben.
 - Presentation-Lesbarkeit von Bewerbern, Angeboten, Onboarding, Recruiter und Werkstudent muss im Editor weiter bewertet werden.
 
 ## Aktuelle Playtest-Fragen
