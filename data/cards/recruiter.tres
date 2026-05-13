@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_card"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+
+[sub_resource type="Resource" id="Resource_visual"]
+script = ExtResource("2_visual")
+background_color = Color(0.76, 0.58, 0.78, 1)
+accent_color = Color(0.34, 0.16, 0.42, 1)
+text_color = Color(0.98, 0.95, 0.88, 1)
+marker_text = "HR"
+
+[resource]
+script = ExtResource("1_card")
+id = "card.employee.recruiter"
+display_name = "Recruiter"
+type = 0
+tags = PackedStringArray("employee", "regular_employee", "salary_required", "recruiter")
+short_text = "Fuehrt Interviews"
+tooltip_text = "Spezialist fuer Bewerbungsgespraeche. Kostet wie andere regulaere Mitarbeiter Gehalt."
+visual = SubResource("Resource_visual")

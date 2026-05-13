@@ -238,6 +238,27 @@ Mindestfelder:
 - `pool_entries: Array[BoosterPoolEntry]`
 - `open_effects: Array[EffectDefinition]`
 
+## 4.1 Hiring Lifecycle und temporaere Arbeitskarten
+
+PoC4 fuehrt Teamwachstum als datengetriebene Pipeline ein, ohne Mitarbeiter direkt aus dem Talent-Pool zu spawnen:
+
+```text
+Talent-Pool -> Bewerber -> Bewerbungsgespraech -> Angebot -> Einstellung -> Onboarding -> produktiver Mitarbeiter
+```
+
+Die Pipeline bleibt Simulation-Logik. Presentation zeigt nur Karten, Marker und laufende Verarbeitung an und sendet Intents wie Interview starten, Angebot bezahlen oder Sprint starten.
+
+Fachliche Grenzen:
+
+- Bewerber sind Karten mit `candidate`-Tag und referenzieren ihr Ziel-Angebot ueber `base_values.target_offer_card_definition_id`.
+- Angebote sind Karten mit `offer`-Tag und referenzieren den Ziel-Mitarbeiter ueber `base_values.target_employee_card_definition_id`.
+- Regulaere Mitarbeiter tragen `employee`, `regular_employee` und `salary_required`.
+- Temporaere Arbeitskarten wie Werkstudent tragen `employee`, `temp_worker` und `no_salary`, zaehlen aber nicht als regulaere Mitarbeiter fuer Gehalt oder Game-Over.
+- Onboarding ist eine angeheftete Blocker-Karte mit eigenem Slot `onboarding`; es blockiert Arbeit, aber nicht Gehalt.
+- Interview-Erfolg nutzt deterministische Run-RNG-Effects und darf nicht in UI-Code entschieden werden.
+
+PoC4 setzt die Content-Version auf `poc4`. Alte `poc3`-Saves werden ohne explizite Migration nicht geladen, damit neue Hiring-IDs und Onboarding-State nicht still in alten Saves fehlen.
+
 Pool-Eintraege referenzieren `CardDefinition`-IDs und Gewichte. Booster-Ziehungen laufen ueber den Run-RNG, damit Tests und Save/Load deterministisch bleiben.
 
 ### ShopDefinition

@@ -178,7 +178,7 @@ func _get_shop_order(card_id: String) -> int:
 func _can_drop_card_on_shop(card_id: String, moving_card_count: int) -> bool:
 	if state == null or content == null:
 		return false
-	if moving_card_count != 1:
+	if moving_card_count < 1:
 		return false
 	if state.phase != ScopeEnums.RunPhase.SPRINT and state.phase != ScopeEnums.RunPhase.PAYMENT:
 		return false

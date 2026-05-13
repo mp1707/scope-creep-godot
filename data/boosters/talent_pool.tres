@@ -5,28 +5,33 @@
 
 [sub_resource type="Resource" id="Entry_developer"]
 script = ExtResource("1_entry")
-card_definition_id = "card.employee.developer"
+card_definition_id = "card.candidate.developer"
 weight = 4
 
 [sub_resource type="Resource" id="Entry_product_owner"]
 script = ExtResource("1_entry")
-card_definition_id = "card.employee.product_owner"
+card_definition_id = "card.candidate.product_owner"
 weight = 3
 
 [sub_resource type="Resource" id="Entry_tester"]
 script = ExtResource("1_entry")
-card_definition_id = "card.employee.tester"
+card_definition_id = "card.candidate.tester"
 weight = 3
 
-[sub_resource type="Resource" id="Entry_external_dev"]
+[sub_resource type="Resource" id="Entry_recruiter"]
 script = ExtResource("1_entry")
-card_definition_id = "card.employee.external_dev"
+card_definition_id = "card.candidate.recruiter"
+weight = 2
+
+[sub_resource type="Resource" id="Entry_work_student"]
+script = ExtResource("1_entry")
+card_definition_id = "card.temp_worker.work_student"
 weight = 2
 
 [resource]
 script = ExtResource("2_booster")
 id = "booster.talent_pool"
 display_name = "Talent-Pool"
-cost_money_cards = 1
+cost_money_cards = 2
 draw_count = 3
-pool_entries = Array[ExtResource("1_entry")]([SubResource("Entry_developer"), SubResource("Entry_product_owner"), SubResource("Entry_tester"), SubResource("Entry_external_dev")])
+pool_entries = Array[ExtResource("1_entry")]([SubResource("Entry_developer"), SubResource("Entry_product_owner"), SubResource("Entry_tester"), SubResource("Entry_recruiter"), SubResource("Entry_work_student")])

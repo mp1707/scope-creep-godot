@@ -27,8 +27,11 @@ func execute(effects: Array[EffectDefinition], context: EffectContext) -> void:
 
 func _consume_input(effect: EffectDefinition, context: EffectContext) -> void:
 	var card_definition_id: String = effect.parameters.get("card_definition_id", "") as String
-	var card: CardInstance = _find_card_in_stack(card_definition_id, context)
-	if card != null:
+	var count: int = maxi(1, int(effect.parameters.get("count", 1)))
+	for index: int in count:
+		var card: CardInstance = _find_card_in_stack(card_definition_id, context)
+		if card == null:
+			return
 		context.remove_card.call(card.instance_id)
 
 func _remove_card(effect: EffectDefinition, context: EffectContext) -> void:

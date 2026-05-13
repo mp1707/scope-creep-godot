@@ -84,6 +84,46 @@ const POC3_REQUIRED_RECIPE_IDS: Array[String] = [
 	"recipe.bugfix_patch_from_money.slot",
 	"recipe.launch_software.developer",
 ]
+const POC4_TALENT_POOL_ID: String = "booster.talent_pool"
+const POC4_TALENT_POOL_SLOT_ID: String = "card.shop.booster_slot.talent_pool"
+const POC4_TALENT_POOL_ALLOWED_CARDS: Array[String] = [
+	"card.candidate.developer",
+	"card.candidate.product_owner",
+	"card.candidate.tester",
+	"card.candidate.recruiter",
+	"card.temp_worker.work_student",
+]
+const POC4_REQUIRED_RECIPE_IDS: Array[String] = [
+	"recipe.booster_pack_from_two_money.talent_pool_slot",
+]
+const POC4_REQUIRED_CARD_TAGS: Dictionary = {
+	"card.employee.developer": ["employee", "regular_employee", "salary_required", "developer"],
+	"card.employee.product_owner": ["employee", "regular_employee", "salary_required", "product_owner"],
+	"card.employee.tester": ["employee", "regular_employee", "salary_required", "tester"],
+	"card.candidate.developer": ["candidate", "developer_candidate", "hiring"],
+	"card.candidate.product_owner": ["candidate", "product_owner_candidate", "hiring"],
+	"card.candidate.tester": ["candidate", "tester_candidate", "hiring"],
+	"card.candidate.recruiter": ["candidate", "recruiter_candidate", "hiring"],
+	"card.offer.developer": ["offer", "developer_offer", "hiring"],
+	"card.offer.product_owner": ["offer", "product_owner_offer", "hiring"],
+	"card.offer.tester": ["offer", "tester_offer", "hiring"],
+	"card.offer.recruiter": ["offer", "recruiter_offer", "hiring"],
+	"card.employee.recruiter": ["employee", "regular_employee", "salary_required", "recruiter"],
+	"card.temp_worker.work_student": ["employee", "temp_worker", "work_student", "no_salary", "one_task_lifetime"],
+	"card.blocker.onboarding": ["blocker", "attachment", "onboarding", "employee_blocker"],
+}
+const POC4_CANDIDATE_TO_OFFER: Dictionary = {
+	"card.candidate.developer": "card.offer.developer",
+	"card.candidate.product_owner": "card.offer.product_owner",
+	"card.candidate.tester": "card.offer.tester",
+	"card.candidate.recruiter": "card.offer.recruiter",
+}
+const POC4_OFFER_TO_EMPLOYEE: Dictionary = {
+	"card.offer.developer": "card.employee.developer",
+	"card.offer.product_owner": "card.employee.product_owner",
+	"card.offer.tester": "card.employee.tester",
+	"card.offer.recruiter": "card.employee.recruiter",
+}
 const EFFECT_CARD_REFERENCE_KEYS: Array[String] = [
 	"card_definition_id",
 	"customer_card_definition_id",
@@ -113,6 +153,7 @@ func validate_content() -> PackedStringArray:
 		_validate_card(card_resource as CardDefinition)
 	_validate_poc2_cross_card_rules(cards)
 	_validate_poc3_required_cards()
+	_validate_poc4_card_rules(cards)
 	for booster_resource: Resource in boosters:
 		var booster: BoosterDefinition = booster_resource as BoosterDefinition
 		_booster_ids[booster.id] = booster.resource_path
@@ -123,9 +164,11 @@ func validate_content() -> PackedStringArray:
 	_validate_ambiguous_recipes(recipes)
 	_validate_poc2_recipe_patterns(recipes)
 	_validate_poc3_recipe_patterns(recipes)
+	_validate_poc4_recipe_patterns(recipes)
 
 	for booster_resource: Resource in boosters:
 		_validate_booster(booster_resource as BoosterDefinition)
+	_validate_poc4_booster_rules()
 
 	for shop_resource: Resource in shops:
 		_validate_shop(shop_resource as ShopDefinition)
@@ -201,6 +244,7 @@ func _validate_card(card: CardDefinition) -> void:
 		_errors.append("%s: Card '%s' has an empty audio override resource." % [path, card.id])
 	_validate_processing_interaction(card)
 	_validate_poc2_required_tags(card)
+	_validate_poc4_required_tags(card)
 
 	_card_ids[card.id] = path
 
@@ -235,6 +279,15 @@ func _validate_poc2_required_tags(card: CardDefinition) -> void:
 		if not card.tags.has(tag):
 			_errors.append("%s: PoC2 card '%s' needs tag '%s'." % [card.resource_path, card.id, tag])
 
+func _validate_poc4_required_tags(card: CardDefinition) -> void:
+	if not POC4_REQUIRED_CARD_TAGS.has(card.id):
+		return
+
+	var required_tags: Array = POC4_REQUIRED_CARD_TAGS[card.id] as Array
+	for tag: String in required_tags:
+		if not card.tags.has(tag):
+			_errors.append("%s: PoC4 card '%s' needs tag '%s'." % [card.resource_path, card.id, tag])
+
 func _validate_poc2_visual_minimum(card: CardDefinition) -> void:
 	if not POC2_REQUIRED_CARD_TAGS.has(card.id):
 		return
@@ -267,6 +320,48 @@ func _validate_poc3_required_cards() -> void:
 		var expected_booster_id: String = POC3_ACTIVE_BOOSTER_SLOT_TARGETS[slot_card_id] as String
 		if booster_id != expected_booster_id:
 			_errors.append("%s: PoC3 shop slot '%s' must target booster '%s'." % [card.resource_path, slot_card_id, expected_booster_id])
+
+func _validate_poc4_card_rules(cards: Array) -> void:
+	var cards_by_id: Dictionary = {}
+	for card_resource: Resource in cards:
+		var card: CardDefinition = card_resource as CardDefinition
+		if card != null:
+			cards_by_id[card.id] = card
+
+	for card_id: String in POC4_REQUIRED_CARD_TAGS.keys():
+		if not cards_by_id.has(card_id):
+			_errors.append("PoC4 requires card '%s'." % card_id)
+
+	for candidate_id: String in POC4_CANDIDATE_TO_OFFER.keys():
+		if not cards_by_id.has(candidate_id):
+			continue
+		var candidate: CardDefinition = cards_by_id[candidate_id] as CardDefinition
+		var expected_offer_id: String = POC4_CANDIDATE_TO_OFFER[candidate_id] as String
+		var target_offer_id: String = candidate.base_values.get("target_offer_card_definition_id", "") as String
+		if target_offer_id != expected_offer_id:
+			_errors.append("%s: PoC4 candidate '%s' must reference target offer '%s'." % [candidate.resource_path, candidate_id, expected_offer_id])
+		elif not _card_ids.has(target_offer_id):
+			_errors.append("%s: PoC4 candidate '%s' references missing offer '%s'." % [candidate.resource_path, candidate_id, target_offer_id])
+
+	for offer_id: String in POC4_OFFER_TO_EMPLOYEE.keys():
+		if not cards_by_id.has(offer_id):
+			continue
+		var offer: CardDefinition = cards_by_id[offer_id] as CardDefinition
+		var expected_employee_id: String = POC4_OFFER_TO_EMPLOYEE[offer_id] as String
+		var target_employee_id: String = offer.base_values.get("target_employee_card_definition_id", "") as String
+		if target_employee_id != expected_employee_id:
+			_errors.append("%s: PoC4 offer '%s' must reference target employee '%s'." % [offer.resource_path, offer_id, expected_employee_id])
+		elif not _card_ids.has(target_employee_id):
+			_errors.append("%s: PoC4 offer '%s' references missing employee '%s'." % [offer.resource_path, offer_id, target_employee_id])
+
+	var onboarding: CardDefinition = cards_by_id.get("card.blocker.onboarding", null) as CardDefinition
+	if onboarding != null:
+		var attachment_slot: String = onboarding.base_values.get("attachment_slot", "") as String
+		var parent_required_tag: String = onboarding.base_values.get("parent_required_tag", "") as String
+		if attachment_slot != "onboarding":
+			_errors.append("%s: PoC4 onboarding needs base_values.attachment_slot = 'onboarding'." % onboarding.resource_path)
+		if parent_required_tag != "regular_employee":
+			_errors.append("%s: PoC4 onboarding needs base_values.parent_required_tag = 'regular_employee'." % onboarding.resource_path)
 
 func _validate_poc3_required_boosters() -> void:
 	for booster_id: String in POC3_REQUIRED_BOOSTER_IDS:
@@ -359,6 +454,29 @@ func _validate_poc3_recipe_patterns(recipes: Array) -> void:
 	if not launches_customer_chaos:
 		_errors.append("%s: PoC3 launch recipe must activate the Kundenchaos shop slot after launch." % launch_recipe.resource_path)
 
+func _validate_poc4_recipe_patterns(recipes: Array) -> void:
+	var recipes_by_id: Dictionary = {}
+	for recipe_resource: Resource in recipes:
+		var recipe: RecipeDefinition = recipe_resource as RecipeDefinition
+		if recipe != null:
+			recipes_by_id[recipe.id] = recipe
+
+	for recipe_id: String in POC4_REQUIRED_RECIPE_IDS:
+		if not recipes_by_id.has(recipe_id):
+			_errors.append("PoC4 requires recipe '%s'." % recipe_id)
+			continue
+		var recipe: RecipeDefinition = recipes_by_id[recipe_id] as RecipeDefinition
+		if not _recipe_has_input_count(recipe, "card.resource.money", 2):
+			_errors.append("%s: PoC4 recipe '%s' needs 2 money inputs." % [recipe.resource_path, recipe.id])
+		if not _recipe_has_card_input(recipe, POC4_TALENT_POOL_SLOT_ID):
+			_errors.append("%s: PoC4 recipe '%s' needs the Talent-Pool slot input." % [recipe.resource_path, recipe.id])
+
+func _recipe_has_input_count(recipe: RecipeDefinition, card_definition_id: String, count: int) -> bool:
+	for input: RecipeInputMatcher in recipe.inputs:
+		if input != null and input.card_definition_id == card_definition_id and input.count == count:
+			return true
+	return false
+
 func _recipe_has_required_input(recipe: RecipeDefinition, required_input: String) -> bool:
 	if required_input.begins_with("tag:"):
 		return _recipe_has_tag_input(recipe, required_input.trim_prefix("tag:"))
@@ -448,6 +566,32 @@ func _validate_booster(booster: BoosterDefinition) -> void:
 
 	_validate_effects(path, booster.id, booster.open_effects)
 
+func _validate_poc4_booster_rules() -> void:
+	if not _booster_ids.has(POC4_TALENT_POOL_ID):
+		_errors.append("PoC4 requires booster '%s'." % POC4_TALENT_POOL_ID)
+		return
+
+	var booster: BoosterDefinition = ResourceLoader.load(_booster_ids[POC4_TALENT_POOL_ID]) as BoosterDefinition
+	if booster == null:
+		return
+	if booster.cost_money_cards != 2:
+		_errors.append("%s: PoC4 Talent-Pool must cost 2 money cards." % booster.resource_path)
+	if booster.draw_count != 3:
+		_errors.append("%s: PoC4 Talent-Pool must draw 3 cards." % booster.resource_path)
+
+	var seen_allowed_cards: Dictionary = {}
+	for entry: BoosterPoolEntry in booster.pool_entries:
+		if entry == null:
+			continue
+		if not POC4_TALENT_POOL_ALLOWED_CARDS.has(entry.card_definition_id):
+			_errors.append("%s: PoC4 Talent-Pool must not include '%s'." % [booster.resource_path, entry.card_definition_id])
+		else:
+			seen_allowed_cards[entry.card_definition_id] = true
+
+	for required_card_id: String in POC4_TALENT_POOL_ALLOWED_CARDS:
+		if not seen_allowed_cards.has(required_card_id):
+			_errors.append("%s: PoC4 Talent-Pool needs pool card '%s'." % [booster.resource_path, required_card_id])
+
 func _validate_shop(shop: ShopDefinition) -> void:
 	var path: String = shop.resource_path
 	if shop.entries.is_empty():
@@ -507,3 +651,21 @@ func _validate_balance(balance: BalanceDefinition) -> void:
 		_errors.append("%s: Balance '%s' needs positive poc3_investor_panic_game_over_count." % [path, balance.id])
 	if balance.poc3_developer_customer_request_duration_seconds <= 0.0:
 		_errors.append("%s: Balance '%s' needs positive poc3_developer_customer_request_duration_seconds." % [path, balance.id])
+	if balance.poc4_normal_interview_duration_seconds <= 0.0:
+		_errors.append("%s: Balance '%s' needs positive poc4_normal_interview_duration_seconds." % [path, balance.id])
+	if balance.poc4_normal_interview_success_chance < 0.0 or balance.poc4_normal_interview_success_chance > 1.0:
+		_errors.append("%s: Balance '%s' needs poc4_normal_interview_success_chance between 0 and 1." % [path, balance.id])
+	if balance.poc4_recruiter_interview_duration_seconds <= 0.0:
+		_errors.append("%s: Balance '%s' needs positive poc4_recruiter_interview_duration_seconds." % [path, balance.id])
+	if balance.poc4_recruiter_interview_success_chance < 0.0 or balance.poc4_recruiter_interview_success_chance > 1.0:
+		_errors.append("%s: Balance '%s' needs poc4_recruiter_interview_success_chance between 0 and 1." % [path, balance.id])
+	if balance.poc4_offer_hire_cost_money_cards <= 0:
+		_errors.append("%s: Balance '%s' needs positive poc4_offer_hire_cost_money_cards." % [path, balance.id])
+	if balance.poc4_onboarding_duration_seconds <= 0.0:
+		_errors.append("%s: Balance '%s' needs positive poc4_onboarding_duration_seconds." % [path, balance.id])
+	if balance.poc4_recruiter_onboarding_duration_seconds <= 0.0:
+		_errors.append("%s: Balance '%s' needs positive poc4_recruiter_onboarding_duration_seconds." % [path, balance.id])
+	if balance.poc4_work_student_duration_multiplier < 1.0:
+		_errors.append("%s: Balance '%s' needs poc4_work_student_duration_multiplier of at least 1." % [path, balance.id])
+	if balance.poc4_work_student_completed_task_lifetime <= 0:
+		_errors.append("%s: Balance '%s' needs positive poc4_work_student_completed_task_lifetime." % [path, balance.id])

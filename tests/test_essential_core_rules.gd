@@ -11,6 +11,7 @@ func _init() -> void:
 	_test_bug_formation_happens_before_duplication()
 	_test_save_is_only_allowed_when_frozen_and_restores_state()
 	_test_booster_draws_are_deterministic()
+	_test_talent_pool_costs_two_money_and_draws_no_regular_employee()
 
 	if _failed:
 		quit(1)
@@ -128,6 +129,32 @@ func _test_booster_draws_are_deterministic() -> void:
 	_assert_equal(first["drawn_definitions"], second["drawn_definitions"], "Same seed should produce the same booster draw order.")
 	_assert_equal(first["rng_state"], second["rng_state"], "Same seed should leave the same RNG state after opening.")
 
+func _test_talent_pool_costs_two_money_and_draws_no_regular_employee() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1008)
+	var talent_pool_slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.talent_pool")
+	var first_money: CardInstance = _spawn_card(controller, "card.resource.money", Vector2(5000.0, 5000.0))
+	_spawn_card(controller, "card.resource.money", Vector2(5010.0, 5000.0))
+	_spawn_card(controller, "card.resource.money", Vector2(5020.0, 5000.0))
+	_spawn_card(controller, "card.resource.money", Vector2(5030.0, 5000.0))
+	var money_count_before: int = _count_cards_by_definition(state, "card.resource.money")
+
+	controller.move_card_to_stack(first_money.instance_id, talent_pool_slot.stack_id)
+
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_count_before - 2, "Talent-Pool should consume exactly 2 money cards.")
+	_assert_equal(_count_money_cards_in_stack(state, talent_pool_slot.stack_id), 0, "Talent-Pool should drop unspent money back onto the board.")
+	var booster_pack: CardInstance = _find_card_by_definition(state, "card.resource.booster_pack")
+	_assert_equal(booster_pack.values.get(RunController.BOOSTER_DEFINITION_ID_VALUE, ""), "booster.talent_pool", "Talent-Pool buy should create a Talent-Pool booster pack.")
+
+	while state.get_card(booster_pack.instance_id) != null:
+		_assert_true(controller.open_booster_pack_step(booster_pack.instance_id), "Talent-Pool pack should open one card per step.")
+
+	_assert_equal(_count_cards_by_definition(state, "card.employee.developer"), 1, "Talent-Pool should not draw a direct developer.")
+	_assert_equal(_count_cards_by_definition(state, "card.employee.product_owner"), 0, "Talent-Pool should not draw a direct Product Owner.")
+	_assert_equal(_count_cards_by_definition(state, "card.employee.tester"), 0, "Talent-Pool should not draw a direct tester.")
+	_assert_equal(_count_cards_by_definition(state, "card.employee.recruiter"), 0, "Talent-Pool should not draw a direct recruiter.")
+	_assert_equal(_count_cards_by_definition(state, "card.employee.external_dev"), 0, "Talent-Pool should not draw an external dev.")
+
 func _open_spawned_booster_and_get_result(run_seed: int) -> Dictionary:
 	var controller: RunController = _create_controller(60.0)
 	var state: RunState = controller.start_new_run(run_seed)
@@ -193,6 +220,17 @@ func _count_cards_by_definition(state: RunState, definition_id: String) -> int:
 	var count: int = 0
 	for card: CardInstance in state.cards.values():
 		if card.definition_id == definition_id:
+			count += 1
+	return count
+
+func _count_money_cards_in_stack(state: RunState, stack_id: String) -> int:
+	var stack: StackState = state.get_stack(stack_id)
+	if stack == null:
+		return 0
+	var count: int = 0
+	for card_id: String in stack.card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card != null and card.definition_id == "card.resource.money":
 			count += 1
 	return count
 

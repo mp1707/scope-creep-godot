@@ -29,6 +29,16 @@ extends Resource
 @export_range(1, 20, 1, "or_greater") var poc3_business_goal_win_count: int = 3
 @export_range(1, 20, 1, "or_greater") var poc3_investor_panic_game_over_count: int = 2
 @export_range(0.0, 3600.0, 0.1, "or_greater") var poc3_developer_customer_request_duration_seconds: float = 9.0
+@export_group("PoC4")
+@export_range(0.0, 3600.0, 0.1, "or_greater") var poc4_normal_interview_duration_seconds: float = 20.0
+@export_range(0.0, 1.0, 0.01) var poc4_normal_interview_success_chance: float = 0.4
+@export_range(0.0, 3600.0, 0.1, "or_greater") var poc4_recruiter_interview_duration_seconds: float = 10.0
+@export_range(0.0, 1.0, 0.01) var poc4_recruiter_interview_success_chance: float = 0.7
+@export_range(0, 100, 1, "or_greater") var poc4_offer_hire_cost_money_cards: int = 1
+@export_range(0.0, 3600.0, 0.1, "or_greater") var poc4_onboarding_duration_seconds: float = 20.0
+@export_range(0.0, 3600.0, 0.1, "or_greater") var poc4_recruiter_onboarding_duration_seconds: float = 10.0
+@export_range(1.0, 10.0, 0.01, "or_greater") var poc4_work_student_duration_multiplier: float = 2.0
+@export_range(1, 100, 1, "or_greater") var poc4_work_student_completed_task_lifetime: int = 1
 @export_range(0.0, 512.0, 1.0, "or_greater") var board_snap_distance: float = 96.0
 @export var stack_offset: Vector2 = Vector2(0.0, 40.0)
 @export_range(0.0, 2048.0, 1.0, "or_greater") var spawn_placement_radius: float = 160.0

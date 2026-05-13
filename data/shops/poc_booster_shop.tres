@@ -15,7 +15,7 @@ booster_definition_id = "booster.founder.test_pack"
 script = ExtResource("1_x90nf")
 id = "shop_entry.booster.talent_pool"
 display_name = "Talent-Pool"
-cost_money_cards = 1
+cost_money_cards = 2
 card_definition_id = "card.resource.booster_pack"
 booster_definition_id = "booster.talent_pool"
 

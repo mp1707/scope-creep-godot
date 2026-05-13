@@ -11,9 +11,11 @@ const START_LAYOUT_ORIGIN: Vector2 = Vector2(420.0, 322.0)
 const START_LAYOUT_COLUMNS: int = 6
 const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
 const DEFAULT_BOOSTER_DEFINITION_ID: String = "booster.founder.test_pack"
-const CONTENT_VERSION: String = "poc3"
+const CONTENT_VERSION: String = "poc4"
 const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
 const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
+const BOOSTER_PACK_DEFINITION_ID: String = "card.resource.booster_pack"
+const BUGFIX_PATCH_DEFINITION_ID: String = "card.consumable.bugfix_patch"
 const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
 const UNHAPPY_CUSTOMER_ATTACHMENT_SLOT: String = "unhappy_customer"
 const BURNOUT_PROGRESS_VALUE: String = "burnout_progress"
@@ -38,6 +40,7 @@ const START_CARD_IDS: Array[String] = [
 	"card.resource.money",
 	"card.shop.booster_slot.office_invest",
 	"card.shop.bugfix_patch_slot",
+	"card.shop.booster_slot.talent_pool",
 ]
 
 var content: ContentCatalog = null
@@ -215,6 +218,8 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 		push_error("Card '%s' is not in its source stack." % card_id)
 		return
 	var moving_card_ids: PackedStringArray = source_stack.card_ids.slice(start_index)
+	if _try_buy_shop_with_money_stack(card, moving_card_ids, target_stack):
+		return
 	if _try_pay_employee_with_money(card, moving_card_ids, target_stack):
 		return
 	if _try_pay_business_goal_with_money(card, moving_card_ids, target_stack):
@@ -264,6 +269,95 @@ func _try_apply_processing_interaction(moving_card_ids: PackedStringArray, targe
 func _can_complete_processing_from_interaction() -> bool:
 	return state.phase == ScopeEnums.RunPhase.SPRINT and not state.is_paused
 
+func _try_buy_shop_with_money_stack(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
+	if not _can_interact_with_board():
+		return false
+	if not _is_money_card(card):
+		return false
+	if not _are_all_money_cards(moving_card_ids):
+		return false
+
+	var target_shop_card: CardInstance = _find_shop_card_in_stack(target_stack)
+	if target_shop_card == null:
+		return false
+	var purchase: Dictionary = _get_shop_purchase(target_shop_card)
+	if purchase.is_empty():
+		return false
+
+	var cost_money_cards: int = purchase["cost_money_cards"] as int
+	if moving_card_ids.size() < cost_money_cards:
+		return false
+
+	var consumed_money_ids: PackedStringArray = PackedStringArray()
+	var leftover_money_ids: PackedStringArray = PackedStringArray()
+	for index: int in moving_card_ids.size():
+		if index < cost_money_cards:
+			consumed_money_ids.append(moving_card_ids[index])
+		else:
+			leftover_money_ids.append(moving_card_ids[index])
+
+	for consumed_money_id: String in consumed_money_ids:
+		_consume_money_card(consumed_money_id)
+
+	var spawned_card_definition_id: String = purchase["spawned_card_definition_id"] as String
+	var spawned_card: CardInstance = _spawn_card_as_new_stack(spawned_card_definition_id, _get_spawn_position_near_stack(target_stack.stack_id, 0))
+	if spawned_card != null:
+		var copied_values: Dictionary = purchase.get("values", {}) as Dictionary
+		for key: Variant in copied_values.keys():
+			spawned_card.values[key] = copied_values[key]
+
+	if not leftover_money_ids.is_empty():
+		_move_existing_cards_to_new_stack(leftover_money_ids, _get_spawn_position_near_stack(target_stack.stack_id, 1))
+
+	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
+	return true
+
+func _are_all_money_cards(card_ids: PackedStringArray) -> bool:
+	if card_ids.is_empty():
+		return false
+	for card_id: String in card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null or not _is_money_card(card):
+			return false
+	return true
+
+func _find_shop_card_in_stack(stack: StackState) -> CardInstance:
+	for card_id: String in stack.card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has("shop"):
+			return card
+	return null
+
+func _get_shop_purchase(shop_card: CardInstance) -> Dictionary:
+	var definition: CardDefinition = content.get_card_definition(shop_card.definition_id)
+	if definition == null:
+		return {}
+
+	var booster_id: String = shop_card.values.get(BOOSTER_DEFINITION_ID_VALUE, "") as String
+	if booster_id.is_empty():
+		booster_id = definition.base_values.get(BOOSTER_DEFINITION_ID_VALUE, "") as String
+	if not booster_id.is_empty():
+		var booster: BoosterDefinition = content.get_booster_definition(booster_id)
+		if booster == null:
+			return {}
+		return {
+			"cost_money_cards": maxi(1, booster.cost_money_cards),
+			"spawned_card_definition_id": BOOSTER_PACK_DEFINITION_ID,
+			"values": {BOOSTER_DEFINITION_ID_VALUE: booster_id},
+		}
+
+	if definition.tags.has("bugfix_patch_slot"):
+		return {
+			"cost_money_cards": 1,
+			"spawned_card_definition_id": BUGFIX_PATCH_DEFINITION_ID,
+			"values": {},
+		}
+
+	return {}
+
 func split_stack_from_card(card_id: String, new_position: Vector2) -> StackState:
 	_require_state()
 	var card: CardInstance = _get_existing_card(card_id)
@@ -293,6 +387,35 @@ func split_stack_from_card(card_id: String, new_position: Vector2) -> StackState
 	_emit(SimulationEvent.stack_changed(new_stack.stack_id))
 	_delete_stack_if_empty(source_stack)
 	_refresh_stack_recipe_if_present(source_stack.stack_id)
+	_refresh_stack_recipe_if_present(new_stack.stack_id)
+	return new_stack
+
+func _move_existing_cards_to_new_stack(card_ids: PackedStringArray, new_position: Vector2) -> StackState:
+	var new_stack: StackState = _create_stack(new_position)
+	var touched_stack_ids: PackedStringArray = PackedStringArray()
+
+	for card_id: String in card_ids:
+		var moving_card: CardInstance = state.get_card(card_id)
+		if moving_card == null:
+			continue
+		var source_stack: StackState = state.get_stack(moving_card.stack_id)
+		if source_stack != null:
+			_remove_card_from_stack(source_stack, card_id)
+			if not touched_stack_ids.has(source_stack.stack_id):
+				touched_stack_ids.append(source_stack.stack_id)
+		new_stack.card_ids.append(card_id)
+		moving_card.stack_id = new_stack.stack_id
+		moving_card.position = new_position
+
+	for stack_id: String in touched_stack_ids:
+		if not state.stacks.has(stack_id):
+			continue
+		var stack: StackState = _get_existing_stack(stack_id)
+		_emit(SimulationEvent.stack_changed(stack.stack_id))
+		_delete_stack_if_empty(stack)
+		_refresh_stack_recipe_if_present(stack_id)
+
+	_emit(SimulationEvent.stack_changed(new_stack.stack_id))
 	_refresh_stack_recipe_if_present(new_stack.stack_id)
 	return new_stack
 
@@ -790,7 +913,7 @@ func _has_card_with_tag(tag: String) -> bool:
 
 func _has_no_employees() -> bool:
 	for card: CardInstance in state.cards.values():
-		if _is_employee_card(card):
+		if _is_regular_employee_card(card):
 			return false
 	return true
 
@@ -813,9 +936,13 @@ func _is_employee_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
 	return definition != null and definition.type == ScopeEnums.CardType.EMPLOYEE
 
+func _is_regular_employee_card(card: CardInstance) -> bool:
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition != null and definition.type == ScopeEnums.CardType.EMPLOYEE and definition.tags.has("regular_employee")
+
 func _requires_salary(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
-	return definition != null and definition.type == ScopeEnums.CardType.EMPLOYEE and not definition.tags.has("external_dev")
+	return definition != null and definition.type == ScopeEnums.CardType.EMPLOYEE and definition.tags.has("salary_required")
 
 func _is_money_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)

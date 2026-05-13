@@ -13,6 +13,8 @@ const STATUS_BADGE_COLOR: Color = Color(0.055, 0.052, 0.047, 0.92)
 const STATUS_BADGE_ALERT_COLOR: Color = Color(0.42, 0.07, 0.10, 0.95)
 const STATUS_BADGE_PAID_COLOR: Color = Color(0.13, 0.36, 0.20, 0.95)
 const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
+const TITLE_MAX_FONT_SIZE: int = 22
+const TITLE_MIN_FONT_SIZE: int = 8
 const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 108.0)
 const ICON_MASK_SHADER_CODE: String = "shader_type canvas_item;\nuniform vec4 icon_color : source_color = vec4(0.06, 0.055, 0.05, 1.0);\nvoid fragment() {\n\tvec4 texture_color = texture(TEXTURE, UV);\n\tCOLOR = vec4(icon_color.rgb, texture_color.a * icon_color.a);\n}\n"
 const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")
@@ -216,15 +218,15 @@ func _apply_default_layout() -> void:
 	_header_band.size = Vector2(DEFAULT_CARD_SIZE.x - float(CARD_BORDER_WIDTH * 2), HEADER_HEIGHT)
 	_set_top_left_layout(_title_label)
 	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_title_label.position = Vector2(9.0, 3.0)
-	_title_label.size = Vector2(126.0, 25.0)
+	_title_label.position = Vector2(9.0, float(CARD_BORDER_WIDTH))
+	_title_label.size = Vector2(126.0, HEADER_HEIGHT - float(CARD_BORDER_WIDTH))
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_title_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_title_label.clip_text = true
 	if _card_font != null:
 		_title_label.add_theme_font_override("font", _card_font)
-	_title_label.add_theme_font_size_override("font_size", 22)
+	_title_label.add_theme_font_size_override("font_size", TITLE_MAX_FONT_SIZE)
 	_set_top_left_layout(_icon_texture_rect)
 	_icon_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_icon_texture_rect.custom_minimum_size = Vector2.ZERO
@@ -266,6 +268,7 @@ func _set_top_left_layout(control: Control) -> void:
 
 func _apply_definition(definition: CardDefinition) -> void:
 	_title_label.text = definition.display_name
+	_fit_title_to_single_line()
 	_short_text_label.text = ""
 	tooltip_text = definition.tooltip_text if not definition.tooltip_text.is_empty() else definition.short_text
 
@@ -297,6 +300,25 @@ func _apply_definition(definition: CardDefinition) -> void:
 		style_box.corner_radius_top_right = CARD_CORNER_RADIUS
 		_background.add_theme_stylebox_override("panel", style_box)
 	_apply_header_style(visual)
+
+func _fit_title_to_single_line() -> void:
+	_title_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_title_label.clip_text = false
+	var font: Font = _title_label.get_theme_font("font")
+	if font == null:
+		font = _card_font
+	if font == null:
+		_title_label.add_theme_font_size_override("font_size", TITLE_MAX_FONT_SIZE)
+		return
+
+	var available_width: float = maxf(1.0, _title_label.size.x - 2.0)
+	var font_size: int = TITLE_MAX_FONT_SIZE
+	while font_size > TITLE_MIN_FONT_SIZE:
+		var text_size: Vector2 = font.get_string_size(_title_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size)
+		if text_size.x <= available_width:
+			break
+		font_size -= 1
+	_title_label.add_theme_font_size_override("font_size", font_size)
 
 func _apply_icon_style(visual: CardVisualDefinition) -> void:
 	_icon_texture_rect.texture = visual.icon_texture

@@ -12,9 +12,9 @@ Der Plan ist in groessere, abhakbare Phasen geschnitten. Jede Phase soll in eine
 
 ## Fortschritt
 
-- [ ] Phase 0 - Baseline sichern und PoC4-Scope einfrieren
-- [ ] Phase 1 - Hiring-Content, Balance-Werte und Validation vorbereiten
-- [ ] Phase 2 - Talent-Pool neu konfigurieren
+- [x] Phase 0 - Baseline sichern und PoC4-Scope einfrieren
+- [x] Phase 1 - Hiring-Content, Balance-Werte und Validation vorbereiten
+- [x] Phase 2 - Talent-Pool neu konfigurieren
 - [ ] Phase 3 - Bewerbungsgespraeche und Angebots-Output
 - [ ] Phase 4 - Angebote bezahlen und Mitarbeiter mit Onboarding erzeugen
 - [ ] Phase 5 - Onboarding als Attachment-Blocker
@@ -173,25 +173,27 @@ Ziel: PoC4 beginnt auf einem stabilen PoC3-Stand, ohne bestehende User-Aenderung
 
 Codex:
 
-- [ ] `git status --short` pruefen und lokale User-Aenderungen nicht ueberschreiben.
-- [ ] `poc4-idee.md`, `poc3-plan.md`, `architecture.md` und `gdd.md` vor Implementierung erneut querpruefen.
-- [ ] Schlanken Baseline-Check `tools/check_poc.sh` ausfuehren und bekannte Altlasten notieren.
-- [ ] Bestehende IDs fuer Talent-Pool, Booster-Slots, Employee-Tags, Burnout, Kaffee, Bezahlphase und Save/Load erfassen.
-- [ ] Sicherstellen, dass `architecture.md` die neuen Systemgrenzen fuer Hiring Lifecycle, Onboarding und temporaere Arbeitskarten beschreibt.
-- [ ] PoC4-Content-Version und moegliche Save-Migration festlegen, bevor neue IDs produktiv genutzt werden.
+- [x] `git status --short` pruefen und lokale User-Aenderungen nicht ueberschreiben.
+- [x] `poc4-idee.md`, `poc3-plan.md`, `architecture.md` und `gdd.md` vor Implementierung erneut querpruefen.
+- [x] Schlanken Baseline-Check `tools/check_poc.sh` ausfuehren und bekannte Altlasten notieren.
+- [x] Bestehende IDs fuer Talent-Pool, Booster-Slots, Employee-Tags, Burnout, Kaffee, Bezahlphase und Save/Load erfassen.
+- [x] Sicherstellen, dass `architecture.md` die neuen Systemgrenzen fuer Hiring Lifecycle, Onboarding und temporaere Arbeitskarten beschreibt.
+- [x] PoC4-Content-Version und moegliche Save-Migration festlegen, bevor neue IDs produktiv genutzt werden.
 
 Marco:
 
-- [ ] Aktuellen PoC3 im Editor starten und bestaetigen, dass der letzte Playtest-Stand weiterhin spielbar ist.
-- [ ] Entscheiden, ob PoC4 auf einem neuen Branch umgesetzt wird.
-- [ ] Scope bestaetigen: Talent-Pool wird wieder aktiviert, aber ohne sofort produktive regulaere Mitarbeiter.
+- [x] Aktuellen PoC3 im Editor starten und bestaetigen, dass der letzte Playtest-Stand weiterhin spielbar ist.
+- [x] Entscheiden, ob PoC4 auf einem neuen Branch umgesetzt wird.
+- [x] Scope bestaetigen: Talent-Pool wird wieder aktiviert, aber ohne sofort produktive regulaere Mitarbeiter.
 
 Definition of Done:
 
-- [ ] PoC3-Baseline ist bekannt und testbar.
-- [ ] PoC4-Scope ist schriftlich eingefroren.
-- [ ] Architekturwidersprueche sind dokumentiert oder aufgeloest.
-- [ ] Keine ID-Umbenennungen ohne Migration/Alias-Regel.
+- [x] PoC3-Baseline ist bekannt und testbar.
+- [x] PoC4-Scope ist schriftlich eingefroren.
+- [x] Architekturwidersprueche sind dokumentiert oder aufgeloest.
+- [x] Keine ID-Umbenennungen ohne Migration/Alias-Regel.
+
+Status: ausgefuehrt. Marco hat Playtest, Main-Branch und Scope bestaetigt. `tools/check_poc.sh` besteht. `poc4-idee.md` ist im Repo nicht vorhanden; `poc4-plan.md` ist deshalb die aktuelle PoC4-Scope-Quelle. Content-Version wurde auf `poc4` gesetzt; alte `poc3`-Saves werden ohne Migration bewusst nicht geladen.
 
 Headless-Check:
 
@@ -205,28 +207,30 @@ Ziel: Alle neuen PoC4-Karten und Balance-Werte existieren datengetrieben, bevor 
 
 Codex:
 
-- [ ] CardDefinitions fuer 4 Bewerberkarten anlegen.
-- [ ] CardDefinitions fuer 4 Angebotskarten anlegen.
-- [ ] CardDefinition fuer `card.employee.recruiter` anlegen.
-- [ ] CardDefinition fuer `card.temp_worker.work_student` anlegen.
-- [ ] CardDefinition fuer `card.blocker.onboarding` anlegen.
-- [ ] Tags so setzen, dass RuleQueries regulaere Mitarbeiter, temporaere Arbeitskarten, Bewerber, Angebote und Onboarding unterscheiden koennen.
-- [ ] BalanceDefinition um Interview-Dauern, Interview-Chancen, Einstellungskosten, Onboarding-Dauer und Werkstudent-Dauer-Multiplier erweitern.
-- [ ] Content-Validator erweitern: Bewerber muessen Ziel-Angebot referenzieren; Angebote muessen Ziel-Mitarbeiter referenzieren; Onboarding muss Attachment-faehig sein.
-- [ ] Content-Validation fuer neue Resources erweitern; keinen separaten Phasen-Test anlegen, solange keine neue Kernregel entsteht.
+- [x] CardDefinitions fuer 4 Bewerberkarten anlegen.
+- [x] CardDefinitions fuer 4 Angebotskarten anlegen.
+- [x] CardDefinition fuer `card.employee.recruiter` anlegen.
+- [x] CardDefinition fuer `card.temp_worker.work_student` anlegen.
+- [x] CardDefinition fuer `card.blocker.onboarding` anlegen.
+- [x] Tags so setzen, dass RuleQueries regulaere Mitarbeiter, temporaere Arbeitskarten, Bewerber, Angebote und Onboarding unterscheiden koennen.
+- [x] BalanceDefinition um Interview-Dauern, Interview-Chancen, Einstellungskosten, Onboarding-Dauer und Werkstudent-Dauer-Multiplier erweitern.
+- [x] Content-Validator erweitern: Bewerber muessen Ziel-Angebot referenzieren; Angebote muessen Ziel-Mitarbeiter referenzieren; Onboarding muss Attachment-faehig sein.
+- [x] Content-Validation fuer neue Resources erweitern; keinen separaten Phasen-Test anlegen, solange keine neue Kernregel entsteht.
 
 Marco:
 
-- [ ] Neue Resources im Godot Editor oeffnen und pruefen, ob Felder sinnvoll editierbar sind.
-- [ ] Farben, Typmarker und Kurztexte grob abstimmen: Bewerber, Angebot, Mitarbeiter, Blocker und Temp-Worker muessen unterscheidbar sein.
-- [ ] Tooltips sprachlich pruefen, besonders "Angebot ist noch kein Mitarbeiter" und "Onboarding blockiert Arbeit".
+- [x] Neue Resources im Godot Editor oeffnen und pruefen, ob Felder sinnvoll editierbar sind.
+- [x] Farben, Typmarker und Kurztexte grob abstimmen: Bewerber, Angebot, Mitarbeiter, Blocker und Temp-Worker muessen unterscheidbar sein.
+- [x] Tooltips sprachlich pruefen, besonders "Angebot ist noch kein Mitarbeiter" und "Onboarding blockiert Arbeit".
 
 Definition of Done:
 
-- [ ] Alle PoC4-Karten existieren als Resource.
-- [ ] Balance-Werte liegen nicht hardcodiert in Gameplay-Scripts.
-- [ ] Content-Validation meldet fehlende Hiring-Verknuepfungen.
-- [ ] Keine neue Karte ist nur implizit per String im Script bekannt.
+- [x] Alle PoC4-Karten existieren als Resource.
+- [x] Balance-Werte liegen nicht hardcodiert in Gameplay-Scripts.
+- [x] Content-Validation meldet fehlende Hiring-Verknuepfungen.
+- [x] Keine neue Karte ist nur implizit per String im Script bekannt.
+
+Status: umgesetzt und im Editor/Playtest bestaetigt. Neue Hiring-Karten, PoC4-Balancewerte, Tags und Validator-Regeln sind angelegt. Kein separater Phasen-Test, weil Phase 1 nur Content/Validation vorbereitet.
 
 Headless-Check:
 
@@ -240,26 +244,28 @@ Ziel: Talent-Pool ist wieder aktiv, liefert aber keine sofort produktiven regula
 
 Codex:
 
-- [ ] `booster.talent_pool` auf Kosten `2 Geld` setzen.
-- [ ] Talent-Pool-Ziehung auf 3 Karten pruefen oder setzen.
-- [ ] Talent-Pool-Pool auf Werkstudent und die 4 Bewerberkarten umstellen.
-- [ ] Direkte Entwickler-, Product-Owner-, Tester-, Recruiter- und Externer-Dev-Karten aus dem Talent-Pool entfernen.
-- [ ] PoC4-Startsetup um sichtbaren Talent-Pool-Slot erweitern.
-- [ ] Falls das vorhandene Startsetup zu voll wird, Sichtbarkeit ab Sprint 2 als konfigurierbare Alternative vorbereiten, aber initial direkt sichtbar lassen.
-- [ ] Content-Validation fuer Booster-Kosten und Pool-Inhalt erweitern; deterministische Ziehung bleibt ueber den essenziellen Kernregel-Test abgesichert.
+- [x] `booster.talent_pool` auf Kosten `2 Geld` setzen.
+- [x] Talent-Pool-Ziehung auf 3 Karten pruefen oder setzen.
+- [x] Talent-Pool-Pool auf Werkstudent und die 4 Bewerberkarten umstellen.
+- [x] Direkte Entwickler-, Product-Owner-, Tester-, Recruiter- und Externer-Dev-Karten aus dem Talent-Pool entfernen.
+- [x] PoC4-Startsetup um sichtbaren Talent-Pool-Slot erweitern.
+- [x] Falls das vorhandene Startsetup zu voll wird, Sichtbarkeit ab Sprint 2 als konfigurierbare Alternative vorbereiten, aber initial direkt sichtbar lassen.
+- [x] Content-Validation fuer Booster-Kosten und Pool-Inhalt erweitern; deterministische Ziehung bleibt ueber den essenziellen Kernregel-Test abgesichert.
 
 Marco:
 
-- [ ] Im Editor/Playtest pruefen, ob der Talent-Pool-Slot am Start sichtbar und nicht visuell ueberladen ist.
-- [ ] Bewerten, ob Talent-Pool direkt ab Sprint 1 zu viele Entscheidungen erzeugt.
-- [ ] Booster-Tooltip pruefen: Er muss klar sagen, dass Bewerber erst interviewt werden muessen.
+- [x] Im Editor/Playtest pruefen, ob der Talent-Pool-Slot am Start sichtbar und nicht visuell ueberladen ist.
+- [x] Bewerten, ob Talent-Pool direkt ab Sprint 1 zu viele Entscheidungen erzeugt.
+- [x] Booster-Tooltip pruefen: Er muss klar sagen, dass Bewerber erst interviewt werden muessen.
 
 Definition of Done:
 
-- [ ] Talent-Pool erzeugt keine produktiven regulaeren Mitarbeiter direkt.
-- [ ] Talent-Pool kostet 2 einzelne Geldkarten.
-- [ ] Booster-Ziehung bleibt RNG-deterministisch.
-- [ ] Externer Dev bleibt aus normalem PoC4-Hiring heraus.
+- [x] Talent-Pool erzeugt keine produktiven regulaeren Mitarbeiter direkt.
+- [x] Talent-Pool kostet 2 einzelne Geldkarten.
+- [x] Booster-Ziehung bleibt RNG-deterministisch.
+- [x] Externer Dev bleibt aus normalem PoC4-Hiring heraus.
+
+Status: umgesetzt und im Playtest bestaetigt. Talent-Pool kostet als Slot-Interaktion 2 einzelne Geldkarten, erzeugt ein Talent-Pool-Pack und zieht nur Bewerber oder Werkstudenten. Validator und essenzieller Kernregel-Test sichern Kosten, Pool-Inhalt und deterministische Booster-Ziehung ab.
 
 Headless-Check:
 
