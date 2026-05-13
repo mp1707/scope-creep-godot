@@ -454,8 +454,8 @@ Beispiele:
 - Mitarbeiter darf nicht bereits durch Burnout processing-blockiert sein.
 - Zwei Konfliktparteien duerfen keinen gemeinsamen Stack bilden, ausser das Recipe verlangt genau diesen Konflikt.
 - Konfliktworkshop verlangt Konfliktkarte plus beide referenzierten Parteien.
-- Bezahlphase erlaubt nur Geld-auf-Mitarbeiter-Interaktionen.
-- Kaffee ist kein Recipe-Input; Kaffee wirkt als aktive Processing-Interaktion nur auf laufende Stacks mit Mitarbeiterkarte.
+- Bezahlphase erlaubt nur explizit freigegebene Geld-Interaktionen, z. B. Geld auf gehaltsfaellige Mitarbeiter oder Geld auf Angebotskarten.
+- Kaffee ist kein Recipe-Input; Kaffee wirkt als aktive Processing-Interaktion nur auf laufende Stacks mit Mitarbeiterkarte oder temporaerer Arbeitskarte.
 
 ## 8. Effect Pipeline
 
@@ -484,8 +484,37 @@ Beispiele:
 - Product-Lifecycle-Queries pruefen, ob Software launchbereit oder live ist.
 - Customer-Queries zaehlen Kunden, offene Kundenwuensche, zufriedene Kunden und als Attachment angeheftete Unzufriedenheitskarten.
 - Business-Goal-Queries pruefen aktuelles Goal, Zahlungsfortschritt und erreichte Goal-Anzahl.
+- Hiring- und Employee-Lifecycle-Queries unterscheiden regulaere gehaltsfaellige Mitarbeiter, temporaere Arbeitskarten, Bewerber, Angebote und Onboarding-Blocker.
 
 Dieses System soll als `RuleQueryService` oder aehnlicher Simulation-Service modelliert werden. Recipes fragen keine globalen Nodes ab.
+
+### Hiring Lifecycle
+
+Hiring bleibt dem Prinzip "Alles ist eine Karte" treu. Bewerber, Angebote und Onboarding sind sichtbare `CardInstance`s, keine versteckten Zaehler oder UI-Zustaende.
+
+Empfohlene Card-Kategorien und Tags:
+
+- Bewerberkarten: `candidate`, `hiring` plus Zielrollen-Tag, z. B. `developer_candidate`
+- Angebotskarten: `offer`, `hiring` plus Zielrollen-Tag, z. B. `developer_offer`
+- regulaere Mitarbeiter: `employee`, `regular_employee`, `salary_required`
+- temporaere Arbeitskarten: `temp_worker`, optional `no_salary`, `one_task_lifetime`
+- Onboarding: `blocker`, `attachment`, `onboarding`, `employee_blocker`
+
+Ein `HiringLifecycleService` oder aequivalenter Simulation-Service kapselt Queries und Mutationen:
+
+- pruefen, ob eine Karte ein interviewbarer Bewerber ist
+- passendes Angebot fuer einen Bewerber bestimmen
+- passendes Mitarbeiter-Definition-ID fuer ein Angebot bestimmen
+- Interview-Erfolg deterministisch ueber den Run-RNG auswerten
+- Angebot gegen einzelne Geldkarte einstellen
+- neuen Mitarbeiter mit Onboarding-Attachment erzeugen
+- erste Gehaltsfaelligkeit neuer Mitarbeiter bestimmen
+
+Angebote duerfen waehrend der Sprintphase und in der Bezahlphase bezahlt werden. Wird ein Angebot in der Bezahlphase bezahlt, wird die Einstellungsgebuehr sofort verbraucht, das regulaere Gehalt wird aber erst ab dem naechsten Sprint faellig. Dadurch entsteht keine unklare Doppelzahlung aus Einstellungskosten und sofortigem Gehalt.
+
+Onboarding ist ein Attachment-Blocker wie Burnout, aber fachlich eigenstaendig. Ein Mitarbeiter mit Onboarding ist fuer normale Arbeitsrecipes blockiert, bleibt aber regulaerer Mitarbeiter fuer Bezahlung, Kuendigung und Game-Over-Logik, sobald seine Gehaltsfaelligkeit erreicht ist. Wenn der Mitarbeiter kuendigt oder entfernt wird, verschwinden seine Attachments inklusive Onboarding mit ihm.
+
+Temporaere Arbeitskarten wie Werkstudenten und Externe Devs werden ueber denselben Employee-Lifecycle-Mechanismus modelliert statt ueber Presentation-Sonderlogik. Sie koennen eigene Regeln fuer Gehalt, erlaubte Recipes, Burnout, Lebensdauer und Entfernen nach Aufgabenabschluss besitzen. Ein Werkstudent zaehlt z. B. nicht als regulaerer Mitarbeiter fuer Auto-Pay oder Game-Over-Vermeidung und kann nach genau einer erfolgreich abgeschlossenen Aufgabe entfernt werden.
 
 ## 9. Sprint- und Phasenlogik
 
@@ -510,10 +539,13 @@ Regeln:
 
 - Alle Processing-Timer bleiben pausiert.
 - Board und Stacks bleiben visuell erhalten.
-- Beweglich sind nur Geldkarten und Mitarbeiter.
-- Manuelles Bezahlen verbraucht genau eine 1-Geld-Karte.
-- Auto-Pay ist nur verfuegbar, wenn genug Geld fuer alle regulären Mitarbeiter existiert.
+- Beweglich sind mindestens Geldkarten, gehaltsfaellige Mitarbeiter und Karten, die in der Bezahlphase mit Geld interagieren duerfen, z. B. Angebotskarten.
+- Manuelles Bezahlen eines Mitarbeiters verbraucht genau eine 1-Geld-Karte.
+- Angebot bezahlen ist eine separate Hiring-Interaktion und verbraucht ebenfalls genau eine 1-Geld-Karte, markiert aber keinen Mitarbeiter als bezahlt.
+- Auto-Pay ist nur verfuegbar, wenn genug Geld fuer alle gehaltsfaelligen regulaeren Mitarbeiter existiert.
 - Bezahlte Mitarbeiter werden im RunState markiert.
+
+Neue regulaere Mitarbeiter koennen eine Runtime-Regel wie `salary_due_from_sprint` tragen. Dadurch kann eine Einstellung waehrend der Bezahlphase erst ab dem naechsten Sprint gehaltsfaellig werden, ohne die Einstellungsgebuehr mit dem normalen Gehalt zu vermischen.
 
 ### Sprintstart-Effekte
 
@@ -523,14 +555,14 @@ Nach Klick auf `Sprint N+1 starten` werden Effects in exakt dieser Reihenfolge a
 2. Je 3 bereits vorhandene Bugs formen 1 Prod-Crash.
 3. Uebrig gebliebene Bugs verdoppeln sich.
 4. Nicht erfuellte Auftraege verfallen.
-5. Externer Dev verfällt, wenn seine Lifecycle-Regel greift.
+5. Temporaere Arbeitskarten wie Externer Dev verfallen, wenn ihre Lifecycle-Regel greift.
 6. Persistente Tick-Karten wie Kunde und Kaffeemaschine spawnen ihre Karten.
 
 Danach startet die neue Sprint-Phase und der Sprint-Timer laeuft wieder.
 
-PoC3 erweitert diese Pipeline, ohne die GDD-Reihenfolge fuer Gehaelter und Bugs zu veraendern. Die fachliche Reihenfolge fuer neue Regeln ist:
+PoC3 und spaetere PoCs erweitern diese Pipeline, ohne die GDD-Reihenfolge fuer Gehaelter und Bugs zu veraendern. Die fachliche Reihenfolge fuer neue Regeln ist:
 
-1. bestehende Pflichtschritte aus GDD/PoC2 ausfuehren: Kuendigungen, Bug-Formation, Bug-Verdopplung, Auftrag-Verfall, Externer Dev
+1. bestehende Pflichtschritte aus GDD/PoC2 ausfuehren: Kuendigungen, Bug-Formation, Bug-Verdopplung, Auftrag-Verfall, temporaere Arbeitskarten wie Externer Dev
 2. alte Kundenwuensche auswerten: pro altem Kundenwunsch wird ein zufaelliger zufriedener Kunde unzufrieden; sind alle Kunden unzufrieden, passiert nichts
 3. Business Goal aus der Bezahlphase pruefen, falls der Run live ist
 4. terminale Bedingungen pruefen, z. B. 0 Mitarbeiter, 2 Investorenpanik, 3 erfuellte Goals
