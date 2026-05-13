@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_matcher"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="2_duration"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_effect"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_recipe"]
+
+[sub_resource type="Resource" id="Duration_interview"]
+script = ExtResource("2_duration")
+base_seconds = 10.0
+affected_by_global_modifiers = false
+
+[sub_resource type="Resource" id="Effect_roll_offer"]
+script = ExtResource("3_effect")
+id = "effect.roll_offer.recruiter_interview"
+effect_type = "roll_chance"
+parameters = {
+"card_definition_id_from_value_key": "target_offer_card_definition_id",
+"chance_key": "poc4_recruiter_interview_success_chance",
+"source_card_tag": "candidate",
+"spawn_index": 0
+}
+
+[sub_resource type="Resource" id="Effect_consume_candidate"]
+script = ExtResource("3_effect")
+id = "effect.consume_candidate.recruiter_interview"
+effect_type = "consume_input"
+parameters = {
+"card_tag": "candidate"
+}
+
+[sub_resource type="Resource" id="Input_candidate"]
+script = ExtResource("1_matcher")
+required_tags = PackedStringArray("candidate")
+
+[sub_resource type="Resource" id="Input_recruiter"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.employee.recruiter"
+required_tags = PackedStringArray("regular_employee", "recruiter")
+
+[resource]
+script = ExtResource("4_recipe")
+id = "recipe.interview_candidate.recruiter"
+display_text = "Bewerbungsgespraech..."
+inputs = Array[ExtResource("1_matcher")]([SubResource("Input_candidate"), SubResource("Input_recruiter")])
+duration = SubResource("Duration_interview")
+priority = 30
+specificity_score = 4
+effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_roll_offer"), SubResource("Effect_consume_candidate")])

@@ -18,7 +18,9 @@ const BOOSTER_PACK_DEFINITION_ID: String = "card.resource.booster_pack"
 const BUGFIX_PATCH_DEFINITION_ID: String = "card.consumable.bugfix_patch"
 const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
 const UNHAPPY_CUSTOMER_ATTACHMENT_SLOT: String = "unhappy_customer"
+const ONBOARDING_ATTACHMENT_SLOT: String = "onboarding"
 const BURNOUT_PROGRESS_VALUE: String = "burnout_progress"
+const SALARY_DUE_FROM_SPRINT_VALUE: String = "salary_due_from_sprint"
 const FREELANCE_ORDER_DEFINITION_ID: String = "card.value_source.freelance_order"
 const CUSTOMER_DEFINITION_ID: String = "card.value_source.customer"
 const CUSTOMER_REQUEST_DEFINITION_ID: String = "card.input.customer_request"
@@ -219,6 +221,8 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 		return
 	var moving_card_ids: PackedStringArray = source_stack.card_ids.slice(start_index)
 	if _try_buy_shop_with_money_stack(card, moving_card_ids, target_stack):
+		return
+	if _try_hire_offer_with_money_stack(card, moving_card_ids, target_stack):
 		return
 	if _try_pay_employee_with_money(card, moving_card_ids, target_stack):
 		return
@@ -548,6 +552,54 @@ func _try_pay_employee_with_money(card: CardInstance, moving_card_ids: PackedStr
 	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
 	return true
 
+func _try_hire_offer_with_money_stack(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
+	if not _can_interact_with_board():
+		return false
+	if not _is_money_card(card):
+		return false
+	if not _are_all_money_cards(moving_card_ids):
+		return false
+	var offer: CardInstance = _find_offer_in_stack(target_stack)
+	if offer == null:
+		return false
+	var offer_definition: CardDefinition = content.get_card_definition(offer.definition_id)
+	if offer_definition == null:
+		return false
+	var target_employee_definition_id: String = offer.values.get("target_employee_card_definition_id", "") as String
+	if target_employee_definition_id.is_empty():
+		target_employee_definition_id = offer_definition.base_values.get("target_employee_card_definition_id", "") as String
+	if target_employee_definition_id.is_empty() or not content.has_card_definition(target_employee_definition_id):
+		return false
+
+	var hire_cost: int = _get_offer_hire_cost_money_cards()
+	if moving_card_ids.size() < hire_cost:
+		return false
+
+	var spawn_position: Vector2 = _get_spawn_position_near_stack(target_stack.stack_id, 0)
+	var leftover_position: Vector2 = _get_spawn_position_near_stack(target_stack.stack_id, 1)
+	var consumed_money_ids: PackedStringArray = PackedStringArray()
+	var leftover_money_ids: PackedStringArray = PackedStringArray()
+	for index: int in moving_card_ids.size():
+		if index < hire_cost:
+			consumed_money_ids.append(moving_card_ids[index])
+		else:
+			leftover_money_ids.append(moving_card_ids[index])
+
+	for consumed_money_id: String in consumed_money_ids:
+		_consume_money_card(consumed_money_id)
+	_remove_card_instance(offer.instance_id)
+
+	var employee: CardInstance = _spawn_card_as_new_stack(target_employee_definition_id, spawn_position)
+	if employee != null:
+		employee.values[SALARY_DUE_FROM_SPRINT_VALUE] = _get_salary_due_from_sprint_for_new_hire()
+		_spawn_attached_card(employee.instance_id, "card.blocker.onboarding", ONBOARDING_ATTACHMENT_SLOT)
+
+	if not leftover_money_ids.is_empty():
+		_move_existing_cards_to_new_stack(leftover_money_ids, leftover_position)
+
+	_refresh_payment_card_states()
+	return true
+
 func _try_pay_business_goal_with_money(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
 	if not _is_money_card(card):
 		return false
@@ -812,6 +864,15 @@ func _find_business_goal_in_stack(stack: StackState) -> CardInstance:
 			return card
 	return null
 
+func _find_offer_in_stack(stack: StackState) -> CardInstance:
+	if stack == null:
+		return null
+	for card_id: String in stack.card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card != null and _is_offer_card(card):
+			return card
+	return null
+
 func _find_active_business_goal() -> CardInstance:
 	for card: CardInstance in state.cards.values():
 		if card.definition_id == BUSINESS_GOAL_DEFINITION_ID:
@@ -846,6 +907,16 @@ func _get_start_money_card_count() -> int:
 	if content.balance == null:
 		return 30
 	return maxi(0, content.balance.poc3_start_money_cards)
+
+func _get_offer_hire_cost_money_cards() -> int:
+	if content.balance == null:
+		return 1
+	return maxi(1, content.balance.poc4_offer_hire_cost_money_cards)
+
+func _get_salary_due_from_sprint_for_new_hire() -> int:
+	if state.phase == ScopeEnums.RunPhase.PAYMENT:
+		return state.sprint_index + 1
+	return state.sprint_index
 
 func _get_customer_tick_money_card_count() -> int:
 	if content.balance == null:
@@ -913,7 +984,7 @@ func _has_card_with_tag(tag: String) -> bool:
 
 func _has_no_employees() -> bool:
 	for card: CardInstance in state.cards.values():
-		if _is_regular_employee_card(card):
+		if is_regular_employee(card):
 			return false
 	return true
 
@@ -936,17 +1007,23 @@ func _is_employee_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
 	return definition != null and definition.type == ScopeEnums.CardType.EMPLOYEE
 
-func _is_regular_employee_card(card: CardInstance) -> bool:
+func is_regular_employee(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
 	return definition != null and definition.type == ScopeEnums.CardType.EMPLOYEE and definition.tags.has("regular_employee")
 
 func _requires_salary(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
-	return definition != null and definition.type == ScopeEnums.CardType.EMPLOYEE and definition.tags.has("salary_required")
+	if definition == null or definition.type != ScopeEnums.CardType.EMPLOYEE or not definition.tags.has("salary_required"):
+		return false
+	return int(card.values.get(SALARY_DUE_FROM_SPRINT_VALUE, state.sprint_index)) <= state.sprint_index
 
 func _is_money_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
 	return definition != null and definition.tags.has("money")
+
+func _is_offer_card(card: CardInstance) -> bool:
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition != null and definition.tags.has("offer")
 
 func _is_booster_pack_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
@@ -1238,7 +1315,7 @@ func _remove_card_instance(card_id: String) -> void:
 
 func _get_productive_employee_ids(stack: StackState, recipe: RecipeDefinition) -> PackedStringArray:
 	var employee_ids: PackedStringArray = PackedStringArray()
-	if recipe == null or _recipe_uses_burnout(recipe):
+	if recipe == null or _recipe_uses_burnout(recipe) or _recipe_uses_employee_blocker(recipe):
 		return employee_ids
 
 	for card_id: String in stack.card_ids:
@@ -1253,6 +1330,12 @@ func _get_productive_employee_ids(stack: StackState, recipe: RecipeDefinition) -
 func _recipe_uses_burnout(recipe: RecipeDefinition) -> bool:
 	for input: RecipeInputMatcher in recipe.inputs:
 		if input.card_definition_id == "card.problem.burnout" or input.required_tags.has("burnout"):
+			return true
+	return false
+
+func _recipe_uses_employee_blocker(recipe: RecipeDefinition) -> bool:
+	for input: RecipeInputMatcher in recipe.inputs:
+		if input.required_tags.has("employee_blocker") or input.card_definition_id == "card.blocker.onboarding":
 			return true
 	return false
 
@@ -1311,6 +1394,8 @@ func _refresh_attachment_runtime_states() -> void:
 		var markers: PackedStringArray = PackedStringArray()
 		if _has_attachment(card.instance_id, BURNOUT_ATTACHMENT_SLOT):
 			markers.append("BO")
+		if _has_attachment(card.instance_id, ONBOARDING_ATTACHMENT_SLOT):
+			markers.append("ON")
 		card.state.markers = markers
 
 func _create_stack(position: Vector2) -> StackState:

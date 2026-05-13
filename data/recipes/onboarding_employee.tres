@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_matcher"]
+[ext_resource type="Script" path="res://scripts/data/recipe_constraint_definition.gd" id="2_constraint"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="3_duration"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="4_effect"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="5_recipe"]
+
+[sub_resource type="Resource" id="Duration_onboarding"]
+script = ExtResource("3_duration")
+base_seconds = 20.0
+affected_by_global_modifiers = false
+
+[sub_resource type="Resource" id="Constraint_attached_onboarding"]
+script = ExtResource("2_constraint")
+constraint_type = "attached_card"
+parameters = {
+"attachment_card_definition_id": "card.blocker.onboarding",
+"attachment_slot": "onboarding",
+"parent_required_tag": "regular_employee"
+}
+
+[sub_resource type="Resource" id="Effect_remove_onboarding"]
+script = ExtResource("4_effect")
+id = "effect.remove_card.onboarding"
+effect_type = "remove_card"
+parameters = {
+"card_definition_id": "card.blocker.onboarding"
+}
+
+[sub_resource type="Resource" id="Input_employee"]
+script = ExtResource("1_matcher")
+required_tags = PackedStringArray("regular_employee")
+
+[sub_resource type="Resource" id="Input_onboarding"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.blocker.onboarding"
+required_tags = PackedStringArray("employee_blocker", "onboarding")
+
+[resource]
+script = ExtResource("5_recipe")
+id = "recipe.onboarding.employee"
+display_text = "Onboarding..."
+inputs = Array[ExtResource("1_matcher")]([SubResource("Input_employee"), SubResource("Input_onboarding")])
+constraints = Array[ExtResource("2_constraint")]([SubResource("Constraint_attached_onboarding")])
+duration = SubResource("Duration_onboarding")
+priority = 20
+specificity_score = 3
+effects_on_complete = Array[ExtResource("4_effect")]([SubResource("Effect_remove_onboarding")])

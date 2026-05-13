@@ -199,13 +199,15 @@ func _has_blocked_employee_input(
 ) -> bool:
 	if _recipe_uses_burnout(recipe, state, content, used_card_ids):
 		return false
+	if _recipe_uses_employee_blocker(recipe, state, content, used_card_ids):
+		return false
 
 	for card_id: String in used_card_ids.keys():
 		var card: CardInstance = state.get_card(card_id)
 		if card == null:
 			continue
 		var definition: CardDefinition = content.get_card_definition(card.definition_id)
-		if definition != null and definition.tags.has("employee") and _has_burnout_attachment(card.instance_id, state, content):
+		if definition != null and definition.tags.has("employee") and _has_blocking_employee_attachment(card.instance_id, state, content):
 			return true
 	return false
 
@@ -230,6 +232,32 @@ func _has_burnout_attachment(parent_card_id: String, state: RunState, content: C
 			continue
 		var definition: CardDefinition = content.get_card_definition(card.definition_id)
 		if definition != null and definition.tags.has("burnout"):
+			return true
+	return false
+
+func _recipe_uses_employee_blocker(
+	_recipe: RecipeDefinition,
+	state: RunState,
+	content: ContentCatalog,
+	used_card_ids: Dictionary
+) -> bool:
+	for card_id: String in used_card_ids.keys():
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has("employee_blocker"):
+			return true
+	return false
+
+func _has_blocking_employee_attachment(parent_card_id: String, state: RunState, content: ContentCatalog) -> bool:
+	for card: CardInstance in state.cards.values():
+		if card.parent_card_id != parent_card_id:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition == null:
+			continue
+		if definition.tags.has("burnout") or definition.tags.has("employee_blocker"):
 			return true
 	return false
 

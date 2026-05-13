@@ -27,9 +27,14 @@ func execute(effects: Array[EffectDefinition], context: EffectContext) -> void:
 
 func _consume_input(effect: EffectDefinition, context: EffectContext) -> void:
 	var card_definition_id: String = effect.parameters.get("card_definition_id", "") as String
+	var card_tag: String = effect.parameters.get("card_tag", "") as String
 	var count: int = maxi(1, int(effect.parameters.get("count", 1)))
 	for index: int in count:
-		var card: CardInstance = _find_card_in_stack(card_definition_id, context)
+		var card: CardInstance = null
+		if not card_definition_id.is_empty():
+			card = _find_card_in_stack(card_definition_id, context)
+		elif not card_tag.is_empty():
+			card = _find_card_in_stack_by_tag(card_tag, context)
 		if card == null:
 			return
 		context.remove_card.call(card.instance_id)
@@ -68,6 +73,8 @@ func _roll_chance(effect: EffectDefinition, context: EffectContext) -> void:
 		return
 
 	var card_definition_id: String = effect.parameters.get("card_definition_id", "") as String
+	if card_definition_id.is_empty():
+		card_definition_id = _get_card_definition_id_from_stack_value(effect, context)
 	if not card_definition_id.is_empty():
 		var spawn_index: int = effect.parameters.get("spawn_index", 0) as int
 		var spawned_card: CardInstance = context.spawn_card.call(card_definition_id, _get_spawn_position(context, spawn_index)) as CardInstance
@@ -182,6 +189,10 @@ func _get_chance(effect: EffectDefinition, context: EffectContext) -> float:
 				return clampf(context.content.balance.bug_chance, 0.0, 1.0)
 			"tech_debt_chance":
 				return clampf(context.content.balance.tech_debt_chance, 0.0, 1.0)
+			"poc4_normal_interview_success_chance":
+				return clampf(context.content.balance.poc4_normal_interview_success_chance, 0.0, 1.0)
+			"poc4_recruiter_interview_success_chance":
+				return clampf(context.content.balance.poc4_recruiter_interview_success_chance, 0.0, 1.0)
 
 	return 0.0
 
@@ -259,6 +270,24 @@ func _find_card_in_stack(card_definition_id: String, context: EffectContext) -> 
 			return card
 
 	return null
+
+func _get_card_definition_id_from_stack_value(effect: EffectDefinition, context: EffectContext) -> String:
+	var value_key: String = effect.parameters.get("card_definition_id_from_value_key", "") as String
+	if value_key.is_empty():
+		return ""
+
+	var source_card_definition_id: String = effect.parameters.get("source_card_definition_id", "") as String
+	var source_card: CardInstance = null
+	if not source_card_definition_id.is_empty():
+		source_card = _find_card_in_stack(source_card_definition_id, context)
+	else:
+		var source_card_tag: String = effect.parameters.get("source_card_tag", "") as String
+		if not source_card_tag.is_empty():
+			source_card = _find_card_in_stack_by_tag(source_card_tag, context)
+
+	if source_card == null:
+		return ""
+	return source_card.values.get(value_key, "") as String
 
 func _find_card_in_stack_by_tag(tag: String, context: EffectContext) -> CardInstance:
 	if tag.is_empty():

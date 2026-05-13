@@ -15,9 +15,9 @@ Der Plan ist in groessere, abhakbare Phasen geschnitten. Jede Phase soll in eine
 - [x] Phase 0 - Baseline sichern und PoC4-Scope einfrieren
 - [x] Phase 1 - Hiring-Content, Balance-Werte und Validation vorbereiten
 - [x] Phase 2 - Talent-Pool neu konfigurieren
-- [ ] Phase 3 - Bewerbungsgespraeche und Angebots-Output
-- [ ] Phase 4 - Angebote bezahlen und Mitarbeiter mit Onboarding erzeugen
-- [ ] Phase 5 - Onboarding als Attachment-Blocker
+- [x] Phase 3 - Bewerbungsgespraeche und Angebots-Output
+- [x] Phase 4 - Angebote bezahlen und Mitarbeiter mit Onboarding erzeugen
+- [x] Phase 5 - Onboarding als Attachment-Blocker
 - [ ] Phase 6 - Recruiter als Hiring-Spezialist
 - [ ] Phase 7 - Werkstudent als temporaere Hilfskraft
 - [ ] Phase 8 - PoC3-Loop, Bezahlphase und Save/Load integrieren
@@ -279,32 +279,34 @@ Ziel: Bewerber koennen ueber normale Mitarbeiter oder Recruiter interviewt werde
 
 Codex:
 
-- [ ] Generische Query implementieren oder erweitern: `is_regular_employee(card)` fuer bezahlpflichtige Mitarbeiter.
-- [ ] Interview-Recipes fuer `Bewerber + regulaerer Mitarbeiter` anlegen: 20s, 40% Erfolg.
-- [ ] Recruiter-spezifische Interview-Recipes vorbereiten oder mit hoeherer Specificity definieren: 10s, 70% Erfolg.
-- [ ] Erfolg erzeugt passendes Angebot; Misserfolg entfernt Bewerber ohne weitere Negativkarte.
-- [ ] Interviewer-Rolle ausser Recruiter fuer PoC4 egal halten.
-- [ ] Active Processing bei Stack-Aenderung unveraendert sofort abbrechen lassen.
-- [ ] Nur einen essenziellen Kernregel-Test ergaenzen, falls Interview-RNG oder Recipe-Priority ohne Test leicht unbemerkt brechen kann; neutrale Zusatzkarten bleiben bereits im Kernregel-Test abgesichert.
+- [x] Generische Query implementieren oder erweitern: `is_regular_employee(card)` fuer bezahlpflichtige Mitarbeiter.
+- [x] Interview-Recipes fuer `Bewerber + regulaerer Mitarbeiter` anlegen: 20s, 40% Erfolg.
+- [x] Recruiter-spezifische Interview-Recipes vorbereiten oder mit hoeherer Specificity definieren: 10s, 70% Erfolg.
+- [x] Erfolg erzeugt passendes Angebot; Misserfolg entfernt Bewerber ohne weitere Negativkarte.
+- [x] Interviewer-Rolle ausser Recruiter fuer PoC4 egal halten.
+- [x] Active Processing bei Stack-Aenderung unveraendert sofort abbrechen lassen.
+- [x] Nur einen essenziellen Kernregel-Test ergaenzen, falls Interview-RNG oder Recipe-Priority ohne Test leicht unbemerkt brechen kann; neutrale Zusatzkarten bleiben bereits im Kernregel-Test abgesichert.
 
 Marco:
 
-- [ ] Aktionstext pruefen: `Bewerbungsgespraech...`.
-- [ ] Im Playtest bewerten, ob Interviewdauer und Misserfolg visuell fair wirken.
-- [ ] Pruefen, ob Bewerberkarten nicht wie fertige Mitarbeiter missverstanden werden.
+- [x] Aktionstext pruefen: `Bewerbungsgespraech...`.
+- [x] Im Playtest bewerten, ob Interviewdauer und Misserfolg visuell fair wirken.
+- [x] Pruefen, ob Bewerberkarten nicht wie fertige Mitarbeiter missverstanden werden.
 
 Definition of Done:
 
-- [ ] Jeder Bewerber kann mit einem regulaeren Mitarbeiter interviewt werden.
-- [ ] Recruiter-Interview gewinnt gegen normales Interview.
-- [ ] Erfolg/Misserfolg ist deterministisch modelliert und bei Bedarf mit einem kleinen Kernregel-Test pruefbar.
-- [ ] Kein Interview-Ergebnis wird in Presentation-Code entschieden.
+- [x] Jeder Bewerber kann mit einem regulaeren Mitarbeiter interviewt werden.
+- [x] Recruiter-Interview gewinnt gegen normales Interview.
+- [x] Erfolg/Misserfolg ist deterministisch modelliert und bei Bedarf mit einem kleinen Kernregel-Test pruefbar.
+- [x] Kein Interview-Ergebnis wird in Presentation-Code entschieden.
 
 Headless-Check:
 
 ```bash
 tools/check_poc.sh
 ```
+
+Status: abgeschlossen. Normale Interviews und Recruiter-Interviews laufen als Recipes, Erfolg spawnt datengetrieben das Ziel-Angebot aus dem Bewerber, Misserfolg verbraucht nur den Bewerber. Recruiter gewinnt ueber hoehere Specificity. Kernregel-Test deckt deterministischen Erfolg und Recipe-Priority ab. Marco hat Editor-/Playtest-Pruefung bestaetigt.
 
 ## Phase 4 - Angebote bezahlen und Mitarbeiter mit Onboarding erzeugen
 
@@ -312,33 +314,35 @@ Ziel: Angebote sind sichtbare Zwischenkarten. Erst Geld auf Angebot erzeugt eine
 
 Codex:
 
-- [ ] Angebots-zu-Mitarbeiter-Mapping datengetrieben modellieren, z. B. in Offer-Card-Defaultwerten oder Effect-Parametern.
-- [ ] Recipe oder Command fuer `Angebot + Geld -> Mitarbeiter + Onboarding` implementieren.
-- [ ] Geldkarte immer verbrauchen; Angebot immer verbrauchen.
-- [ ] Neuer Mitarbeiter spawnt als eigener Stack, nicht automatisch auf andere Mitarbeiter.
-- [ ] Onboarding-Karte wird sofort an den neuen Mitarbeiter angeheftet.
-- [ ] Bezahlphase-Regel erweitern: Geld + Angebot ist erlaubt, zusaetzlich zu Geld + Mitarbeiter.
-- [ ] Neueinstellungen in der Bezahlphase erst ab naechstem Sprint gehaltsrelevant machen, z. B. ueber `salary_due_from_sprint`.
-- [ ] Nur die riskanteste Einstellungsregel headless absichern, z. B. Bezahlphase-Gehaltsfaelligkeit; Geldverbrauch und Attachment zunaechst ueber Playtest/Validation pruefen, wenn sie direkt sichtbar sind.
+- [x] Angebots-zu-Mitarbeiter-Mapping datengetrieben modellieren, z. B. in Offer-Card-Defaultwerten oder Effect-Parametern.
+- [x] Recipe oder Command fuer `Angebot + Geld -> Mitarbeiter + Onboarding` implementieren.
+- [x] Geldkarte immer verbrauchen; Angebot immer verbrauchen.
+- [x] Neuer Mitarbeiter spawnt als eigener Stack, nicht automatisch auf andere Mitarbeiter.
+- [x] Onboarding-Karte wird sofort an den neuen Mitarbeiter angeheftet.
+- [x] Bezahlphase-Regel erweitern: Geld + Angebot ist erlaubt, zusaetzlich zu Geld + Mitarbeiter.
+- [x] Neueinstellungen in der Bezahlphase erst ab naechstem Sprint gehaltsrelevant machen, z. B. ueber `salary_due_from_sprint`.
+- [x] Nur die riskanteste Einstellungsregel headless absichern, z. B. Bezahlphase-Gehaltsfaelligkeit; Geldverbrauch und Attachment zunaechst ueber Playtest/Validation pruefen, wenn sie direkt sichtbar sind.
 
 Marco:
 
-- [ ] Im Editor pruefen, ob Angebot + Geld als Interaktion verstaendlich ist.
-- [ ] Tooltip/Marker pruefen: Neuer Mitarbeiter mit Onboarding darf nicht produktiv wirken.
-- [ ] Bezahlphase visuell pruefen: Angebot bezahlen darf nicht wie Gehalt zahlen aussehen.
+- [x] Im Editor pruefen, ob Angebot + Geld als Interaktion verstaendlich ist.
+- [x] Tooltip/Marker pruefen: Neuer Mitarbeiter mit Onboarding darf nicht produktiv wirken.
+- [x] Bezahlphase visuell pruefen: Angebot bezahlen darf nicht wie Gehalt zahlen aussehen.
 
 Definition of Done:
 
-- [ ] Angebot ist noch kein Mitarbeiter.
-- [ ] Einstellung kostet 1 Geldkarte.
-- [ ] Neuer Mitarbeiter entsteht mit Onboarding-Attachment.
-- [ ] Bezahlphase erlaubt Angebot-Bezahlung ohne Doppelgehaltsfalle.
+- [x] Angebot ist noch kein Mitarbeiter.
+- [x] Einstellung kostet 1 Geldkarte.
+- [x] Neuer Mitarbeiter entsteht mit Onboarding-Attachment.
+- [x] Bezahlphase erlaubt Angebot-Bezahlung ohne Doppelgehaltsfalle.
 
 Headless-Check:
 
 ```bash
 tools/check_poc.sh
 ```
+
+Status: abgeschlossen. Geld auf Angebot erzeugt den Ziel-Mitarbeiter aus dem Offer-Mapping, verbraucht Geld und Angebot und haengt Onboarding an. Neueinstellungen in der Bezahlphase erhalten `salary_due_from_sprint = aktueller Sprint + 1` und werden nicht sofort als Gehaltsziel markiert. Marco hat Editor-/Playtest-Pruefung bestaetigt.
 
 ## Phase 5 - Onboarding als Attachment-Blocker
 
@@ -346,32 +350,34 @@ Ziel: Neue Mitarbeiter kosten schon Management-Aufwand und Geld, helfen aber ers
 
 Codex:
 
-- [ ] Onboarding als Attachment-Blocker analog zu Burnout modellieren, aber mit eigener CardDefinition und eigenem Recipe.
-- [ ] Mitarbeiter mit Onboarding fuer normale Arbeitsrecipes blockieren.
-- [ ] Onboarding blockiert Bezahlung nicht.
-- [ ] `Mitarbeiter + Onboarding -> 20s Onboarding... -> Onboarding entfernen` implementieren.
-- [ ] Kaffee als ProcessingInteraction auf laufendes Onboarding erlauben, weil mindestens eine Mitarbeiterkarte im Stack arbeitet.
-- [ ] Kuendigt ein Mitarbeiter mit Onboarding, verschwindet das Onboarding-Attachment mit ihm.
-- [ ] Save/Load fuer Onboarding-Attachment und Timer-Fortschritt nur dann als essenziellen Kernregel-Test ergaenzen, wenn neue Runtime-Felder eingefuehrt werden.
+- [x] Onboarding als Attachment-Blocker analog zu Burnout modellieren, aber mit eigener CardDefinition und eigenem Recipe.
+- [x] Mitarbeiter mit Onboarding fuer normale Arbeitsrecipes blockieren.
+- [x] Onboarding blockiert Bezahlung nicht.
+- [x] `Mitarbeiter + Onboarding -> 20s Onboarding... -> Onboarding entfernen` implementieren.
+- [x] Kaffee als ProcessingInteraction auf laufendes Onboarding erlauben, weil mindestens eine Mitarbeiterkarte im Stack arbeitet.
+- [x] Kuendigt ein Mitarbeiter mit Onboarding, verschwindet das Onboarding-Attachment mit ihm.
+- [x] Save/Load fuer Onboarding-Attachment und Timer-Fortschritt nur dann als essenziellen Kernregel-Test ergaenzen, wenn neue Runtime-Felder eingefuehrt werden.
 
 Marco:
 
-- [ ] Im Editor pruefen, ob Onboarding als angeheftete Karte lesbar bleibt.
-- [ ] Playtest: Onboarding muss sich wie bewusstes Delay anfuehlen, nicht wie Bug.
-- [ ] Tooltip pruefen: "Blockiert Arbeit, Gehalt bleibt faellig" muss klar sein.
+- [x] Im Editor pruefen, ob Onboarding als angeheftete Karte lesbar bleibt.
+- [x] Playtest: Onboarding muss sich wie bewusstes Delay anfuehlen, nicht wie Bug.
+- [x] Tooltip pruefen: "Blockiert Arbeit, Gehalt bleibt faellig" muss klar sein.
 
 Definition of Done:
 
-- [ ] Mitarbeiter mit Onboarding kann keine normale Arbeit starten.
-- [ ] Onboarding kann abgeschlossen werden und entfernt nur die Onboarding-Karte.
-- [ ] Kaffee beschleunigt Onboarding wie andere Mitarbeiterarbeit.
-- [ ] Bezahlung und Kuendigung funktionieren mit Onboarding korrekt.
+- [x] Mitarbeiter mit Onboarding kann keine normale Arbeit starten.
+- [x] Onboarding kann abgeschlossen werden und entfernt nur die Onboarding-Karte.
+- [x] Kaffee beschleunigt Onboarding wie andere Mitarbeiterarbeit.
+- [x] Bezahlung und Kuendigung funktionieren mit Onboarding korrekt.
 
 Headless-Check:
 
 ```bash
 tools/check_poc.sh
 ```
+
+Status: abgeschlossen. Onboarding ist ein `employee_blocker`-Attachment, blockiert normale Employee-Recipes, bleibt bezahlbar und wird durch das Onboarding-Recipe entfernt. Kaffee beschleunigt laufendes Onboarding. Attachment-Entfernung bei Kuendigung nutzt die bestehende rekursive Card-Entfernung. Marco hat Editor-/Playtest-Pruefung bestaetigt.
 
 ## Phase 6 - Recruiter als Hiring-Spezialist
 

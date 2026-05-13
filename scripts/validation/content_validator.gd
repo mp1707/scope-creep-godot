@@ -96,6 +96,11 @@ const POC4_TALENT_POOL_ALLOWED_CARDS: Array[String] = [
 const POC4_REQUIRED_RECIPE_IDS: Array[String] = [
 	"recipe.booster_pack_from_two_money.talent_pool_slot",
 ]
+const POC4_HIRING_RECIPE_IDS: Array[String] = [
+	"recipe.interview_candidate.regular_employee",
+	"recipe.interview_candidate.recruiter",
+	"recipe.onboarding.employee",
+]
 const POC4_REQUIRED_CARD_TAGS: Dictionary = {
 	"card.employee.developer": ["employee", "regular_employee", "salary_required", "developer"],
 	"card.employee.product_owner": ["employee", "regular_employee", "salary_required", "product_owner"],
@@ -471,6 +476,32 @@ func _validate_poc4_recipe_patterns(recipes: Array) -> void:
 		if not _recipe_has_card_input(recipe, POC4_TALENT_POOL_SLOT_ID):
 			_errors.append("%s: PoC4 recipe '%s' needs the Talent-Pool slot input." % [recipe.resource_path, recipe.id])
 
+	for recipe_id: String in POC4_HIRING_RECIPE_IDS:
+		if not recipes_by_id.has(recipe_id):
+			_errors.append("PoC4 requires recipe '%s'." % recipe_id)
+
+	var normal_interview: RecipeDefinition = recipes_by_id.get("recipe.interview_candidate.regular_employee", null) as RecipeDefinition
+	var recruiter_interview: RecipeDefinition = recipes_by_id.get("recipe.interview_candidate.recruiter", null) as RecipeDefinition
+	if normal_interview != null:
+		if not _recipe_has_tag_input(normal_interview, "candidate") or not _recipe_has_tag_input(normal_interview, "regular_employee"):
+			_errors.append("%s: PoC4 normal interview needs candidate and regular_employee inputs." % normal_interview.resource_path)
+		if not _recipe_has_roll_chance_key(normal_interview, "poc4_normal_interview_success_chance"):
+			_errors.append("%s: PoC4 normal interview must use the normal interview success chance." % normal_interview.resource_path)
+	if recruiter_interview != null:
+		if not _recipe_has_card_input(recruiter_interview, "card.employee.recruiter"):
+			_errors.append("%s: PoC4 recruiter interview needs recruiter input." % recruiter_interview.resource_path)
+		if not _recipe_has_roll_chance_key(recruiter_interview, "poc4_recruiter_interview_success_chance"):
+			_errors.append("%s: PoC4 recruiter interview must use the recruiter interview success chance." % recruiter_interview.resource_path)
+	if normal_interview != null and recruiter_interview != null and recruiter_interview.specificity_score <= normal_interview.specificity_score:
+		_errors.append("%s: PoC4 recruiter interview must be more specific than normal interview." % recruiter_interview.resource_path)
+
+	var onboarding_recipe: RecipeDefinition = recipes_by_id.get("recipe.onboarding.employee", null) as RecipeDefinition
+	if onboarding_recipe != null:
+		if not _recipe_has_card_input(onboarding_recipe, "card.blocker.onboarding") or not _recipe_has_tag_input(onboarding_recipe, "regular_employee"):
+			_errors.append("%s: PoC4 onboarding recipe needs regular_employee and onboarding inputs." % onboarding_recipe.resource_path)
+		if not _recipe_removes_card(onboarding_recipe, "card.blocker.onboarding"):
+			_errors.append("%s: PoC4 onboarding recipe must remove only the onboarding card." % onboarding_recipe.resource_path)
+
 func _recipe_has_input_count(recipe: RecipeDefinition, card_definition_id: String, count: int) -> bool:
 	for input: RecipeInputMatcher in recipe.inputs:
 		if input != null and input.card_definition_id == card_definition_id and input.count == count:
@@ -491,6 +522,18 @@ func _recipe_has_card_input(recipe: RecipeDefinition, card_definition_id: String
 func _recipe_has_tag_input(recipe: RecipeDefinition, tag: String) -> bool:
 	for input: RecipeInputMatcher in recipe.inputs:
 		if input != null and input.required_tags.has(tag):
+			return true
+	return false
+
+func _recipe_has_roll_chance_key(recipe: RecipeDefinition, chance_key: String) -> bool:
+	for effect: EffectDefinition in recipe.effects_on_complete:
+		if effect != null and effect.effect_type == "roll_chance" and effect.parameters.get("chance_key", "") == chance_key:
+			return true
+	return false
+
+func _recipe_removes_card(recipe: RecipeDefinition, card_definition_id: String) -> bool:
+	for effect: EffectDefinition in recipe.effects_on_complete:
+		if effect != null and effect.effect_type == "remove_card" and effect.parameters.get("card_definition_id", "") == card_definition_id:
 			return true
 	return false
 

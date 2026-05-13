@@ -54,6 +54,9 @@ func apply_balance_overrides() -> void:
 	if balance == null:
 		return
 	_set_recipe_duration("recipe.promising_user_story_from_customer_request.developer", balance.poc3_developer_customer_request_duration_seconds)
+	_set_recipe_duration("recipe.interview_candidate.regular_employee", balance.poc4_normal_interview_duration_seconds)
+	_set_recipe_duration("recipe.interview_candidate.recruiter", balance.poc4_recruiter_interview_duration_seconds)
+	_set_recipe_duration("recipe.onboarding.employee", balance.poc4_onboarding_duration_seconds)
 	_set_spawn_money_count_key("recipe.money_from_freelance_order.feature", "poc3_freelance_feature_money_cards")
 	_set_spawn_money_count_key("recipe.money_from_freelance_order.checked_feature", "poc3_freelance_checked_feature_money_cards")
 

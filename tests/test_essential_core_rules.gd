@@ -12,6 +12,9 @@ func _init() -> void:
 	_test_save_is_only_allowed_when_frozen_and_restores_state()
 	_test_booster_draws_are_deterministic()
 	_test_talent_pool_costs_two_money_and_draws_no_regular_employee()
+	_test_interview_recipes_are_deterministic_and_recruiter_specific()
+	_test_offer_hiring_in_payment_defers_salary_and_attaches_onboarding()
+	_test_onboarding_blocks_work_and_accepts_coffee()
 
 	if _failed:
 		quit(1)
@@ -155,6 +158,67 @@ func _test_talent_pool_costs_two_money_and_draws_no_regular_employee() -> void:
 	_assert_equal(_count_cards_by_definition(state, "card.employee.recruiter"), 0, "Talent-Pool should not draw a direct recruiter.")
 	_assert_equal(_count_cards_by_definition(state, "card.employee.external_dev"), 0, "Talent-Pool should not draw an external dev.")
 
+func _test_interview_recipes_are_deterministic_and_recruiter_specific() -> void:
+	var controller: RunController = _create_controller(60.0)
+	controller.content.balance.poc4_normal_interview_success_chance = 1.0
+	controller.content.balance.poc4_recruiter_interview_success_chance = 1.0
+	controller.content.apply_balance_overrides()
+	var state: RunState = controller.start_new_run(1009)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var candidate: CardInstance = _spawn_card(controller, "card.candidate.developer", Vector2(1200.0, 300.0))
+
+	controller.move_card_to_stack(candidate.instance_id, developer.stack_id)
+	var normal_stack: StackState = state.get_stack(developer.stack_id)
+	_assert_equal(normal_stack.processing_state.active_recipe_id, "recipe.interview_candidate.regular_employee", "Regular employees should interview candidates through the normal interview recipe.")
+	controller.advance_time(20.0)
+	_assert_equal(_count_cards_by_definition(state, "card.offer.developer"), 1, "Successful normal interview should spawn the mapped offer.")
+	_assert_equal(_count_cards_by_definition(state, "card.candidate.developer"), 0, "Interview completion should consume the candidate.")
+
+	var recruiter: CardInstance = _spawn_card(controller, "card.employee.recruiter", Vector2(1600.0, 300.0))
+	var recruiter_candidate: CardInstance = _spawn_card(controller, "card.candidate.tester", Vector2(1620.0, 300.0))
+	controller.move_card_to_stack(recruiter_candidate.instance_id, recruiter.stack_id)
+	var recruiter_stack: StackState = state.get_stack(recruiter.stack_id)
+	_assert_equal(recruiter_stack.processing_state.active_recipe_id, "recipe.interview_candidate.recruiter", "Recruiter interview should win over the regular employee interview recipe.")
+	_assert_equal(recruiter_stack.processing_state.duration, 10.0, "Recruiter interview should use the recruiter duration.")
+
+func _test_offer_hiring_in_payment_defers_salary_and_attaches_onboarding() -> void:
+	var controller: RunController = _create_controller(1.0)
+	var state: RunState = controller.start_new_run(1010)
+	var offer: CardInstance = _spawn_card(controller, "card.offer.tester", Vector2(1200.0, 300.0))
+	var money: CardInstance = _spawn_card(controller, "card.resource.money", Vector2(1250.0, 300.0))
+
+	controller.advance_time(1.0)
+	_assert_equal(state.phase, ScopeEnums.RunPhase.PAYMENT, "Short sprint should enter payment before hiring offer.")
+	controller.move_card_to_stack(money.instance_id, offer.stack_id)
+
+	var hired_tester: CardInstance = _find_new_hire_with_salary_due(state, "card.employee.tester", 2)
+	_assert_true(hired_tester != null, "Hiring an offer in payment should spawn the target employee with deferred salary.")
+	_assert_true(not hired_tester.state.is_payment_target, "Payment-phase hire should not become a salary target in the same payment phase.")
+	var onboarding: CardInstance = _find_attachment(state, hired_tester.instance_id, "onboarding")
+	_assert_true(onboarding != null and onboarding.definition_id == "card.blocker.onboarding", "New hire should receive an onboarding attachment.")
+	_assert_equal(_count_cards_by_definition(state, "card.offer.tester"), 0, "Hiring should consume the offer.")
+
+func _test_onboarding_blocks_work_and_accepts_coffee() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1011)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
+	controller.call("_spawn_attached_card", developer.instance_id, "card.blocker.onboarding", "onboarding")
+
+	var stack: StackState = state.get_stack(developer.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.onboarding.employee", "Attached onboarding should start onboarding instead of normal work.")
+	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.onboarding.employee", "Onboarding should keep normal work queued until it is removed.")
+	controller.advance_time(1.0)
+	controller.move_card_to_stack(coffee.instance_id, developer.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.onboarding.employee", "Coffee should keep the onboarding recipe active.")
+	_assert_true(stack.processing_state.elapsed > 1.0, "Coffee should accelerate onboarding because an employee is working.")
+	_assert_equal(_count_cards_by_definition(state, "card.consumable.coffee"), 0, "Coffee used on onboarding should be consumed.")
+	controller.advance_time(30.0)
+	_assert_equal(_count_cards_by_definition(state, "card.blocker.onboarding"), 0, "Completed onboarding should remove only the onboarding card.")
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.developer", "Queued normal work should start after onboarding is removed.")
+
 func _open_spawned_booster_and_get_result(run_seed: int) -> Dictionary:
 	var controller: RunController = _create_controller(60.0)
 	var state: RunState = controller.start_new_run(run_seed)
@@ -233,6 +297,18 @@ func _count_money_cards_in_stack(state: RunState, stack_id: String) -> int:
 		if card != null and card.definition_id == "card.resource.money":
 			count += 1
 	return count
+
+func _find_new_hire_with_salary_due(state: RunState, definition_id: String, salary_due_from_sprint: int) -> CardInstance:
+	for card: CardInstance in state.cards.values():
+		if card.definition_id == definition_id and int(card.values.get(RunController.SALARY_DUE_FROM_SPRINT_VALUE, 0)) == salary_due_from_sprint:
+			return card
+	return null
+
+func _find_attachment(state: RunState, parent_card_id: String, attachment_slot: String) -> CardInstance:
+	for card: CardInstance in state.cards.values():
+		if card.parent_card_id == parent_card_id and card.attachment_slot == attachment_slot:
+			return card
+	return null
 
 func _assert_true(value: bool, message: String) -> void:
 	if value:
