@@ -17,7 +17,7 @@ display_name = "Product-Owner-Angebot"
 type = 6
 tags = PackedStringArray("offer", "product_owner_offer", "hiring")
 short_text = "Kostet 1 Geld"
-tooltip_text = "Noch kein Mitarbeiter. Mit 1 Geld wird daraus ein Product Owner mit Onboarding."
+tooltip_text = "Mit 1 Geld wird daraus ein Product Owner mit Onboarding."
 visual = SubResource("Resource_visual")
 base_values = {
 "target_employee_card_definition_id": "card.employee.product_owner"

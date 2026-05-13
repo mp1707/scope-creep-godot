@@ -17,7 +17,7 @@ display_name = "Onboarding"
 type = 4
 tags = PackedStringArray("blocker", "attachment", "onboarding", "employee_blocker")
 short_text = "Blockiert Arbeit"
-tooltip_text = "Wird an neue regulaere Mitarbeiter angeheftet. Blockiert Arbeit, aber nicht Gehalt."
+tooltip_text = "Blockiert Arbeit, aber nicht Gehalt."
 visual = SubResource("Resource_visual")
 base_values = {
 "attachment_slot": "onboarding",

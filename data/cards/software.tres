@@ -21,7 +21,7 @@ display_name = "Software"
 type = 8
 tags = PackedStringArray("software", "product")
 short_text = "MVP-Feature-Fortschritt"
-tooltip_text = "Vor Launch sammeln integrierte Funktionen MVP-Features. Ab 5 Features ist die Software launchbereit."
+tooltip_text = "Sammelt Features. Ab 5 Features ist der Launch bereit."
 visual = SubResource("Resource_e23bo")
 base_values = {
 "customer_feature_count": 0,

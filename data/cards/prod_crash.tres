@@ -20,6 +20,6 @@ display_name = "Prod-Crash"
 type = 4
 tags = PackedStringArray("problem", "prod_crash")
 short_text = "Blockiert Einnahmen"
-tooltip_text = "Entsteht aus 3 Bugs am Sprintstart und blockiert Einnahmen."
+tooltip_text = "Blockiert Einnahmen und muss repariert werden."
 visual = SubResource("Resource_8n4wy")
 auto_stack_on_spawn = true

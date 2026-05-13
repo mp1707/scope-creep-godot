@@ -17,5 +17,5 @@ display_name = "Tester"
 type = 0
 tags = PackedStringArray("employee", "regular_employee", "salary_required", "tester")
 short_text = "Prueft Features"
-tooltip_text = "Prueft Funktionen und kann Bugs beheben, aber langsamer als Entwickler."
+tooltip_text = "Prueft Features und kann Bugs beheben."
 visual = SubResource("Resource_visual")

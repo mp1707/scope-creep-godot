@@ -17,7 +17,7 @@ display_name = "Wohlbefinden"
 type = 6
 tags = PackedStringArray("shop", "booster_slot")
 short_text = "Team stabilisieren"
-tooltip_text = "Lege 1 Geld auf den Slot, um ein Wohlbefinden-Pack zu kaufen."
+tooltip_text = "Kauft fuer 1 Geld ein Wohlbefinden-Pack."
 visual = SubResource("Resource_visual")
 base_values = {
 "booster_definition_id": "booster.office_invest",

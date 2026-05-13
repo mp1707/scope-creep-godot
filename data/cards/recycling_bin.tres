@@ -17,7 +17,7 @@ display_name = "Resteverwertung"
 type = 6
 tags = PackedStringArray("shop", "recycling_bin")
 short_text = "3 Reste -> 1 Geld"
-tooltip_text = "Lege 3 verwertbare Karten auf diesen Slot. Aus Startup-Resten wird 1 Geld."
+tooltip_text = "Verwandelt 3 verwertbare Karten in 1 Geld."
 visual = SubResource("Resource_visual")
 base_values = {
 "shop_dock_order": 1000

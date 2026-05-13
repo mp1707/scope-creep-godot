@@ -17,5 +17,5 @@ display_name = "Product Owner"
 type = 0
 tags = PackedStringArray("employee", "regular_employee", "salary_required", "product_owner")
 short_text = "Formt Stories"
-tooltip_text = "Verarbeitet Ideen und Kundenwuensche zu User Stories."
+tooltip_text = "Macht aus Ideen und Kundenwuenschen klare User Stories."
 visual = SubResource("Resource_visual")

@@ -17,6 +17,6 @@ display_name = "Pizza Party"
 type = 9
 tags = PackedStringArray("consumable", "pizza_party", "recyclable")
 short_text = "Kurze Burnout-Erholung"
-tooltip_text = "Verkuerzt Burnout-Erholung deutlich und wird verbraucht."
+tooltip_text = "Verkuerzt Burnout-Erholung deutlich."
 visual = SubResource("Resource_visual")
 auto_stack_on_spawn = true

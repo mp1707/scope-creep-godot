@@ -17,6 +17,6 @@ display_name = "Unzufrieden"
 type = 4
 tags = PackedStringArray("problem", "unhappy_customer", "customer_pressure")
 short_text = "Kundendruck"
-tooltip_text = "Wird an einen Kunden geheftet. Dem Kunden koennen keine Demos gezeigt und kein Feedback entlockt werden, bis ein Product Owner oder langsamer ein Entwickler die Erwartungen managt."
+tooltip_text = "Blockiert Demos und Feedback beim Kunden."
 visual = SubResource("Resource_visual")
 auto_stack_on_spawn = true

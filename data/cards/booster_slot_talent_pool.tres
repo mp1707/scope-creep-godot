@@ -17,7 +17,7 @@ display_name = "Talent-Pool"
 type = 6
 tags = PackedStringArray("shop", "talent_pool_slot")
 short_text = "2 Geld, 3 Karten"
-tooltip_text = "Lege 2 Geld auf den Slot, um Bewerber oder Werkstudenten zu ziehen. Bewerber muessen erst interviewt werden."
+tooltip_text = "Kauft fuer 2 Geld Bewerber oder Werkstudenten."
 visual = SubResource("Resource_visual")
 base_values = {
 "booster_definition_id": "booster.talent_pool",

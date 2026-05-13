@@ -19,6 +19,6 @@ display_name = "Technische Schulden"
 type = 4
 tags = PackedStringArray("problem", "tech_debt")
 short_text = "Verlaengert Arbeit"
-tooltip_text = "Verlaengert Feature- und Bugfix-Arbeit global."
+tooltip_text = "Verlangsamt Feature- und Bugfix-Arbeit."
 visual = SubResource("Resource_tn0rp")
 auto_stack_on_spawn = true

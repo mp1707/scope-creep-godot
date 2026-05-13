@@ -17,6 +17,6 @@ display_name = "Investorenpanik"
 type = 4
 tags = PackedStringArray("problem", "investor_panic")
 short_text = "2 Panik = Game Over"
-tooltip_text = "Entsteht durch verfehlte Business Goals. Bei 2 Investorenpanik-Karten endet der Run."
+tooltip_text = "Bei 2 Investorenpanik-Karten endet der Run."
 visual = SubResource("Resource_visual")
 auto_stack_on_spawn = true

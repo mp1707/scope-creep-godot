@@ -17,7 +17,7 @@ display_name = "Business Goal"
 type = 10
 tags = PackedStringArray("goal", "business_goal")
 short_text = "Mit Geld erfuellen"
-tooltip_text = "Lege einzelne Geldkarten auf dieses Goal. Beim Start des naechsten Sprints wird geprueft: erfuellt spawnt das naechste Goal, verfehlt erzeugt Investorenpanik."
+tooltip_text = "Lege Geld darauf. Beim Sprintstart wird geprueft."
 visual = SubResource("Resource_visual")
 base_values = {
 "goal_index": 1,

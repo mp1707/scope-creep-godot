@@ -113,7 +113,7 @@ func _save_cards() -> int:
 		Color(0.50, 0.25, 0.12),
 		"res://assets/icons/handdrawn/cardIcons/coffee.png"
 	)
-	coffee_card.tooltip_text = "Auf eine laufende Mitarbeiterarbeit droppen: verbraucht Kaffee und fuegt 25% der Grunddauer als Fortschritt hinzu."
+	coffee_card.tooltip_text = "Beschleunigt alles."
 	coffee_card.auto_stack_on_spawn = true
 	coffee_card.processing_interaction = _create_processing_interaction()
 	exit_code = max(exit_code, _save_resource(coffee_card, "res://data/cards/coffee.tres"))

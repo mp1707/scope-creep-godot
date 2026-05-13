@@ -17,6 +17,6 @@ display_name = "Auftrag"
 type = 7
 tags = PackedStringArray("value_source", "order")
 short_text = "Bonus fuer Funktion"
-tooltip_text = "Kann mit einer Funktion Bonus-Geld erzeugen und verfaellt am Sprintstart."
+tooltip_text = "Kann mit einer Funktion Bonus-Geld erzeugen."
 visual = SubResource("Resource_visual")
 auto_stack_on_spawn = true

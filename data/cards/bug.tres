@@ -19,6 +19,6 @@ display_name = "Bug"
 type = 4
 tags = PackedStringArray("problem", "bug")
 short_text = "Eskalation am Sprintstart"
-tooltip_text = "Eskalation am Sprintstart"
+tooltip_text = "Kann behoben werden. Zu viele Bugs werden zum Prod-Crash."
 visual = SubResource("Resource_4xlse")
 auto_stack_on_spawn = true

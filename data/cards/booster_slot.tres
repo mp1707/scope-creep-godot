@@ -23,7 +23,7 @@ display_name = "Gründerpanik"
 type = 6
 tags = PackedStringArray("shop", "booster_slot")
 short_text = "Fruehes Notfall-Pack"
-tooltip_text = "Lege 1 Geld auf den Slot, um ein Gründerpanik-Pack mit Ideen, Kaffee oder Geld zu kaufen."
+tooltip_text = "Kauft fuer 1 Geld ein Gruenderpanik-Pack."
 visual = SubResource("Resource_7u6xq")
 base_values = {
 "booster_definition_id": "booster.founder.test_pack",

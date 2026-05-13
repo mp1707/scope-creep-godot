@@ -17,5 +17,5 @@ display_name = "Kunde"
 type = 7
 tags = PackedStringArray("value_source", "customer")
 short_text = "Demo und Feedback"
-tooltip_text = "Spawnt beim Erscheinen 1 Geld und 1 Kundenwunsch. Entwickler koennen Demos fuer Geld zeigen; Product Owner koennen Feedback sammeln."
+tooltip_text = "Bringt Geld, Wuensche und Feedback."
 visual = SubResource("Resource_visual")

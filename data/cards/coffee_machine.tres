@@ -17,7 +17,7 @@ display_name = "Kaffeemaschine"
 type = 7
 tags = PackedStringArray("value_source", "coffee_machine", "sprint_tick_spawner")
 short_text = "Spawnt Kaffee"
-tooltip_text = "Erzeugt am Sprintstart einen Kaffee."
+tooltip_text = "Erzeugt am Sprintstart Kaffee."
 visual = SubResource("Resource_visual")
 base_values = {
 "sprint_tick_spawn_card_id": "card.consumable.coffee"

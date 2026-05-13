@@ -17,5 +17,5 @@ display_name = "Burnout"
 type = 4
 tags = PackedStringArray("problem", "burnout")
 short_text = "Blockiert Mitarbeiter"
-tooltip_text = "Wird an Mitarbeiter angeheftet und blockiert normale Arbeit bis zur Erholung."
+tooltip_text = "Blockiert einen Mitarbeiter bis zur Erholung."
 visual = SubResource("Resource_visual")

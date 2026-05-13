@@ -23,7 +23,7 @@ display_name = "Boosterpack"
 type = 5
 tags = PackedStringArray("booster", "pack")
 short_text = "Oeffnet neue Karten"
-tooltip_text = "Oeffnet neue Karten"
+tooltip_text = "Oeffnet neue Karten."
 visual = SubResource("Resource_rpu0n")
 base_values = {
 "booster_definition_id": "booster.founder.test_pack"

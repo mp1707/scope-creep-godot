@@ -30,6 +30,11 @@ folder_colors={
 "res://scripts/": "green"
 }
 
+[gui]
+
+timers/tooltip_delay_sec=0.0
+theme/custom="res://assets/themes/game_theme.tres"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

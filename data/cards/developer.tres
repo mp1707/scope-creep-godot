@@ -19,5 +19,5 @@ display_name = "Entwickler"
 type = 0
 tags = PackedStringArray("employee", "regular_employee", "salary_required", "developer")
 short_text = "Baut Features"
-tooltip_text = "Baut Features"
+tooltip_text = "Verwandelt Ideen und User Stories in tolle Features und garantiert NIE Bugs."
 visual = SubResource("Resource_oityl")

@@ -17,7 +17,7 @@ display_name = "Gepruefte Funktion"
 type = 3
 tags = PackedStringArray("output", "feature", "checked")
 short_text = "Sicher integrieren oder 3 Geld"
-tooltip_text = "Auf Software integrieren ohne Bug-Risiko oder mit dem Freelance-Slot fuer 3 Geld abliefern."
+tooltip_text = "Kann sicher integriert oder fuer 3 Geld verkauft werden."
 visual = SubResource("Resource_visual")
 base_values = {
 "feature_value": 1,

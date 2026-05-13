@@ -28,6 +28,6 @@ display_name = "Recruiter"
 type = 0
 tags = PackedStringArray("employee", "regular_employee", "salary_required", "recruiter")
 short_text = "Interviews, Onboarding-Hilfe"
-tooltip_text = "Spezialist fuer Bewerbungsgespräche. Auf laufendes Onboarding droppen: halbiert die Restzeit. Kostet wie andere regulaere Mitarbeiter Gehalt."
+tooltip_text = "Fuehrt Interviews und beschleunigt Onboarding."
 visual = SubResource("Resource_visual")
 processing_interaction = SubResource("Resource_processing_interaction")

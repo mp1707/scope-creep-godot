@@ -17,7 +17,7 @@ display_name = "Entwickler-Bewerber"
 type = 1
 tags = PackedStringArray("candidate", "developer_candidate", "hiring")
 short_text = "Muss interviewt werden"
-tooltip_text = "Noch kein Mitarbeiter. Ein Bewerbungsgespräch kann daraus ein Entwickler-Angebot machen."
+tooltip_text = "Kann interviewt werden und ein Entwickler-Angebot werden."
 visual = SubResource("Resource_visual")
 base_values = {
 "target_offer_card_definition_id": "card.offer.developer"

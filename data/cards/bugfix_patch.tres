@@ -17,5 +17,5 @@ display_name = "Bugfix (extern)"
 type = 9
 tags = PackedStringArray("consumable", "bugfix_patch", "recyclable")
 short_text = "Entfernt Bug sofort"
-tooltip_text = "Kann einen Bug sofort entfernen und wird dabei verbraucht."
+tooltip_text = "Entfernt einen Bug sofort."
 visual = SubResource("Resource_visual")

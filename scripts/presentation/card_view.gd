@@ -6,6 +6,14 @@ const CARD_CORNER_RADIUS: int = 8
 const CARD_BORDER_WIDTH: int = 5
 const HEADER_HEIGHT: float = 34.0
 const CARD_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
+const CARD_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
+const TOOLTIP_BACKGROUND_COLOR: Color = Color(0.74, 0.73, 0.69, 1.0)
+const TOOLTIP_MAX_WIDTH: float = 286.0
+const TOOLTIP_MIN_WIDTH: float = 150.0
+const TOOLTIP_BORDER_WIDTH: int = 5
+const TOOLTIP_CORNER_RADIUS: int = 7
+const TOOLTIP_FONT_SIZE: int = 21
+const TOOLTIP_CONTENT_MARGIN: int = 12
 const DRAG_SHADOW_COLOR: Color = Color(0.18, 0.17, 0.15, 1.0)
 const DRAG_SHADOW_OFFSET: Vector2 = Vector2(8.0, 10.0)
 const STATUS_BADGE_TEXT_COLOR: Color = Color(0.98, 0.955, 0.88, 1.0)
@@ -260,6 +268,56 @@ func _apply_default_layout() -> void:
 	_action_label.position = Vector2(12.0, 164.0)
 	_action_label.size = Vector2(120.0, 20.0)
 
+func _make_custom_tooltip(for_text: String) -> Object:
+	var panel: PanelContainer = PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style_box: StyleBoxFlat = StyleBoxFlat.new()
+	style_box.bg_color = TOOLTIP_BACKGROUND_COLOR
+	style_box.border_color = CARD_BORDER_COLOR
+	style_box.shadow_color = Color.TRANSPARENT
+	style_box.shadow_offset = Vector2.ZERO
+	style_box.shadow_size = 0
+	style_box.border_width_bottom = TOOLTIP_BORDER_WIDTH
+	style_box.border_width_left = TOOLTIP_BORDER_WIDTH
+	style_box.border_width_right = TOOLTIP_BORDER_WIDTH
+	style_box.border_width_top = TOOLTIP_BORDER_WIDTH
+	style_box.corner_radius_bottom_left = TOOLTIP_CORNER_RADIUS
+	style_box.corner_radius_bottom_right = TOOLTIP_CORNER_RADIUS
+	style_box.corner_radius_top_left = TOOLTIP_CORNER_RADIUS
+	style_box.corner_radius_top_right = TOOLTIP_CORNER_RADIUS
+	style_box.content_margin_bottom = TOOLTIP_CONTENT_MARGIN
+	style_box.content_margin_left = TOOLTIP_CONTENT_MARGIN
+	style_box.content_margin_right = TOOLTIP_CONTENT_MARGIN
+	style_box.content_margin_top = TOOLTIP_CONTENT_MARGIN
+	panel.add_theme_stylebox_override("panel", style_box)
+
+	var label: Label = Label.new()
+	label.text = for_text
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.clip_text = false
+	label.add_theme_color_override("font_color", CARD_TEXT_COLOR)
+	if _card_font == null:
+		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
+	if _card_font != null:
+		label.add_theme_font_override("font", _card_font)
+	label.add_theme_font_size_override("font_size", TOOLTIP_FONT_SIZE)
+	label.custom_minimum_size.x = _get_tooltip_text_width(for_text, label.get_theme_font("font"))
+	panel.add_child(label)
+	return panel
+
+func _get_tooltip_text_width(text: String, font: Font) -> float:
+	if font == null:
+		return TOOLTIP_MAX_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2)
+	var widest_line: float = 0.0
+	for line: String in text.split("\n"):
+		widest_line = maxf(widest_line, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1.0, TOOLTIP_FONT_SIZE).x)
+	return clampf(
+		widest_line,
+		TOOLTIP_MIN_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2),
+		TOOLTIP_MAX_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2)
+	)
+
 func _set_top_left_layout(control: Control) -> void:
 	control.anchor_left = 0.0
 	control.anchor_top = 0.0
@@ -477,33 +535,28 @@ func _update_tooltip(card: CardInstance, definition: CardDefinition) -> void:
 	var details: PackedStringArray = PackedStringArray()
 	var base_text: String = definition.tooltip_text if not definition.tooltip_text.is_empty() else definition.short_text
 	if definition.tags.has("software"):
-		for detail: String in _product_lifecycle.get_tooltip_details(card):
-			details.append(detail)
+		var feature_count: int = _product_lifecycle.get_feature_count(card)
+		var required_features: int = _product_lifecycle.get_mvp_required_features(card)
+		var stage: String = _product_lifecycle.get_product_stage(card)
+		if stage == ProductLifecycleService.PRODUCT_STAGE_LIVE:
+			details.append("Live: %d Features." % feature_count)
+		elif feature_count >= required_features:
+			details.append("Launchbereit: %d/%d Features." % [feature_count, required_features])
+		else:
+			details.append("MVP: %d/%d Features." % [feature_count, required_features])
 	if definition.tags.has("feature"):
-		details.append("Wert: %d" % int(card.values.get("feature_value", 1)))
+		details.append("Wert: %d Feature." % int(card.values.get("feature_value", 1)))
 		if bool(card.values.get("is_checked", false)) or definition.tags.has("checked"):
-			details.append("Status: geprueft")
+			details.append("Geprueft.")
 	if definition.tags.has("business_goal"):
-		details.append("Fortschritt: %d/%d Geld" % [
+		details.append("Geld: %d/%d." % [
 			maxi(0, int(card.values.get("paid_money", 0))),
 			maxi(1, int(card.values.get("required_money", 1))),
 		])
-	if definition.tags.has("candidate"):
-		details.append("Noch kein Mitarbeiter: erst interviewen")
-	if definition.tags.has("offer"):
-		details.append("Einstellung: 1 Geldkarte auf Angebot ziehen")
-	if definition.tags.has("work_student"):
-		details.append("Kein Gehalt, verschwindet nach einer abgeschlossenen Aufgabe")
-	if definition.tags.has("onboarding"):
-		details.append("Blockiert Arbeit, aber nicht Gehalt")
 	if card.state != null and card.state.is_paid:
-		details.append("Bezahlt fuer den naechsten Sprint")
+		details.append("Gehalt fuer den naechsten Sprint ist bezahlt.")
 	elif card.state != null and card.state.is_payment_target:
-		details.append("Gehalt offen: 1 Geldkarte")
-	if not card.parent_card_id.is_empty():
-		details.append("Angeheftet an: %s" % card.parent_card_id)
-	if definition.tags.has("burnout"):
-		details.append("Blockiert normale Arbeit des Mitarbeiters")
+		details.append("Gehalt offen: 1 Geldkarte.")
 
 	if details.is_empty():
 		tooltip_text = base_text

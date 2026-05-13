@@ -17,6 +17,6 @@ display_name = "Stressbewaeltigungskurs"
 type = 9
 tags = PackedStringArray("consumable", "stress_course", "recyclable")
 short_text = "Entfernt Burnout sofort"
-tooltip_text = "Entfernt Burnout sofort und wird verbraucht."
+tooltip_text = "Entfernt Burnout sofort."
 visual = SubResource("Resource_visual")
 auto_stack_on_spawn = true

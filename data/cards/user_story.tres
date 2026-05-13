@@ -17,6 +17,6 @@ display_name = "User Story"
 type = 2
 tags = PackedStringArray("task", "user_story", "recyclable")
 short_text = "Sauberer Arbeitsinput"
-tooltip_text = "Kann mit Entwickler zu einer Funktion umgesetzt werden."
+tooltip_text = "Ein Entwickler macht daraus sicher ein tolles Feature."
 visual = SubResource("Resource_visual")
 auto_stack_on_spawn = true

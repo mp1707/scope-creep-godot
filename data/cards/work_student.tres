@@ -17,7 +17,7 @@ display_name = "Werkstudent"
 type = 0
 tags = PackedStringArray("employee", "temp_worker", "work_student", "no_salary", "one_task_lifetime")
 short_text = "Langsame Hilfskraft"
-tooltip_text = "Temporäre Arbeitskapazitaet ohne Gehalt. Verschwindet nach einer erfolgreich abgeschlossenen Aufgabe."
+tooltip_text = "Hilft langsam, kostet kein Gehalt und verschwindet nach einer Aufgabe."
 visual = SubResource("Resource_visual")
 base_values = {
 "completed_task_lifetime": 1,

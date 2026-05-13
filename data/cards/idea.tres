@@ -17,6 +17,6 @@ id = "card.input.idea"
 display_name = "Idee"
 tags = PackedStringArray("idea", "input", "recyclable")
 short_text = "Kann umgesetzt werden"
-tooltip_text = "Kann umgesetzt werden"
+tooltip_text = "Ein Entwickler macht daraus sicher ein tolles Feature. Ein Product Owner macht daraus eine klare User Story."
 visual = SubResource("Resource_gmgh4")
 auto_stack_on_spawn = true

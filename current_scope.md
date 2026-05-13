@@ -373,6 +373,7 @@ Vorhanden sind:
 - Hiring-Pipeline mit Bewerbern, Interviews, Angeboten und Onboarding
 - Recruiter als Hiring-Spezialist
 - Werkstudent als temporaere, gehaltsfreie Hilfskraft
+- Card- und Shop-Tooltips mit handschriftlicher Font, Card-Design-Rahmen und knapper Kurzcopy
 - Save/Load fuer pausierte oder eingefrorene Runs
 - Content-Validation und schlanker Headless-Kerncheck
 

@@ -16,6 +16,6 @@ id = "card.input.customer_request"
 display_name = "Kundenwunsch"
 tags = PackedStringArray("input", "customer_request")
 short_text = "Kundengetriebener Input"
-tooltip_text = "Muss bis Sprintstart abgearbeitet oder vom Product Owner zu einer User Story geklaert werden. Offene alte Wuensche machen maximal einen zufriedenen Kunden unzufrieden."
+tooltip_text = "Sollte bis Sprintstart geklaert oder erledigt werden."
 visual = SubResource("Resource_visual")
 auto_stack_on_spawn = true
