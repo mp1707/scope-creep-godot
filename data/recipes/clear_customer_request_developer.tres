@@ -5,42 +5,33 @@
 [ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_effect"]
 [ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_recipe"]
 
-[sub_resource type="Resource" id="Duration_story"]
+[sub_resource type="Resource" id="Duration_clear_request"]
 script = ExtResource("2_duration")
-base_seconds = 18.0
+base_seconds = 4.5
 
 [sub_resource type="Resource" id="Effect_consume_customer_request"]
 script = ExtResource("3_effect")
-id = "effect.consume_input.customer_request.recruiter"
+id = "effect.consume_input.customer_request.developer"
 effect_type = "consume_input"
 parameters = {
 "card_definition_id": "card.input.customer_request"
-}
-
-[sub_resource type="Resource" id="Effect_spawn_promising_user_story"]
-script = ExtResource("3_effect")
-id = "effect.spawn_card.promising_user_story.recruiter"
-effect_type = "spawn_card"
-parameters = {
-"card_definition_id": "card.task.promising_user_story",
-"count": 1
 }
 
 [sub_resource type="Resource" id="Input_customer_request"]
 script = ExtResource("1_matcher")
 card_definition_id = "card.input.customer_request"
 
-[sub_resource type="Resource" id="Input_recruiter"]
+[sub_resource type="Resource" id="Input_developer"]
 script = ExtResource("1_matcher")
-card_definition_id = "card.employee.recruiter"
+card_definition_id = "card.employee.developer"
 
 [resource]
 script = ExtResource("4_recipe")
-id = "recipe.promising_user_story_from_customer_request.recruiter"
-display_text = "Kundenwunsch improvisieren..."
-inputs = Array[ExtResource("1_matcher")]([SubResource("Input_customer_request"), SubResource("Input_recruiter")])
-duration = SubResource("Duration_story")
-priority = 5
+id = "recipe.clear_customer_request.developer"
+display_text = "Kundenwunsch abarbeiten"
+inputs = Array[ExtResource("1_matcher")]([SubResource("Input_customer_request"), SubResource("Input_developer")])
+duration = SubResource("Duration_clear_request")
+priority = 10
 specificity_score = 2
-effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_consume_customer_request"), SubResource("Effect_spawn_promising_user_story")])
+effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_consume_customer_request")])
 duration_modifier_tags = PackedStringArray("planning_work")

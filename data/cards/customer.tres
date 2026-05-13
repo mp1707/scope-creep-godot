@@ -16,8 +16,8 @@ id = "card.value_source.customer"
 display_name = "Kunde"
 type = 7
 tags = PackedStringArray("value_source", "customer", "sprint_tick_spawner")
-short_text = "Zahlt, wenn zufrieden"
-tooltip_text = "Zahlt nach Launch am Sprintstart 1 Geld und erzeugt 1 Kundenwunsch, solange keine Unzufrieden-Karte angeheftet ist."
+short_text = "Demo und Feedback"
+tooltip_text = "Spawnt beim Erscheinen 1 Geld und 1 Kundenwunsch. Entwickler koennen Demos fuer Geld zeigen; Product Owner koennen Feedback sammeln."
 visual = SubResource("Resource_visual")
 base_values = {
 "sprint_tick_spawn_card_id": "card.input.customer_request"

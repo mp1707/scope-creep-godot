@@ -11,7 +11,7 @@ const START_LAYOUT_ORIGIN: Vector2 = Vector2(420.0, 322.0)
 const START_LAYOUT_COLUMNS: int = 6
 const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
 const DEFAULT_BOOSTER_DEFINITION_ID: String = "booster.founder.test_pack"
-const CONTENT_VERSION: String = "poc4"
+const CONTENT_VERSION: String = "poc5"
 const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
 const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
 const BOOSTER_PACK_DEFINITION_ID: String = "card.resource.booster_pack"
@@ -872,16 +872,6 @@ func _spawn_customer_tick_cards(customer: CardInstance) -> void:
 		_spawn_attached_card(customer.instance_id, UNHAPPY_CUSTOMER_DEFINITION_ID, UNHAPPY_CUSTOMER_ATTACHMENT_SLOT)
 		return
 
-	var spawn_index: int = 0
-	for money_index: int in _get_customer_tick_money_card_count():
-		_spawn_card_as_new_stack(MONEY_DEFINITION_ID, _get_spawn_position_near_stack(customer.stack_id, spawn_index))
-		spawn_index += 1
-	for request_index: int in _get_customer_tick_request_card_count():
-		var request: CardInstance = _spawn_card_as_new_stack(CUSTOMER_REQUEST_DEFINITION_ID, _get_spawn_position_near_stack(customer.stack_id, spawn_index))
-		spawn_index += 1
-		if request != null:
-			request.values["spawned_sprint_index"] = state.sprint_index
-
 func _attach_unhappy_customers_from_old_requests() -> void:
 	if not _is_software_live():
 		return
@@ -896,12 +886,10 @@ func _attach_unhappy_customers_from_old_requests() -> void:
 			continue
 		var spawned_sprint_index: int = int(request.values.get("spawned_sprint_index", request.created_at_sprint))
 		if spawned_sprint_index < state.sprint_index:
-			if available_customer_ids.is_empty():
-				break
 			var customer_index: int = _rng.randi_range(0, available_customer_ids.size() - 1)
 			var customer_id: String = available_customer_ids[customer_index]
-			available_customer_ids.remove_at(customer_index)
 			_spawn_attached_card(customer_id, UNHAPPY_CUSTOMER_DEFINITION_ID, UNHAPPY_CUSTOMER_ATTACHMENT_SLOT)
+			break
 	state.rng_state = _rng.state
 
 func _resolve_active_business_goal() -> void:
@@ -993,8 +981,9 @@ func _get_business_goal_required_money(goal: CardInstance) -> int:
 
 func _get_required_money_for_business_goal_index(goal_index: int) -> int:
 	var required_money_values: Array[int] = _get_business_goal_required_money_values()
-	var index: int = clampi(goal_index - 1, 0, required_money_values.size() - 1)
-	return required_money_values[index]
+	if goal_index <= required_money_values.size():
+		return required_money_values[maxi(0, goal_index - 1)]
+	return maxi(1, goal_index)
 
 func _get_mvp_required_features() -> int:
 	if content.balance == null:
@@ -1016,19 +1005,19 @@ func _get_salary_due_from_sprint_for_new_hire() -> int:
 		return state.sprint_index + 1
 	return state.sprint_index
 
-func _get_customer_tick_money_card_count() -> int:
+func _get_initial_customer_money_card_count() -> int:
 	if content.balance == null:
 		return 1
-	return maxi(0, content.balance.poc3_customer_tick_money_cards)
+	return maxi(0, content.balance.poc5_initial_customer_money_cards)
 
-func _get_customer_tick_request_card_count() -> int:
+func _get_initial_customer_request_card_count() -> int:
 	if content.balance == null:
 		return 1
-	return maxi(0, content.balance.poc3_customer_tick_request_cards)
+	return maxi(0, content.balance.poc5_initial_customer_request_cards)
 
 func _get_business_goal_required_money_values() -> Array[int]:
 	if content.balance == null or content.balance.poc3_business_goal_required_money.is_empty():
-		return [3, 5, 7]
+		return [1, 2, 3, 4, 5]
 	var values: Array[int] = []
 	for value: int in content.balance.poc3_business_goal_required_money:
 		values.append(maxi(1, value))
@@ -1339,7 +1328,25 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 	_emit(SimulationEvent.card_spawned(card.instance_id, stack.stack_id, card.definition_id, was_stacked_on_spawn))
 	_emit(SimulationEvent.stack_changed(stack.stack_id))
 	_refresh_stack_recipe_if_present(stack.stack_id)
+	if card.definition_id == CUSTOMER_DEFINITION_ID:
+		_spawn_initial_customer_cards(card)
 	return card
+
+func _spawn_initial_customer_cards(customer: CardInstance) -> void:
+	if customer == null or not _is_software_live():
+		return
+	if _has_attachment(customer.instance_id, UNHAPPY_CUSTOMER_ATTACHMENT_SLOT):
+		return
+
+	var spawn_index: int = 0
+	for money_index: int in _get_initial_customer_money_card_count():
+		_spawn_card_as_new_stack(MONEY_DEFINITION_ID, _get_spawn_position_near_stack(customer.stack_id, spawn_index))
+		spawn_index += 1
+	for request_index: int in _get_initial_customer_request_card_count():
+		var request: CardInstance = _spawn_card_as_new_stack(CUSTOMER_REQUEST_DEFINITION_ID, _get_spawn_position_near_stack(customer.stack_id, spawn_index))
+		spawn_index += 1
+		if request != null:
+			request.values["spawned_sprint_index"] = state.sprint_index
 
 func _get_spawn_position_near_position(source_position: Vector2, spawn_index: int = 0) -> Vector2:
 	var temporary_source_stack: StackState = _create_stack(source_position)

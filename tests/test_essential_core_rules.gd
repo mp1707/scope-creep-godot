@@ -18,6 +18,10 @@ func _init() -> void:
 	_test_recycling_bin_rejects_money_and_mixed_stacks()
 	_test_recyclable_cards_do_not_drop_on_booster_slots()
 	_test_mvp_launch_threshold_and_customer_scaling()
+	_test_customer_spawn_creates_initial_money_and_request_without_passive_tick_income()
+	_test_customer_demo_and_feedback_are_repeatable_active_work()
+	_test_old_customer_requests_make_only_one_customer_unhappy_per_sprint()
+	_test_business_goal_costs_scale_linearly_from_one()
 	_test_interview_recipes_are_deterministic_and_recruiter_specific()
 	_test_offer_hiring_in_payment_defers_salary_and_attaches_onboarding()
 	_test_onboarding_blocks_work_and_accepts_coffee()
@@ -296,6 +300,113 @@ func _test_mvp_launch_threshold_and_customer_scaling() -> void:
 		controller.advance_time(4.0)
 		_assert_equal(_count_cards_by_definition(state, "card.value_source.customer"), floori(float(feature_count) / 5.0), "Launch should spawn one customer per five launch features.")
 
+func _test_customer_spawn_creates_initial_money_and_request_without_passive_tick_income() -> void:
+	var controller: RunController = _create_controller(1.0)
+	var state: RunState = controller.start_new_run(1023)
+	_make_software_live(state)
+	var money_before_customer: int = _count_cards_by_definition(state, "card.resource.money")
+	var requests_before_customer: int = _count_cards_by_definition(state, "card.input.customer_request")
+	_spawn_card(controller, "card.value_source.customer", Vector2(1200.0, 300.0))
+
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before_customer + 1, "A newly spawned live customer should create one initial money card.")
+	_assert_equal(_count_cards_by_definition(state, "card.input.customer_request"), requests_before_customer + 1, "A newly spawned live customer should create one initial request.")
+
+	var money_before_next_sprint: int = _count_cards_by_definition(state, "card.resource.money")
+	var requests_before_next_sprint: int = _count_cards_by_definition(state, "card.input.customer_request")
+	_pay_and_start_next_sprint(controller, state)
+
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before_next_sprint - 1, "Customers should not create passive sprintstart money anymore; only salary payment should consume one money.")
+	_assert_equal(_count_cards_by_definition(state, "card.input.customer_request"), requests_before_next_sprint, "Customers should not create passive sprintstart requests anymore.")
+
+func _test_customer_demo_and_feedback_are_repeatable_active_work() -> void:
+	var demo_controller: RunController = _create_controller(60.0)
+	var demo_state: RunState = demo_controller.start_new_run(1024)
+	_make_software_live(demo_state)
+	var developer: CardInstance = _find_card_by_definition(demo_state, "card.employee.developer")
+	var customer: CardInstance = _spawn_card(demo_controller, "card.value_source.customer", Vector2(1200.0, 300.0))
+	var money_before_demo: int = _count_cards_by_definition(demo_state, "card.resource.money")
+	var requests_before_demo: int = _count_cards_by_definition(demo_state, "card.input.customer_request")
+
+	demo_controller.move_card_to_stack(developer.instance_id, customer.stack_id)
+	var demo_stack: StackState = demo_state.get_stack(customer.stack_id)
+	_assert_equal(demo_stack.processing_state.active_recipe_id, "recipe.demo_customer.developer", "Developer plus satisfied customer should start the demo recipe.")
+	_assert_equal(demo_stack.processing_state.duration, 10.0, "Customer demos should take 10 seconds.")
+	demo_controller.advance_time(10.0)
+	_assert_equal(_count_cards_by_definition(demo_state, "card.resource.money"), money_before_demo + 1, "A completed demo should create one money card.")
+	_assert_equal(_count_cards_by_definition(demo_state, "card.input.customer_request"), requests_before_demo + 1, "A completed demo should create one customer request.")
+	_assert_equal(demo_stack.processing_state.active_recipe_id, "recipe.demo_customer.developer", "Demo work should restart while developer and customer remain stacked.")
+
+	var request_controller: RunController = _create_controller(60.0)
+	var request_state: RunState = request_controller.start_new_run(1030)
+	var request_developer: CardInstance = _find_card_by_definition(request_state, "card.employee.developer")
+	var request: CardInstance = _spawn_card(request_controller, "card.input.customer_request", Vector2(1200.0, 300.0))
+	request_controller.move_card_to_stack(request.instance_id, request_developer.stack_id)
+	var request_stack: StackState = request_state.get_stack(request_developer.stack_id)
+	_assert_equal(request_stack.processing_state.active_recipe_id, "recipe.clear_customer_request.developer", "Developer should be able to clear customer requests.")
+	_assert_equal(request_stack.processing_state.duration, 4.5, "Developer customer request handling should take half the previous 9 seconds.")
+
+	var unhappy_controller: RunController = _create_controller(60.0)
+	var unhappy_state: RunState = unhappy_controller.start_new_run(1025)
+	_make_software_live(unhappy_state)
+	var unhappy_developer: CardInstance = _find_card_by_definition(unhappy_state, "card.employee.developer")
+	var unhappy_customer: CardInstance = _spawn_card(unhappy_controller, "card.value_source.customer", Vector2(1200.0, 300.0))
+	unhappy_controller.call("_spawn_attached_card", unhappy_customer.instance_id, "card.problem.unhappy_customer", "unhappy_customer")
+	unhappy_controller.move_card_to_stack(unhappy_developer.instance_id, unhappy_customer.stack_id)
+	var unhappy_stack: StackState = unhappy_state.get_stack(unhappy_customer.stack_id)
+	_assert_equal(unhappy_stack.processing_state.active_recipe_id, "recipe.manage_unhappy_customer.developer", "Developer should manage expectations instead of showing demos to unhappy customers.")
+	_assert_equal(unhappy_stack.processing_state.duration, 16.0, "Developer expectation management should be slower than Product Owner expectation management.")
+	unhappy_controller.advance_time(16.0)
+	_assert_equal(_count_cards_by_definition(unhappy_state, "card.problem.unhappy_customer"), 0, "Developer expectation management should remove the unhappy attachment.")
+	_assert_equal(unhappy_stack.processing_state.active_recipe_id, "recipe.demo_customer.developer", "After expectations are managed, the developer should be able to demo to the customer.")
+
+	var crash_controller: RunController = _create_controller(60.0)
+	var crash_state: RunState = crash_controller.start_new_run(1028)
+	_make_software_live(crash_state)
+	var crash_developer: CardInstance = _find_card_by_definition(crash_state, "card.employee.developer")
+	var crash_customer: CardInstance = _spawn_card(crash_controller, "card.value_source.customer", Vector2(1200.0, 300.0))
+	_spawn_card(crash_controller, "card.problem.prod_crash", Vector2(1400.0, 300.0))
+	crash_controller.move_card_to_stack(crash_developer.instance_id, crash_customer.stack_id)
+	_assert_equal(crash_state.get_stack(crash_customer.stack_id).processing_state.active_recipe_id, "", "Prod-Crash should block customer demo work immediately.")
+
+	var feedback_controller: RunController = _create_controller(60.0)
+	var feedback_state: RunState = feedback_controller.start_new_run(1026)
+	_make_software_live(feedback_state)
+	var product_owner: CardInstance = _spawn_card(feedback_controller, "card.employee.product_owner", Vector2(1000.0, 300.0))
+	var feedback_customer: CardInstance = _spawn_card(feedback_controller, "card.value_source.customer", Vector2(1200.0, 300.0))
+	var stories_before_feedback: int = _count_cards_by_definition(feedback_state, "card.task.user_story")
+
+	feedback_controller.move_card_to_stack(product_owner.instance_id, feedback_customer.stack_id)
+	var feedback_stack: StackState = feedback_state.get_stack(feedback_customer.stack_id)
+	_assert_equal(feedback_stack.processing_state.active_recipe_id, "recipe.feedback_from_customer.product_owner", "Product Owner plus satisfied customer should start feedback work.")
+	_assert_equal(feedback_stack.processing_state.duration, 30.0, "Customer feedback should take 30 seconds.")
+	feedback_controller.advance_time(30.0)
+	_assert_equal(_count_cards_by_definition(feedback_state, "card.task.user_story"), stories_before_feedback + 1, "Completed customer feedback should create one normal User Story.")
+	_assert_equal(feedback_stack.processing_state.active_recipe_id, "recipe.feedback_from_customer.product_owner", "Feedback work should restart while Product Owner and customer remain stacked.")
+
+func _test_old_customer_requests_make_only_one_customer_unhappy_per_sprint() -> void:
+	var controller: RunController = _create_controller(1.0)
+	var state: RunState = controller.start_new_run(1027)
+	_make_software_live(state)
+	_spawn_card(controller, "card.value_source.customer", Vector2(1200.0, 300.0))
+	_spawn_card(controller, "card.value_source.customer", Vector2(1400.0, 300.0))
+	_spawn_card(controller, "card.value_source.customer", Vector2(1600.0, 300.0))
+	var request_count_before: int = _count_cards_by_definition(state, "card.input.customer_request")
+
+	_pay_and_start_next_sprint(controller, state)
+
+	_assert_equal(_count_cards_by_definition(state, "card.problem.unhappy_customer"), 1, "Any number of old customer requests should make at most one customer unhappy per sprintstart.")
+	_assert_equal(_count_cards_by_definition(state, "card.input.customer_request"), request_count_before, "Old customer requests should remain on the board after causing one unhappy customer.")
+
+func _test_business_goal_costs_scale_linearly_from_one() -> void:
+	var controller: RunController = _create_controller(60.0)
+	controller.start_new_run(1029)
+
+	_assert_equal(controller.call("_get_required_money_for_business_goal_index", 1), 1, "First Business Goal should cost 1 money.")
+	_assert_equal(controller.call("_get_required_money_for_business_goal_index", 2), 2, "Second Business Goal should cost 2 money.")
+	_assert_equal(controller.call("_get_required_money_for_business_goal_index", 3), 3, "Third Business Goal should cost 3 money.")
+	_assert_equal(controller.call("_get_required_money_for_business_goal_index", 5), 5, "Fifth Business Goal should cost 5 money.")
+	_assert_equal(controller.call("_get_required_money_for_business_goal_index", 8), 8, "Business Goals beyond the configured list should continue with the goal index.")
+
 func _test_interview_recipes_are_deterministic_and_recruiter_specific() -> void:
 	var controller: RunController = _create_controller(60.0)
 	controller.content.balance.poc4_normal_interview_success_chance = 1.0
@@ -487,6 +598,10 @@ func _create_controller(sprint_duration: float) -> RunController:
 
 func _spawn_card(controller: RunController, definition_id: String, position: Vector2) -> CardInstance:
 	return controller.call("_spawn_card_as_new_stack", definition_id, position) as CardInstance
+
+func _make_software_live(state: RunState) -> void:
+	var software: CardInstance = _find_card_by_definition(state, "card.product.software")
+	software.values[ProductLifecycleService.PRODUCT_STAGE_VALUE] = ProductLifecycleService.PRODUCT_STAGE_LIVE
 
 func _find_card_by_definition(state: RunState, definition_id: String) -> CardInstance:
 	for card: CardInstance in state.cards.values():

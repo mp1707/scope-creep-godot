@@ -129,6 +129,9 @@ func _constraints_match(
 			"software_launch_ready":
 				if not _software_launch_ready_constraint_matches(state):
 					return false
+			"no_card_with_tag":
+				if not _no_card_with_tag_constraint_matches(constraint, state, content):
+					return false
 			_:
 				push_warning("Unknown recipe constraint '%s' on recipe '%s'." % [constraint.constraint_type, recipe.id])
 	return true
@@ -136,6 +139,20 @@ func _constraints_match(
 func _software_launch_ready_constraint_matches(state: RunState) -> bool:
 	var lifecycle: ProductLifecycleService = ProductLifecycleService.new()
 	return lifecycle.is_launch_ready(state)
+
+func _no_card_with_tag_constraint_matches(
+	constraint: RecipeConstraintDefinition,
+	state: RunState,
+	content: ContentCatalog
+) -> bool:
+	var blocked_tag: String = constraint.parameters.get("tag", "") as String
+	if blocked_tag.is_empty():
+		return true
+	for card: CardInstance in state.cards.values():
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has(blocked_tag):
+			return false
+	return true
 
 func _attached_card_constraint_matches(
 	constraint: RecipeConstraintDefinition,

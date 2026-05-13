@@ -22,5 +22,5 @@ visual = SubResource("Resource_visual")
 base_values = {
 "goal_index": 1,
 "paid_money": 0,
-"required_money": 3
+"required_money": 1
 }

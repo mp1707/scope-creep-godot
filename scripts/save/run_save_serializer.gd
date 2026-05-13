@@ -2,7 +2,7 @@ class_name RunSaveSerializer
 extends RefCounted
 
 const SCHEMA_VERSION: int = 1
-const SUPPORTED_CONTENT_VERSION: String = "poc4"
+const SUPPORTED_CONTENT_VERSION: String = "poc5"
 
 var errors: PackedStringArray = PackedStringArray()
 

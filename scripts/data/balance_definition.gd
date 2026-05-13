@@ -23,12 +23,15 @@ extends Resource
 @export_range(0, 100, 1, "or_greater") var poc3_freelance_feature_money_cards: int = 2
 @export_range(0, 100, 1, "or_greater") var poc3_freelance_checked_feature_money_cards: int = 3
 @export_range(1, 100, 1, "or_greater") var poc3_launch_features_per_start_customer: int = 5
-@export_range(0, 100, 1, "or_greater") var poc3_customer_tick_money_cards: int = 1
-@export_range(0, 100, 1, "or_greater") var poc3_customer_tick_request_cards: int = 1
-@export var poc3_business_goal_required_money: Array[int] = [3, 5, 7]
+@export var poc3_business_goal_required_money: Array[int] = [1, 2, 3, 4, 5]
 @export_range(1, 20, 1, "or_greater") var poc3_business_goal_win_count: int = 3
 @export_range(1, 20, 1, "or_greater") var poc3_investor_panic_game_over_count: int = 2
-@export_range(0.0, 3600.0, 0.1, "or_greater") var poc3_developer_customer_request_duration_seconds: float = 9.0
+@export_range(0.0, 3600.0, 0.1, "or_greater") var poc3_developer_customer_request_duration_seconds: float = 4.5
+@export_group("PoC5")
+@export_range(0, 100, 1, "or_greater") var poc5_initial_customer_money_cards: int = 1
+@export_range(0, 100, 1, "or_greater") var poc5_initial_customer_request_cards: int = 1
+@export_range(0.0, 3600.0, 0.1, "or_greater") var poc5_customer_demo_duration_seconds: float = 10.0
+@export_range(0.0, 3600.0, 0.1, "or_greater") var poc5_customer_feedback_duration_seconds: float = 30.0
 @export_group("PoC4")
 @export_range(0.0, 3600.0, 0.1, "or_greater") var poc4_normal_interview_duration_seconds: float = 20.0
 @export_range(0.0, 1.0, 0.01) var poc4_normal_interview_success_chance: float = 0.4

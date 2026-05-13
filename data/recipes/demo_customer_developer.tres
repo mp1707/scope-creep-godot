@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_matcher"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="2_duration"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_effect"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_recipe"]
+[ext_resource type="Script" path="res://scripts/data/recipe_constraint_definition.gd" id="5_constraint"]
+
+[sub_resource type="Resource" id="Duration_demo"]
+script = ExtResource("2_duration")
+base_seconds = 10.0
+
+[sub_resource type="Resource" id="Constraint_no_prod_crash"]
+script = ExtResource("5_constraint")
+constraint_type = "no_card_with_tag"
+parameters = {
+"tag": "prod_crash"
+}
+
+[sub_resource type="Resource" id="Effect_spawn_money"]
+script = ExtResource("3_effect")
+id = "effect.spawn_money.customer_demo"
+effect_type = "spawn_money"
+parameters = {
+"count": 1
+}
+
+[sub_resource type="Resource" id="Effect_spawn_customer_request"]
+script = ExtResource("3_effect")
+id = "effect.spawn_card.customer_request.demo"
+effect_type = "spawn_card"
+parameters = {
+"card_definition_id": "card.input.customer_request",
+"count": 1
+}
+
+[sub_resource type="Resource" id="Input_customer"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.value_source.customer"
+
+[sub_resource type="Resource" id="Input_developer"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.employee.developer"
+
+[resource]
+script = ExtResource("4_recipe")
+id = "recipe.demo_customer.developer"
+display_text = "Demo zeigen..."
+inputs = Array[ExtResource("1_matcher")]([SubResource("Input_customer"), SubResource("Input_developer")])
+constraints = Array[ExtResource("5_constraint")]([SubResource("Constraint_no_prod_crash")])
+duration = SubResource("Duration_demo")
+priority = 20
+specificity_score = 2
+effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_spawn_money"), SubResource("Effect_spawn_customer_request")])
+duration_modifier_tags = PackedStringArray("customer_work")

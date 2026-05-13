@@ -55,9 +55,9 @@ Beim Launch wird die Software live, Startkunden erscheinen, und das erste Busine
 
 ### 3. Post-Launch: Kunden, Druck und Business Goals
 
-Nach Launch erzeugen zufriedene Kunden am Sprintstart Geld und Kundenwuensche. Kundenwuensche sind echte Karten und muessen verarbeitet werden. Ignorierte Kundenwuensche koennen Kunden unzufrieden machen.
+Nach Launch erzeugen neu erscheinende Kunden sofort 1 Geld und 1 Kundenwunsch. Danach sind Kunden aktive Wertquellen: Entwickler koennen ihnen Demos zeigen, Product Owner koennen Feedback sammeln. Kundenwuensche sind echte Karten und muessen verarbeitet werden. Ignorierte alte Kundenwuensche koennen genau einen Kunden pro Sprintstart unzufrieden machen.
 
-Unzufriedene Kunden bleiben im Run, erzeugen aber kein Geld und keine neuen Kundenwuensche, bis ein Product Owner oder eine langsame Ersatzrolle die Erwartungen managt.
+Unzufriedene Kunden bleiben im Run, koennen aber keine Demo- oder Feedbackarbeit ausloesen, bis ein Product Owner oder langsamer ein Entwickler die Erwartungen managt.
 
 Parallel verlangt das aktive Business Goal einzelne Geldkarten. Beim Start des naechsten Sprints wird geprueft, ob das Goal erfuellt wurde. Erfuellte Goals fuehren zum naechsten groesseren Goal; verfehlte Goals erzeugen Investorenpanik.
 
@@ -90,7 +90,7 @@ Die laengere Rollen-Pipeline ist spielbar:
 
 ```text
 Idee + Product Owner -> User Story
-Kundenwunsch + Product Owner -> Vielversprechende User Story
+Kundenwunsch + Product Owner -> User Story
 User Story + Entwickler -> Funktion
 Funktion + Tester -> Gepruefte Funktion
 Gepruefte Funktion + Software -> Feature integrieren ohne Bug-Risiko
@@ -113,17 +113,21 @@ Nach Launch endet dieser automatische Freelance-Zufluss.
 
 Nach Launch erzeugen Kunden Wert und Arbeit:
 
-- Zufriedene Kunden erzeugen am Sprintstart Geld.
-- Zufriedene Kunden erzeugen Kundenwuensche.
-- Alte, unbearbeitete Kundenwuensche koennen Unzufriedenheit an Kunden anheften.
+- Neu gespawnte Kunden erzeugen 1 Geld und 1 Kundenwunsch.
+- Entwickler + Kunde erzeugt nach 10s Demoarbeit 1 Geld und 1 Kundenwunsch und wiederholt sich, solange der Stack liegen bleibt.
+- Product Owner + Kunde erzeugt nach 30s Feedbackarbeit 1 User Story und wiederholt sich, solange der Stack liegen bleibt.
+- Alte, unbearbeitete Kundenwuensche koennen pro Sprintstart maximal eine Unzufriedenheit an einen Kunden anheften.
 - Unzufriedene Kunden erzeugen keinen Wert, bis die Erwartung gemanagt wurde.
 
 Aktuelle Behandlung:
 
 ```text
 Kunde + Unzufrieden + Product Owner -> Erwartungen managen
-Kundenwunsch + Product Owner -> Vielversprechende User Story
-Kundenwunsch + Entwickler -> Vielversprechende User Story, aber langsamer
+Kunde + Unzufrieden + Entwickler -> Erwartungen managen, aber langsamer
+Kundenwunsch + Product Owner -> User Story
+Kundenwunsch + Entwickler -> Kundenwunsch abarbeiten
+Entwickler + Kunde -> Demo zeigen
+Product Owner + Kunde -> Feedback sammeln
 ```
 
 Recruiter und Werkstudent haben ebenfalls langsame Fallback-Recipes fuer einzelne produktive Aufgaben, damit PoC4 naeher an "Jeder kann alles, aber nicht gleich gut" bleibt.
@@ -160,9 +164,10 @@ Weitere Problembehandlung:
 Tech Debt + Entwickler -> Technische Schulden aufraeumen
 Prod-Crash + Entwickler -> Hotfix
 Kunde + Unzufrieden + Product Owner -> Erwartungen managen
+Kunde + Unzufrieden + Entwickler -> Erwartungen managen, aber langsamer
 ```
 
-Prod-Crashes blockieren Kundengeld, bis sie beseitigt werden.
+Prod-Crashes blockieren Kundendemos und damit aktives Kundengeld, bis sie beseitigt werden.
 
 ### Burnout erleben und behandeln
 
@@ -206,7 +211,7 @@ Business Goals sind sichtbare Karten. Geld wird einzeln auf das aktive Goal gele
 Geld + Business Goal -> Goal-Fortschritt +1
 ```
 
-Die aktuellen Zielwerte sind 3, 5 und 7 Geld. Diese Werte sind Balance-Startwerte, nicht final.
+Die Zielwerte starten bei 1 Geld und steigen pro erledigtem Goal um 1: 1, 2, 3, 4, 5 usw. Im aktuellen PoC endet der Run weiterhin nach 3 erfuellten Business Goals.
 
 ### Booster und Shop nutzen
 
@@ -272,8 +277,8 @@ Save/Load funktioniert fuer eingefrorene Runs:
 - Speichern ist in Pause oder Bezahlphase erlaubt.
 - Speichern im laufenden, ungepausierten Sprint ist nicht erlaubt.
 - Laden stellt Karten, Stacks, Attachments, Timer, RNG-State, MVP-/Launch-State, Business Goals, Kundenzustand, Hiring-Karten und laufende Verarbeitung wieder her.
-- Neue Runs nutzen Content-Version `poc4`.
-- Alte `poc3`-Saves werden ohne Migration bewusst nicht still geladen.
+- Neue Runs nutzen Content-Version `poc5`.
+- Alte `poc4`-Saves werden ohne Migration bewusst nicht still geladen, weil die Vielversprechende User Story aus dem Content entfernt wurde.
 
 ## Bereits vorhandene Karten
 
@@ -309,7 +314,6 @@ Save/Load funktioniert fuer eingefrorene Runs:
 - Idee
 - Kundenwunsch
 - User Story
-- Vielversprechende User Story
 - Funktion
 - Gepruefte Funktion
 

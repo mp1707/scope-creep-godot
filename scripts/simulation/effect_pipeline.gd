@@ -223,10 +223,11 @@ func _get_launch_features_per_start_customer(context: EffectContext) -> int:
 
 func _get_business_goal_required_money(context: EffectContext, goal_index: int) -> int:
 	if context.content.balance == null or context.content.balance.poc3_business_goal_required_money.is_empty():
-		return [3, 5, 7][clampi(goal_index - 1, 0, 2)]
+		return maxi(1, goal_index)
 	var required_money_values: Array[int] = context.content.balance.poc3_business_goal_required_money
-	var index: int = clampi(goal_index - 1, 0, required_money_values.size() - 1)
-	return maxi(1, required_money_values[index])
+	if goal_index <= required_money_values.size():
+		return maxi(1, required_money_values[maxi(0, goal_index - 1)])
+	return maxi(1, goal_index)
 
 func _apply_spawn_parameters(spawned_card: CardInstance, effect: EffectDefinition, context: EffectContext) -> void:
 	if spawned_card == null:

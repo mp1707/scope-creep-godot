@@ -125,7 +125,7 @@ Sobald weitere Rollen erscheinen:
 
 ```text
 Idee + Product Owner → User Story
-Kundenwunsch + Product Owner → Vielversprechende User Story
+Kundenwunsch + Product Owner → User Story
 User Story + Entwickler → Funktion
 Funktion + Tester → Geprüfte Funktion
 Geprüfte Funktion + Software → mehr Wert, weniger Bugs
@@ -340,7 +340,8 @@ Macht aus Ideen und Kundenwünschen klare Anforderungen.
 Stärken:
 
 - Idee → User Story
-- Kundenwunsch → Vielversprechende User Story
+- Kundenwunsch → User Story
+- Kunde → Feedback sammeln → User Story
 - Unklare Anforderung → User Story
 
 Schwächen:
@@ -431,8 +432,8 @@ Idee + Designer → Konzept
 Entsteht durch Kunden, veröffentlichte Funktionen oder Support-Probleme.
 
 ```text
-Kundenwunsch + Product Owner → Vielversprechende User Story
-Kundenwunsch + Entwickler → Funktion, aber Risiko auf falsche Lösung
+Kundenwunsch + Product Owner → User Story
+Kundenwunsch + Entwickler → Kundenwunsch abgearbeitet
 Kundenwunsch + Support → Erwartung gemanagt
 ```
 
@@ -443,18 +444,6 @@ Eine klarere Anforderung.
 ```text
 User Story + Entwickler → Funktion
 User Story + Tester → Testfälle
-```
-
-### Vielversprechende User Story
-
-Bessere Variante einer User Story. Entsteht aus `Kundenwunsch + Product Owner`.
-
-Effekt:
-
-- Erzeugt eine Funktion mit höherer Geld-Ausbeute und niedrigerer Bug-Chance.
-
-```text
-Vielversprechende User Story + Entwickler → bessere Funktion
 ```
 
 ### Unklare Anforderung
@@ -864,11 +853,15 @@ Diese Karten sind die positive Seite des Spiels: sie erzeugen Geld oder Nachfrag
 
 Persistente Karte am Spielfeld. Kommt via Boosterpack (Kundenchaos).
 
-**Spawning:** Spawnt **1 Kundenwunsch pro Sprintstart**, **erst ab Sprint 2** (im allerersten Sprint des Runs noch nicht).
+**Spawning:** Wenn ein Kunde im Live-Produkt erscheint, spawnt er sofort **1 Geld** und **1 Kundenwunsch**.
 
 ```text
-Kunde → 1 Kundenwunsch pro Sprintstart (ab Sprint 2)
+Kunde erscheint → 1 Geld + 1 Kundenwunsch
+Entwickler + Kunde → 10s „Demo zeigen..." → 1 Geld + 1 Kundenwunsch, Karten bleiben liegen und die Demo wiederholt sich
+Product Owner + Kunde → 30s „Feedback sammeln..." → 1 User Story, Karten bleiben liegen und Feedbackarbeit wiederholt sich
 ```
+
+Unzufriedenen Kunden kann keine Demo gezeigt werden und kein Feedback entlockt werden, bis die Erwartungen gemanagt wurden. Product Owner erledigen das effizient; Entwickler koennen es als langsamere Notfalloption ebenfalls.
 
 ### Auftrag
 
@@ -892,8 +885,9 @@ Damit das System klar ist, hier die zentralen Quellen für neue Karten:
 
 | Karte               | Quelle                                                       | Wann                                                      |
 | ------------------- | ------------------------------------------------------------ | --------------------------------------------------------- |
-| **Idee**            | Workshop, Kunde (indirekt über Kundenwunsch+PO), Boosterpack | nicht automatisch — keine periodische Spontan-Generierung |
-| **Kundenwunsch**    | Kunde-Karte                                                  | 1× pro Sprintstart, ab Sprint 2                           |
+| **Idee**            | Workshop, Boosterpack                                        | nicht automatisch — keine periodische Spontan-Generierung |
+| **Kundenwunsch**    | Kunde erscheint, Entwickler-Demo                             | sofort beim Kunden-Spawn oder nach Demo-Abschluss         |
+| **User Story**      | Product Owner + Kundenwunsch, Product Owner + Kunde          | nach Bearbeitungsabschluss                                |
 | **Kaffee**          | Kaffeemaschine                                               | 1× pro Sprintstart                                        |
 | **Idee (Workshop)** | Brainstorming-Workshop                                       | beim Workshop-Abschluss, 1 pro anwesendem Mitarbeiter     |
 | **Booster-Inhalt**  | Boosterpack                                                  | beim Kauf, 3 Karten aus dem Pack-Pool                     |
@@ -970,10 +964,10 @@ Risiko:
 
 ```text
 Kundenwunsch + Product Owner
-→ Vielversprechende User Story
+→ User Story
 
-Vielversprechende User Story + Entwickler
-→ bessere Funktion
+User Story + Entwickler
+→ Funktion
 
 Funktion + Tester
 → Geprüfte Funktion
@@ -1061,7 +1055,6 @@ Neue Karten:
 - Tester
 - Support
 - User Story
-- Vielversprechende User Story
 - Testlauf
 - Code aufräumen
 
@@ -1123,7 +1116,17 @@ Wenn ein Mitarbeiter nicht bezahlt wird, **kündigt er sofort** beim Start des n
 
 Externer Dev braucht kein Gehalt — sein Einsatz war im Boosterpack-Preis enthalten.
 
-### 12.3 Kostenstruktur
+### 12.3 Business Goals im PoC
+
+Business Goals sind sichtbare Zielkarten und werden mit einzelnen 1-Geld-Karten bezahlt.
+
+```text
+Geld + Business Goal → Goal-Fortschritt +1
+```
+
+Die PoC-Balance startet niedrig und steigt linear: Goal 1 kostet 1 Geld, Goal 2 kostet 2 Geld, danach 3, 4, 5 usw. Die Pruefung passiert beim Start des naechsten Sprints aus der Bezahlphase.
+
+### 12.4 Kostenstruktur
 
 In v1 zahlen alle regulären Mitarbeiter **1 Geld pro Sprint**. Die Differenzierung Praktikant/Entwickler/Senior ist auf eine spätere Version verschoben — der Fokus liegt zunächst auf der Bezahl-Entscheidung selbst (manuell vs. auto), nicht auf Lohn-Tiers.
 
@@ -1239,9 +1242,6 @@ Der Humor entsteht aus bekannten Software- und Corporate-Situationen, aber die B
 
 **User Story**  
 „Eine klare Beschreibung, was jemand eigentlich braucht."
-
-**Vielversprechende User Story**  
-„Klingt nach echtem Bedarf. Sollte man nicht verschwenden."
 
 **Bug**  
 „Funktioniert nicht. Hat aber gestern noch funktioniert."
@@ -1380,7 +1380,6 @@ Input:
 Aufgaben/Outputs:
 
 - User Story
-- Vielversprechende User Story
 - Funktion
 - Geprüfte Funktion
 
@@ -1432,9 +1431,13 @@ Produkt:
 ```text
 Idee + Entwickler → Funktion (langsam, Risiko: Tech Debt)
 Idee + Product Owner → User Story
-Kundenwunsch + Product Owner → Vielversprechende User Story
+Kundenwunsch + Product Owner → User Story
+Kundenwunsch + Entwickler → Kundenwunsch abgearbeitet
+Entwickler + Kunde → 10s „Demo zeigen..." → 1 Geld + 1 Kundenwunsch
+Product Owner + Kunde → 30s „Feedback sammeln..." → 1 User Story
+Kunde + Unzufrieden + Product Owner → 8s „Erwartungen managen" → Unzufrieden entfernt
+Kunde + Unzufrieden + Entwickler → 16s „Erwartungen managen..." → Unzufrieden entfernt
 User Story + Entwickler → Funktion (+ Burnout-Counter +0.1)
-Vielversprechende User Story + Entwickler → bessere Funktion
 Funktion + Tester → Geprüfte Funktion
 Funktion + Software → 2s „Feature deployen…" → N Geldkarten (N = Funktions-Level) + 50% Bug-Chance
 Geprüfte Funktion + Software → 2s → N Geldkarten + kein Release-Bug
@@ -1454,7 +1457,9 @@ Konfliktworkshop + Konflikt + beide Parteien des Konflikts → 5s → Konflikt e
 Konflikt + Stressbewältigungskurs + beide Parteien des Konflikts → Konflikt sofort entfernt
 Laufende Mitarbeiterarbeit + Kaffee → +25% Fortschritt der aktuellen Progressbar, Kaffee sofort verbraucht
 Kaffeemaschine → 1× Kaffee pro Sprintstart
-Kunde → 1 Kundenwunsch pro Sprintstart (ab Sprint 2)
+Kunde erscheint → 1 Geld + 1 Kundenwunsch
+Entwickler + Kunde → 10s „Demo zeigen..." → 1 Geld + 1 Kundenwunsch
+Product Owner + Kunde → 30s „Feedback sammeln..." → 1 User Story
 Auftrag + passende Funktion → großer Geldbonus, Auftrag verbraucht
 Geld + Booster-Slot → Boosterpack erscheint
 Klick auf Boosterpack → 1 Karte aus Pack-Pool; nach 3 Klicks verschwindet das Pack

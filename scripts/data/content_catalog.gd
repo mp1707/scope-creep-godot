@@ -53,7 +53,9 @@ func get_shop_definition(shop_id: String) -> ShopDefinition:
 func apply_balance_overrides() -> void:
 	if balance == null:
 		return
-	_set_recipe_duration("recipe.promising_user_story_from_customer_request.developer", balance.poc3_developer_customer_request_duration_seconds)
+	_set_recipe_duration("recipe.clear_customer_request.developer", balance.poc3_developer_customer_request_duration_seconds)
+	_set_recipe_duration("recipe.demo_customer.developer", balance.poc5_customer_demo_duration_seconds)
+	_set_recipe_duration("recipe.feedback_from_customer.product_owner", balance.poc5_customer_feedback_duration_seconds)
 	_set_recipe_duration("recipe.interview_candidate.regular_employee", balance.poc4_normal_interview_duration_seconds)
 	_set_recipe_duration("recipe.interview_candidate.recruiter", balance.poc4_recruiter_interview_duration_seconds)
 	_set_recipe_duration("recipe.onboarding.employee", balance.poc4_onboarding_duration_seconds)

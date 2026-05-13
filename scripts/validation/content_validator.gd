@@ -12,7 +12,6 @@ const POC2_REQUIRED_CARD_TAGS: Dictionary = {
 	"card.employee.external_dev": ["employee", "developer", "external"],
 	"card.input.customer_request": ["input", "customer_request"],
 	"card.task.user_story": ["task", "user_story"],
-	"card.task.promising_user_story": ["task", "user_story", "promising"],
 	"card.output.checked_feature": ["output", "feature", "checked"],
 	"card.problem.tech_debt": ["problem", "tech_debt"],
 	"card.problem.burnout": ["problem", "burnout"],
@@ -31,10 +30,9 @@ const POC2_REQUIRED_CARD_TAGS: Dictionary = {
 const POC2_REQUIRED_RECIPE_INPUTS: Dictionary = {
 	"recipe.feature_from_idea.developer": ["card.input.idea", "card.employee.developer"],
 	"recipe.user_story_from_idea.product_owner": ["card.input.idea", "card.employee.product_owner"],
-	"recipe.promising_user_story_from_customer_request.product_owner": ["card.input.customer_request", "card.employee.product_owner"],
-	"recipe.promising_user_story_from_customer_request.developer": ["card.input.customer_request", "card.employee.developer"],
+	"recipe.user_story_from_customer_request.product_owner": ["card.input.customer_request", "card.employee.product_owner"],
+	"recipe.clear_customer_request.developer": ["card.input.customer_request", "card.employee.developer"],
 	"recipe.feature_from_user_story.developer": ["card.task.user_story", "card.employee.developer"],
-	"recipe.feature_from_promising_user_story.developer": ["card.task.promising_user_story", "card.employee.developer"],
 	"recipe.checked_feature_from_feature.tester": ["card.output.feature", "card.employee.tester"],
 	"recipe.money_from_feature.software": ["card.output.feature", "card.product.software"],
 	"recipe.money_from_checked_feature.software": ["card.output.checked_feature", "card.product.software"],
@@ -45,6 +43,7 @@ const POC2_REQUIRED_RECIPE_INPUTS: Dictionary = {
 	"recipe.cleanup_tech_debt.developer": ["card.problem.tech_debt", "card.employee.developer"],
 	"recipe.hotfix_prod_crash.developer": ["card.problem.prod_crash", "card.employee.developer"],
 	"recipe.manage_unhappy_customer.product_owner": ["card.value_source.customer", "card.problem.unhappy_customer", "card.employee.product_owner"],
+	"recipe.manage_unhappy_customer.developer": ["card.value_source.customer", "card.problem.unhappy_customer", "card.employee.developer"],
 	"recipe.burnout_recovery.employee": ["card.problem.burnout", "tag:employee"],
 	"recipe.burnout_recovery.pizza": ["card.problem.burnout", "card.consumable.pizza_party"],
 	"recipe.burnout_recovery.stress_course": ["card.problem.burnout", "card.consumable.stress_course"],
@@ -84,6 +83,8 @@ const POC3_REQUIRED_RECIPE_IDS: Array[String] = [
 	"recipe.booster_pack_from_money.slot",
 	"recipe.bugfix_patch_from_money.slot",
 	"recipe.launch_software.developer",
+	"recipe.demo_customer.developer",
+	"recipe.feedback_from_customer.product_owner",
 ]
 const POC4_TALENT_POOL_ID: String = "booster.talent_pool"
 const POC4_TALENT_POOL_SLOT_ID: String = "card.shop.booster_slot.talent_pool"
@@ -105,16 +106,14 @@ const POC4_HIRING_RECIPE_IDS: Array[String] = [
 const POC4_WORK_STUDENT_RECIPE_IDS: Array[String] = [
 	"recipe.feature_from_idea.work_student",
 	"recipe.feature_from_user_story.work_student",
-	"recipe.feature_from_promising_user_story.work_student",
-	"recipe.promising_user_story_from_customer_request.work_student",
+	"recipe.clear_customer_request.work_student",
 	"recipe.debug_bug.work_student",
 	"recipe.manage_unhappy_customer.work_student",
 ]
 const POC4_RECRUITER_FALLBACK_RECIPE_IDS: Array[String] = [
 	"recipe.feature_from_idea.recruiter",
 	"recipe.feature_from_user_story.recruiter",
-	"recipe.feature_from_promising_user_story.recruiter",
-	"recipe.promising_user_story_from_customer_request.recruiter",
+	"recipe.clear_customer_request.recruiter",
 	"recipe.debug_bug.recruiter",
 	"recipe.manage_unhappy_customer.recruiter",
 ]
@@ -471,6 +470,20 @@ func _validate_poc3_recipe_patterns(recipes: Array) -> void:
 		if not recipes_by_id.has(recipe_id):
 			_errors.append("PoC3 requires recipe '%s'." % recipe_id)
 
+	var customer_demo_recipe: RecipeDefinition = recipes_by_id.get("recipe.demo_customer.developer", null) as RecipeDefinition
+	if customer_demo_recipe != null:
+		if not _recipe_has_card_input(customer_demo_recipe, "card.value_source.customer") or not _recipe_has_card_input(customer_demo_recipe, "card.employee.developer"):
+			_errors.append("%s: Customer demo recipe needs customer and developer inputs." % customer_demo_recipe.resource_path)
+		if not _recipe_spawns_card(customer_demo_recipe, "card.resource.money") or not _recipe_spawns_card(customer_demo_recipe, "card.input.customer_request"):
+			_errors.append("%s: Customer demo recipe must spawn money and a customer request." % customer_demo_recipe.resource_path)
+
+	var customer_feedback_recipe: RecipeDefinition = recipes_by_id.get("recipe.feedback_from_customer.product_owner", null) as RecipeDefinition
+	if customer_feedback_recipe != null:
+		if not _recipe_has_card_input(customer_feedback_recipe, "card.value_source.customer") or not _recipe_has_card_input(customer_feedback_recipe, "card.employee.product_owner"):
+			_errors.append("%s: Customer feedback recipe needs customer and Product Owner inputs." % customer_feedback_recipe.resource_path)
+		if not _recipe_spawns_card(customer_feedback_recipe, "card.task.user_story"):
+			_errors.append("%s: Customer feedback recipe must spawn a User Story." % customer_feedback_recipe.resource_path)
+
 	var launch_recipe: RecipeDefinition = recipes_by_id.get("recipe.launch_software.developer", null) as RecipeDefinition
 	if launch_recipe == null:
 		return
@@ -576,6 +589,16 @@ func _recipe_has_roll_chance_key(recipe: RecipeDefinition, chance_key: String) -
 func _recipe_removes_card(recipe: RecipeDefinition, card_definition_id: String) -> bool:
 	for effect: EffectDefinition in recipe.effects_on_complete:
 		if effect != null and effect.effect_type == "remove_card" and effect.parameters.get("card_definition_id", "") == card_definition_id:
+			return true
+	return false
+
+func _recipe_spawns_card(recipe: RecipeDefinition, card_definition_id: String) -> bool:
+	for effect: EffectDefinition in recipe.effects_on_complete:
+		if effect == null:
+			continue
+		if effect.effect_type == "spawn_card" and effect.parameters.get("card_definition_id", "") == card_definition_id:
+			return true
+		if effect.effect_type == "spawn_money" and card_definition_id == "card.resource.money":
 			return true
 	return false
 
@@ -720,10 +743,10 @@ func _validate_balance(balance: BalanceDefinition) -> void:
 		_errors.append("%s: Balance '%s' needs non-negative poc3_freelance_checked_feature_money_cards." % [path, balance.id])
 	if balance.poc3_launch_features_per_start_customer <= 0:
 		_errors.append("%s: Balance '%s' needs positive poc3_launch_features_per_start_customer." % [path, balance.id])
-	if balance.poc3_customer_tick_money_cards < 0:
-		_errors.append("%s: Balance '%s' needs non-negative poc3_customer_tick_money_cards." % [path, balance.id])
-	if balance.poc3_customer_tick_request_cards < 0:
-		_errors.append("%s: Balance '%s' needs non-negative poc3_customer_tick_request_cards." % [path, balance.id])
+	if balance.poc5_initial_customer_money_cards < 0:
+		_errors.append("%s: Balance '%s' needs non-negative poc5_initial_customer_money_cards." % [path, balance.id])
+	if balance.poc5_initial_customer_request_cards < 0:
+		_errors.append("%s: Balance '%s' needs non-negative poc5_initial_customer_request_cards." % [path, balance.id])
 	if balance.poc3_business_goal_required_money.is_empty():
 		_errors.append("%s: Balance '%s' needs at least one poc3_business_goal_required_money entry." % [path, balance.id])
 	for required_money: int in balance.poc3_business_goal_required_money:
@@ -736,6 +759,10 @@ func _validate_balance(balance: BalanceDefinition) -> void:
 		_errors.append("%s: Balance '%s' needs positive poc3_investor_panic_game_over_count." % [path, balance.id])
 	if balance.poc3_developer_customer_request_duration_seconds <= 0.0:
 		_errors.append("%s: Balance '%s' needs positive poc3_developer_customer_request_duration_seconds." % [path, balance.id])
+	if balance.poc5_customer_demo_duration_seconds <= 0.0:
+		_errors.append("%s: Balance '%s' needs positive poc5_customer_demo_duration_seconds." % [path, balance.id])
+	if balance.poc5_customer_feedback_duration_seconds <= 0.0:
+		_errors.append("%s: Balance '%s' needs positive poc5_customer_feedback_duration_seconds." % [path, balance.id])
 	if balance.poc4_normal_interview_duration_seconds <= 0.0:
 		_errors.append("%s: Balance '%s' needs positive poc4_normal_interview_duration_seconds." % [path, balance.id])
 	if balance.poc4_normal_interview_success_chance < 0.0 or balance.poc4_normal_interview_success_chance > 1.0:

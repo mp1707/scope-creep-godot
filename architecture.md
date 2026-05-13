@@ -257,7 +257,7 @@ Fachliche Grenzen:
 - Onboarding ist eine angeheftete Blocker-Karte mit eigenem Slot `onboarding`; es blockiert Arbeit, aber nicht Gehalt.
 - Interview-Erfolg nutzt deterministische Run-RNG-Effects und darf nicht in UI-Code entschieden werden.
 
-PoC4 setzt die Content-Version auf `poc4`. Alte `poc3`-Saves werden ohne explizite Migration nicht geladen, damit neue Hiring-IDs und Onboarding-State nicht still in alten Saves fehlen.
+PoC5 setzt die Content-Version auf `poc5`. Alte `poc4`-Saves werden ohne explizite Migration nicht geladen, weil die Kundenwunsch-Pipeline und entfernte Content-IDs sonst still fehlen wuerden.
 
 Pool-Eintraege referenzieren `CardDefinition`-IDs und Gewichte. Booster-Ziehungen laufen ueber den Run-RNG, damit Tests und Save/Load deterministisch bleiben.
 
@@ -293,7 +293,9 @@ Beispiele:
 - MVP-Feature-Schwelle
 - Freelance-Auszahlung fuer ungepruefte und gepruefte Features
 - Business-Goal-Werte
-- Kundengeld pro Sprintstart
+- initiales Kundengeld und initiale Kundenwuensche beim Kunden-Spawn
+- Demo-Dauer fuer Entwickler + Kunde
+- Feedback-Dauer fuer Product Owner + Kunde
 - Kundenwunsch-Dauer fuer Product Owner und Entwickler
 
 ## 5. Runtime-State
@@ -375,6 +377,8 @@ Empfohlene Runtime-Werte auf `card.goal.business_goal`:
 - `paid_money: int`
 
 Geldzahlungen auf Goals verbrauchen einzelne 1-Geld-Karten. Die Simulation aktualisiert `paid_money`; Presentation zeigt nur den Fortschritt. Business-Goal-Pruefung findet beim Start des naechsten Sprints aus der Bezahlphase statt, nicht kontinuierlich im UI.
+
+Die PoC5-Balance startet mit `required_money = goal_index`: Goal 1 kostet 1 Geld, Goal 2 kostet 2 Geld, danach 3, 4, 5 usw. Eine konfigurierte Werte-Liste darf fruehe Goals ueberschreiben; wenn ein Goal-Index ueber die Liste hinausgeht, faellt die Simulation auf den Goal-Index als Kostenwert zurueck.
 
 ### StackState
 
@@ -577,17 +581,17 @@ Nach Klick auf `Sprint N+1 starten` werden Effects in exakt dieser Reihenfolge a
 3. Uebrig gebliebene Bugs verdoppeln sich.
 4. Nicht erfuellte Auftraege verfallen.
 5. Temporaere Arbeitskarten wie Externer Dev verfallen, wenn ihre Lifecycle-Regel greift.
-6. Persistente Tick-Karten wie Kunde und Kaffeemaschine spawnen ihre Karten.
+6. Persistente Tick-Karten wie Kaffeemaschine spawnen ihre Karten. Kunden duerfen weiterhin Sprintstart-Regeln fuer Blockaden ausloesen, erzeugen aber kein passives Geld mehr.
 
 Danach startet die neue Sprint-Phase und der Sprint-Timer laeuft wieder.
 
 PoC3 und spaetere PoCs erweitern diese Pipeline, ohne die GDD-Reihenfolge fuer Gehaelter und Bugs zu veraendern. Die fachliche Reihenfolge fuer neue Regeln ist:
 
 1. bestehende Pflichtschritte aus GDD/PoC2 ausfuehren: Kuendigungen, Bug-Formation, Bug-Verdopplung, Auftrag-Verfall, temporaere Arbeitskarten wie Externer Dev
-2. alte Kundenwuensche auswerten: pro altem Kundenwunsch wird ein zufaelliger zufriedener Kunde unzufrieden; sind alle Kunden unzufrieden, passiert nichts
+2. alte Kundenwuensche auswerten: wenn mindestens ein alter Kundenwunsch existiert, wird genau ein zufaelliger zufriedener Kunde unzufrieden; sind alle Kunden unzufrieden, passiert nichts
 3. Business Goal aus der Bezahlphase pruefen, falls der Run live ist
 4. terminale Bedingungen pruefen, z. B. 0 Mitarbeiter, 2 Investorenpanik, 3 erfuellte Goals
-5. neue Sprintstart-Spawns erzeugen: Pre-Launch-Freelance-Auftrag oder Post-Launch-Kundengeld/Kundenwuensche nur von zufriedenen Kunden, Kaffeemaschine und andere Tick-Karten
+5. neue Sprintstart-Spawns erzeugen: Pre-Launch-Freelance-Auftrag, Kaffeemaschine und andere Tick-Karten. Kunden erzeugen kein passives Sprintstart-Geld mehr; Kundengeld entsteht beim Kunden-Spawn und ueber aktive Demoarbeit.
 
 Diese Reihenfolge soll als zentrale Sprintstart-Pipeline umgesetzt werden. Einzelne Karten liefern Daten oder Effects, aber Presentation und einzelne Recipes duerfen die Pipeline nicht direkt steuern.
 
@@ -628,7 +632,7 @@ Beispiele:
 
 - Burnout klebt an einem Mitarbeiter.
 - Konflikt klebt an einem Mitarbeiter und referenziert eine Zielperson.
-- Unzufriedenheit klebt an einem Kunden und blockiert dessen Kundentick, bis ein Product Owner die Erwartungen managt.
+- Unzufriedenheit klebt an einem Kunden und blockiert Demo-/Feedback-Recipes, bis ein Product Owner oder langsamer ein Entwickler die Erwartungen managt.
 - Spaetere Upgrades koennen an Mitarbeiter oder Software angeheftet werden.
 
 Attachments bewegen sich mit dem Parent. Ob sie fuer ein Recipe zaehlen, entscheidet das Recipe-Matching. Konflikt wird fuer normale Solo-Recipes ignoriert, zaehlt aber fuer Konflikt-Recipes.

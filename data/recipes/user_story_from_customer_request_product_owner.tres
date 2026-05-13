@@ -5,7 +5,7 @@
 [ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_effect"]
 [ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_recipe"]
 
-[sub_resource type="Resource" id="Duration_promising_story"]
+[sub_resource type="Resource" id="Duration_story"]
 script = ExtResource("2_duration")
 base_seconds = 6.0
 
@@ -17,12 +17,12 @@ parameters = {
 "card_definition_id": "card.input.customer_request"
 }
 
-[sub_resource type="Resource" id="Effect_spawn_promising_user_story"]
+[sub_resource type="Resource" id="Effect_spawn_user_story"]
 script = ExtResource("3_effect")
-id = "effect.spawn_card.promising_user_story"
+id = "effect.spawn_card.user_story.customer_request"
 effect_type = "spawn_card"
 parameters = {
-"card_definition_id": "card.task.promising_user_story",
+"card_definition_id": "card.task.user_story",
 "count": 1
 }
 
@@ -36,11 +36,11 @@ card_definition_id = "card.employee.product_owner"
 
 [resource]
 script = ExtResource("4_recipe")
-id = "recipe.promising_user_story_from_customer_request.product_owner"
-display_text = "Kundenwunsch klaeren"
+id = "recipe.user_story_from_customer_request.product_owner"
+display_text = "Anforderung klaeren"
 inputs = Array[ExtResource("1_matcher")]([SubResource("Input_customer_request"), SubResource("Input_product_owner")])
-duration = SubResource("Duration_promising_story")
+duration = SubResource("Duration_story")
 priority = 20
 specificity_score = 2
-effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_consume_customer_request"), SubResource("Effect_spawn_promising_user_story")])
+effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_consume_customer_request"), SubResource("Effect_spawn_user_story")])
 duration_modifier_tags = PackedStringArray("planning_work")
