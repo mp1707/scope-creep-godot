@@ -1,166 +1,306 @@
 # Current Scope - Gameplay-Stand
 
-Stand: aktueller Build nach PoC1, PoC2 und kleineren Nacharbeiten.
+Stand: aktueller Build nach PoC1 bis PoC4.
 
-Dieses Dokument beschreibt den aktuellen Spielumfang aus Spielersicht. Es ist keine Zielbeschreibung des fertigen Spiels, sondern eine ehrliche Momentaufnahme: Was kann man im aktuellen Build schon tun, welche Karten gibt es bereits, und wie gross fuehlt sich das Spiel aktuell an?
+Dieses Dokument beschreibt den aktuellen Spielumfang aus Spielersicht. Es ist keine Zielbeschreibung des fertigen Spiels, sondern eine Momentaufnahme: Was kann man im aktuellen Build tun, welche Systeme sind schon spielbar, welche Karten existieren, und wo endet der aktuelle PoC-Scope?
 
 ## Kurzfazit
 
-Der aktuelle Stand ist ein kleiner, spielbarer Vertical Slice. Man kann Karten auf einem Board bewegen, stapeln, einfache Arbeitsketten ausloesen, Sprints ueberstehen, Mitarbeiter bezahlen, Probleme eskalieren lassen und ueber Booster neue Karten ins Spiel bringen.
+Der aktuelle Stand ist ein kleiner, aber geschlossener Management-Run auf Kartenbasis.
 
-Es ist aber noch kein vollstaendiges Management-Spiel. Der Umfang reicht fuer kurze Testlaeufe ueber mehrere Sprints und fuer erste Entscheidungen zwischen schnellem Chaos und sauberer Pipeline. Langfristige Progression, echtes Balancing, finale Praesentation, grosse Kartenvielfalt, Konflikte, Hiring-Systeme und spaetere Organisationsmechaniken fehlen noch.
+Man startet mit einer MVP-Software, baut Features, finanziert sich vor Launch ueber Freelance-Auftraege, entscheidet den Launch manuell, bedient danach Kunden, bezahlt Business Goals, verwaltet Bugs, Tech Debt, Prod-Crashes und Burnout und kann das Team ueber eine langsame Hiring-Pipeline aus Bewerbern, Angeboten und Onboarding vergroessern.
+
+Das Spiel ist damit mehr als ein reiner Recipe-Prototyp. Es hat inzwischen einen Anfang, einen Launch-Wendepunkt, Post-Launch-Druck, Sieg- und Niederlagebedingungen sowie kontrolliertes Teamwachstum. Es ist aber weiterhin ein PoC: Balance, Lesbarkeit, UI-Polish, Content-Breite, Konflikte, Workshops, finale Card-Art, Tutorial und Meta-Progression fehlen oder sind bewusst nicht final.
 
 ## Wie eine Runde aktuell startet
 
-Der Run startet klein und direkt spielbar. Auf dem Board liegen:
+Der Run startet als Pre-Launch-MVP. Auf dem Board liegen im PoC4-Startsetup:
 
-- Software
+- Software mit MVP-Fortschritt `0 / 10 Features`
 - Entwickler
 - Idee
 - Kaffee
-- mehrere Shop-/Booster-Slots
-- drei einzelne Geldkarten
+- Freelance-Auftrag
+- vier einzelne Geldkarten
+- Shop-/Booster-Zugaenge fuer Gruenderpanik, Wohlbefinden, Talent-Pool und externen Bugfix
 
-Geld ist bereits wie im Design vorgesehen keine Zahl im UI, sondern eine Karte. Eine Geldkarte entspricht immer genau 1 Geld.
+Geld ist wie im GDD vorgesehen keine Zahl im UI. Eine Geldkarte entspricht immer genau 1 Geld.
 
-Der Spieler kann Karten per Drag-and-Drop bewegen, aufeinander stapeln und wieder auseinanderziehen. Passende Stapel starten automatisch eine Verarbeitung mit Fortschrittsbalken. Unpassende Zusatzkarten machen einen Stapel neutral, koennen aber weiterhin organisiert und bewegt werden.
+Der Spieler kann Karten per Drag-and-Drop bewegen, stapeln und wieder auseinanderziehen. Passende Stacks starten automatisch Processing mit Aktionstext und Fortschritt. Nicht passende Zusatzkarten machen einen Stack neutral; der Stack bleibt trotzdem bewegbar und organisierbar.
 
-## Grundlegender Spielfluss
+## Aktueller Run-Bogen
 
-Der aktuelle Kernloop ist spielbar:
+### 1. Pre-Launch: MVP bauen und Geld sichern
 
-1. Eine Idee wird mit einem Mitarbeiter verarbeitet.
-2. Daraus entsteht eine Funktion.
-3. Eine Funktion kann auf die Software gelegt und released werden.
-4. Der Release erzeugt Geld, kann aber Probleme verursachen.
-5. Am Sprintende muessen Mitarbeiter mit Geldkarten bezahlt werden.
-6. Wer nicht bezahlt wird, verlaesst die Firma.
-7. Offene Bugs und andere Probleme koennen in folgenden Sprints eskalieren.
+Vor Launch erzeugt die eigene Software noch kein Geld. Funktionen auf Software erhoehen stattdessen den MVP-Featurezaehler.
 
-Der Sprint-Timer laeuft, kann waehrend der Sprintphase pausiert werden, und wechselt nach Ablauf in eine Bezahlphase. In der Bezahlphase laufen Arbeiten nicht weiter, Karten koennen aber weiterhin sortiert werden. Danach startet der Spieler den naechsten Sprint manuell.
+Der Grundkonflikt ist:
+
+```text
+Funktion ins Produkt integrieren -> MVP-Fortschritt
+Funktion an Freelance-Auftrag abliefern -> sofort Geld
+```
+
+Der Spieler braucht genug Features fuer den Launch, muss aber gleichzeitig Gehaelter, Booster, Bugfixes und spaeter Hiring bezahlen.
+
+### 2. Launch: bewusster Wendepunkt
+
+Ab 10 integrierten Features ist die Software launchbereit. Der Launch passiert nicht automatisch, sondern per Karteninteraktion:
+
+```text
+Launchbereite Software + Entwickler -> Launch
+```
+
+Beim Launch wird die Software live, Startkunden erscheinen, und das erste Business Goal kommt ins Spiel. Mehr Features vor Launch koennen mehr Startkunden bedeuten.
+
+### 3. Post-Launch: Kunden, Druck und Business Goals
+
+Nach Launch erzeugen zufriedene Kunden am Sprintstart Geld und Kundenwuensche. Kundenwuensche sind echte Karten und muessen verarbeitet werden. Ignorierte Kundenwuensche koennen Kunden unzufrieden machen.
+
+Unzufriedene Kunden bleiben im Run, erzeugen aber kein Geld und keine neuen Kundenwuensche, bis ein Product Owner oder eine langsame Ersatzrolle die Erwartungen managt.
+
+Parallel verlangt das aktive Business Goal einzelne Geldkarten. Beim Start des naechsten Sprints wird geprueft, ob das Goal erfuellt wurde. Erfuellte Goals fuehren zum naechsten groesseren Goal; verfehlte Goals erzeugen Investorenpanik.
+
+Aktuelle Endzustaende:
+
+- Sieg: 3 Business Goals erfuellt.
+- Niederlage: 0 regulaere Mitarbeiter.
+- Niederlage: 2 Investorenpanik-Karten.
 
 ## Was der Spieler aktuell tun kann
 
-### Schnell bauen
+### Features schnell bauen
 
-Der einfachste Weg ist:
+Der direkte Weg funktioniert weiterhin:
 
 ```text
 Idee + Entwickler -> Funktion
-Funktion + Software -> Geld
+Funktion + Software -> Feature integrieren
 ```
 
-Das ist die direkte PoC1-Pipeline. Sie funktioniert, ist schnell verstaendlich und bildet den fruehen "Ich baue das eben selbst"-Loop ab.
+Dieser Weg ist verstaendlich und schnell, hat aber Risiko:
 
-Im PoC2-Stand hat dieser Weg bereits Risiko:
-
-- Eine direkt gebaute Funktion kann technische Schulden erzeugen.
-- Ein ungepruefter Release kann einen Bug erzeugen.
+- Ungepruefte Feature-Integration kann Bugs erzeugen.
+- Direkte Feature-Arbeit kann technische Schulden erzeugen.
 - Technische Schulden verlaengern spaetere Feature- und Bugfix-Arbeit.
 
 ### Sauberer arbeiten
 
-Es gibt bereits eine laengere, sauberere Pipeline:
+Die laengere Rollen-Pipeline ist spielbar:
 
 ```text
 Idee + Product Owner -> User Story
+Kundenwunsch + Product Owner -> Vielversprechende User Story
 User Story + Entwickler -> Funktion
 Funktion + Tester -> Gepruefte Funktion
-Gepruefte Funktion + Software -> Geld ohne Bug-Risiko
+Gepruefte Funktion + Software -> Feature integrieren ohne Bug-Risiko
 ```
 
-Der Product Owner und der Tester machen dadurch bereits eine erste strategische Entscheidung moeglich: Der Spieler kann schnell releasen und Probleme riskieren, oder mehr Schritte investieren und dafuer sauberer ausliefern.
+Gepruefte Funktionen sind ausserdem bei Freelance-Auftraegen wertvoller als ungepruefte Funktionen.
 
-Zusaetzlich kann aus einem Kundenwunsch mit dem Product Owner eine vielversprechende User Story entstehen. Daraus gebaute Funktionen sind wertvoller und koennen beim Release mehr Geld erzeugen.
+### Freelance als Vor-Launch-Finanzierung nutzen
+
+Vor Launch spawnen Freelance-Auftraege als sichtbare Geldchance. Sie ersetzen die alte PoC-Regel, bei der Software-Releases direkt Geld erzeugt haben.
+
+```text
+Funktion + Freelance-Auftrag -> 2 Geld
+Gepruefte Funktion + Freelance-Auftrag -> 3 Geld
+```
+
+Nach Launch endet dieser automatische Freelance-Zufluss.
+
+### Kunden bedienen
+
+Nach Launch erzeugen Kunden Wert und Arbeit:
+
+- Zufriedene Kunden erzeugen am Sprintstart Geld.
+- Zufriedene Kunden erzeugen Kundenwuensche.
+- Alte, unbearbeitete Kundenwuensche koennen Unzufriedenheit an Kunden anheften.
+- Unzufriedene Kunden erzeugen keinen Wert, bis die Erwartung gemanagt wurde.
+
+Aktuelle Behandlung:
+
+```text
+Kunde + Unzufrieden + Product Owner -> Erwartungen managen
+Kundenwunsch + Product Owner -> Vielversprechende User Story
+Kundenwunsch + Entwickler -> Vielversprechende User Story, aber langsamer
+```
+
+Recruiter und Werkstudent haben ebenfalls langsame Fallback-Recipes fuer einzelne produktive Aufgaben, damit PoC4 naeher an "Jeder kann alles, aber nicht gleich gut" bleibt.
 
 ### Probleme behandeln
 
-Folgende Probleme sind bereits spielbar:
+Folgende Problemkarten sind spielbar:
 
 - Bug
 - Technische Schulden
 - Prod-Crash
 - Burnout
+- Unzufrieden
+- Investorenpanik
 
-Bugs koennen ignoriert werden, aber sie eskalieren am Sprintstart:
+Bugs eskalieren am Sprintstart in der GDD-Reihenfolge:
 
-- Drei Bugs werden zuerst zu einem Prod-Crash.
-- Danach verdoppeln sich uebrige Bugs.
-- Neu verdoppelte Bugs werden erst bei einem spaeteren Sprintstart wieder fuer Prod-Crashes gezaehlt.
+1. Drei vorhandene Bugs werden zuerst zu einem Prod-Crash.
+2. Danach verdoppeln sich die uebrigen Bugs.
+3. Neu verdoppelte Bugs koennen erst bei einem spaeteren Sprintstart wieder einen Prod-Crash bilden.
 
-Bugs koennen auf mehrere Arten geloest werden:
+Bugfix-Optionen:
 
-- Bug + Entwickler -> Bug wird behoben.
-- Bug + Tester -> Bug wird behoben, aber langsamer.
-- Bug + Externer Dev -> Bug wird schneller behoben.
-- Bug + Bugfix-Patch -> Bug wird sofort bzw. fast sofort entfernt.
+```text
+Bug + Entwickler -> Bug beheben
+Bug + Tester -> Bug beheben, langsamer
+Bug + Externer Dev -> Bug beheben, schneller
+Bug + Bugfix-Patch -> Bug entfernen
+```
 
-Technische Schulden liegen als Karten auf dem Board. Sie machen Feature- und Bugfix-Arbeit global langsamer, bis sie mit einem Entwickler aufgeraeumt werden.
+Weitere Problembehandlung:
 
-Prod-Crashes entstehen aus Bugs und blockieren Einnahmen aus Software-Releases, bis sie durch einen Entwickler per Hotfix beseitigt werden.
+```text
+Tech Debt + Entwickler -> Technische Schulden aufraeumen
+Prod-Crash + Entwickler -> Hotfix
+Kunde + Unzufrieden + Product Owner -> Erwartungen managen
+```
+
+Prod-Crashes blockieren Kundengeld, bis sie beseitigt werden.
 
 ### Burnout erleben und behandeln
 
-Mitarbeiter koennen durch abgeschlossene Arbeit Burnout-Risiko aufbauen. Wenn Burnout ausloest, wird eine Burnout-Karte an den Mitarbeiter angeheftet. Der Mitarbeiter ist dadurch fuer normale Arbeit blockiert.
+Burnout ist eine angeheftete Karte am Mitarbeiter. Ein Mitarbeiter mit Burnout ist fuer normale Arbeit blockiert, bleibt aber bezahlbar.
 
-Burnout kann aktuell auf drei Arten behandelt werden:
+Behandlung:
 
-- Mitarbeiter + Burnout -> lange Erholung.
-- Mitarbeiter + Burnout + Pizza Party -> kurze Erholung.
-- Mitarbeiter + Burnout + Stressbewaeltigungskurs -> sofortige oder fast sofortige Erholung.
+```text
+Mitarbeiter + Burnout -> lange Erholung
+Mitarbeiter + Burnout + Pizza Party -> kurze Erholung
+Mitarbeiter + Burnout + Stressbewaeltigungskurs -> sofortige oder fast sofortige Erholung
+```
 
-Burnout ist damit schon als echte Karte sichtbar und nicht nur ein versteckter Statuswert.
-
-### Mit Wertquellen spielen
-
-Es gibt erste Karten, die regelmaessig neuen Druck oder neue Hilfen erzeugen:
-
-- Kunde erzeugt Kundenwuensche am Sprintstart.
-- Kaffeemaschine erzeugt Kaffee am Sprintstart.
-- Auftrag kann mit einer Funktion erfuellt werden und Bonus-Geld bringen.
-
-Offene Auftraege verfallen am Sprintstart, wenn sie nicht vorher erfuellt werden.
+Burnout ist damit sichtbar und stapelbasiert, nicht nur ein versteckter Statuswert.
 
 ### Kaffee nutzen
 
-Kaffee ist keine normale Recipe-Zutat. Der Spieler kann Kaffee auf eine laufende Mitarbeiterarbeit ziehen, um Fortschritt hinzuzufuegen. Kaffee wird dabei verbraucht.
+Kaffee ist keine normale Recipe-Zutat. Kaffee kann auf laufende Mitarbeiterarbeit gezogen werden, um Fortschritt hinzuzufuegen. Kaffee wird dabei verbraucht.
 
-Das funktioniert bereits als aktive Interaktion auf laufende Arbeit.
+Das gilt fuer laufende Employee-Recipes, auch fuer Onboarding. Kaffee wirkt nicht auf reine Objektprozesse ohne Mitarbeiterkarte, zum Beispiel Software + Feature.
+
+### Sprints, Pause und Bezahlung spielen
+
+Der Build nutzt den Sprint-Rahmen:
+
+- Sprint-Timer laeuft waehrend der Sprintphase.
+- Leertaste pausiert in der Sprintphase.
+- In Pause und Bezahlphase bleiben Karten bewegbar.
+- Processing laeuft in Pause und Bezahlphase nicht weiter.
+- In der Bezahlphase muessen regulaere Mitarbeiter mit einzelnen Geldkarten bezahlt werden.
+- Auto-Pay bezahlt nur regulaere gehaltsfaellige Mitarbeiter, wenn genug Geld vorhanden ist.
+- Unbezahlte regulaere Mitarbeiter kuendigen beim Start des naechsten Sprints.
+
+Werkstudenten und Externe Devs sind keine regulaeren Gehaltsziele.
+
+### Business Goals bezahlen
+
+Business Goals sind sichtbare Karten. Geld wird einzeln auf das aktive Goal gelegt:
+
+```text
+Geld + Business Goal -> Goal-Fortschritt +1
+```
+
+Die aktuellen Zielwerte sind 3, 5 und 7 Geld. Diese Werte sind Balance-Startwerte, nicht final.
 
 ### Booster und Shop nutzen
 
-Geld kann auf Shop-Slots gelegt werden, um Boosterpacks oder gezielte Hilfskarten zu kaufen. Ein Boosterpack wird danach durch Anklicken geoeffnet und gibt drei Karten einzeln aus.
+Der Shop ist live im Run nutzbar. Geldkarten werden auf Shop-/Booster-Slots gelegt; Boosterpacks werden danach per Klick schrittweise geoeffnet.
 
-Aktuell spielbare Shop-/Booster-Richtungen:
+Aktuelle Shop-/Booster-Richtungen:
 
-- Gruender-Testpack: einfache Startverstaerkung mit Idee, Kaffee oder Geld.
-- Talent-Pool: kann Entwickler, Product Owner, Tester oder Externen Dev bringen.
-- Office-Invest: kann Kaffeemaschine, Kaffee, Pizza Party oder Stressbewaeltigungskurs bringen.
-- Kundenchaos: kann Kunde, Kundenwunsch, Auftrag oder Idee bringen.
-- Patch-Shop: kauft gezielt einen Bugfix-Patch.
+- Gruenderpanik: fruehe Hilfe fuer Startdruck.
+- Wohlbefinden: Kaffee, Kaffeemaschine, Pizza Party, Stressbewaeltigungskurs.
+- Talent-Pool: kostet 2 Geld, zieht Bewerber oder Werkstudenten.
+- Externer Bugfix: gezielter Bugfix-Patch.
+- Kundenchaos: existiert als Content und kann nach Launch durch Launch-/Shop-Setup relevant werden.
 
-Die Booster-Ziehungen sind fuer Tests deterministisch, fuehlen sich spielerisch aber wie zufaellige Pack-Ziehungen an.
+Booster-Ziehungen laufen ueber deterministischen Run-RNG und sind dadurch test- und save-kompatibel.
+
+### Team ueber Hiring vergroessern
+
+PoC4 ersetzt direkte Mitarbeiter-Ziehungen aus dem Talent-Pool durch eine sichtbare Hiring-Pipeline:
+
+```text
+Talent-Pool -> Bewerber -> Bewerbungsgespraech -> Angebot -> Einstellung -> Onboarding -> produktiver Mitarbeiter
+```
+
+Aktuelle Regeln:
+
+- Talent-Pool kostet 2 einzelne Geldkarten.
+- Talent-Pool-Booster zieht 3 Karten aus Bewerbern und Werkstudenten.
+- Bewerber sind noch keine Mitarbeiter.
+- Normale Mitarbeiter koennen Bewerber interviewen: 20s, 40% Erfolgschance.
+- Recruiter interviewt schneller und erfolgreicher: 10s, 70% Erfolgschance.
+- Erfolgreiches Interview erzeugt ein passendes Angebot.
+- Misserfolg entfernt den Bewerber.
+- Angebot + 1 Geld erzeugt den Ziel-Mitarbeiter mit Onboarding.
+- Neueinstellungen in der Bezahlphase werden erst ab dem naechsten Sprint gehaltsrelevant.
+
+Onboarding ist ein angehefteter Blocker:
+
+```text
+Mitarbeiter + Onboarding -> Onboarding abschliessen
+```
+
+Onboarding blockiert Arbeit, aber nicht Gehalt. Recruiter koennen laufendes Onboarding begleiten und dadurch beschleunigen.
+
+### Temporaere Hilfe nutzen
+
+Der Werkstudent ist eine temporaere Hilfskraft:
+
+- kein Gehalt
+- zaehlt nicht als regulaerer Mitarbeiter fuer Game Over
+- arbeitet deutlich langsamer
+- verschwindet nach genau einer erfolgreich abgeschlossenen Aufgabe
+- kann keine Interviews fuehren
+- kann kein Onboarding begleiten
+- ist fuer einzelne Notfaelle wie Bugfix, Kundenwunsch oder einfache Feature-Arbeit nutzbar
+
+Der Externe Dev bleibt als bestehender Notfall-Content erhalten, ist aber nicht Teil des normalen Talent-Pool-Hirings.
 
 ### Speichern und Laden
 
-Der aktuelle Build hat Save/Load fuer eingefrorene Runs:
+Save/Load funktioniert fuer eingefrorene Runs:
 
 - Speichern ist in Pause oder Bezahlphase erlaubt.
-- Speichern waehrend eines laufenden, ungepausierten Sprints ist nicht erlaubt.
-- Beim Laden werden Board, Karten, Stacks, Timer, RNG-Zustand und laufende Verarbeitung wiederhergestellt.
-
-Aus Spielersicht ist das noch eine einfache PoC-/Dev-Funktion, aber die Grundregel ist bereits da.
+- Speichern im laufenden, ungepausierten Sprint ist nicht erlaubt.
+- Laden stellt Karten, Stacks, Attachments, Timer, RNG-State, MVP-/Launch-State, Business Goals, Kundenzustand, Hiring-Karten und laufende Verarbeitung wieder her.
+- Neue Runs nutzen Content-Version `poc4`.
+- Alte `poc3`-Saves werden ohne Migration bewusst nicht still geladen.
 
 ## Bereits vorhandene Karten
 
-### Mitarbeiter
+### Regulaere Mitarbeiter
 
 - Entwickler
 - Product Owner
 - Tester
+- Recruiter
+
+### Temporaere Mitarbeiter und Hilfen
+
+- Werkstudent
 - Externer Dev
 
-Der Externe Dev ist als temporaere Hilfe gedacht und braucht kein normales Gehalt.
+### Bewerber
+
+- Entwickler-Bewerber
+- Product-Owner-Bewerber
+- Tester-Bewerber
+- Recruiter-Bewerber
+
+### Angebote
+
+- Entwickler-Angebot
+- Product-Owner-Angebot
+- Tester-Angebot
+- Recruiter-Angebot
 
 ### Produkt, Inputs und Arbeitsergebnisse
 
@@ -172,7 +312,7 @@ Der Externe Dev ist als temporaere Hilfe gedacht und braucht kein normales Gehal
 - Funktion
 - Gepruefte Funktion
 
-### Geld und Hilfskarten
+### Geld, Consumables und Hilfskarten
 
 - Geld
 - Kaffee
@@ -181,56 +321,83 @@ Der Externe Dev ist als temporaere Hilfe gedacht und braucht kein normales Gehal
 - Stressbewaeltigungskurs
 - Boosterpack
 
-### Wertquellen und Druckkarten
+### Wertquellen und Ziele
 
+- Freelance-Auftrag
 - Kunde
 - Kaffeemaschine
 - Auftrag
+- Business Goal
 
-### Probleme
+### Probleme und Blocker
 
 - Bug
 - Technische Schulden
 - Prod-Crash
 - Burnout
+- Unzufrieden
+- Investorenpanik
+- Onboarding
 
 ### Shop- und Booster-Slots
 
-- Booster-Slot
+- Booster-Slot / Gruenderpanik
 - Talent-Pool
-- Office-Invest
+- Wohlbefinden / Office-Invest
 - Kundenchaos
-- Patch-Shop
+- Patch-Shop / externer Bugfix
 
 ## Wie umfangreich ist das aktuell?
 
-Der aktuelle Umfang ist groesser als ein reiner Ein-Recipe-Prototyp, aber noch klar PoC-Groesse.
-
 Vorhanden sind:
 
-- ein spielbarer Board-Loop mit Drag-and-Drop
-- Sprint, Pause und Bezahlphase
-- manuelle Bezahlung und Auto-Pay
-- direkter Feature-Loop
-- saubere Rollen-Pipeline mit Product Owner und Tester
-- erste Problemwirtschaft mit Bugs, Tech Debt, Prod-Crash und Burnout
-- erste Wertquellen mit Kunde, Auftrag und Kaffeemaschine
-- mehrere Booster-/Shop-Richtungen
+- Board-Loop mit Drag-and-Drop, Stacks, neutralen Stacks und Processing
+- Sprint, Pause, Bezahlphase, manuelle Bezahlung und Auto-Pay
+- MVP-Featurezaehler und manueller Launch
+- Pre-Launch-Finanzierung ueber Freelance-Auftraege
+- Post-Launch-Kundenwirtschaft mit Geld, Kundenwuenschen und Unzufriedenheit
+- Business Goals mit Sieg- und Niederlagebedingungen
+- direkter Feature-Loop und saubere Product-Owner-/Tester-Pipeline
+- Problemwirtschaft mit Bugs, Tech Debt, Prod-Crash und Burnout
+- Booster-/Shop-System mit deterministischem RNG
+- Hiring-Pipeline mit Bewerbern, Interviews, Angeboten und Onboarding
+- Recruiter als Hiring-Spezialist
+- Werkstudent als temporaere, gehaltsfreie Hilfskraft
 - Save/Load fuer pausierte oder eingefrorene Runs
+- Content-Validation und schlanker Headless-Kerncheck
 
 Noch nicht vorhanden oder noch nicht final sind:
 
 - kein finales Balancing
-- keine grosse Content-Breite
-- kein Konflikt-System
-- kein vollstaendiges Hiring- oder Team-Management
-- keine spaeten Organisationskarten wie Workshops, Reviews oder Konflikte
 - keine finale UI, keine finale Card-Art und kein finaler Spieljuice
-- kein echtes Run-Ziel oder Meta-Fortschritt
-- keine vollstaendige Onboarding- oder Tutorial-Struktur
+- kein vollstaendiges Konflikt-System
+- keine Workshops, Reviews oder spaeten Organisationskarten
+- keine Mitarbeiter-Traits, Senioritaet, Gehaltsstufen oder komplexes HR-System
+- keine Angebotsverfallsregel und keine Kandidatenqualitaet
+- keine mehreren Kundentypen oder Feature-Typen
+- keine Meta-Progression
+- kein Tutorial und keine finale Onboarding-Struktur fuer Spieler
+- kein finaler Steam-Demo-Polish
 
-Der aktuelle Build eignet sich deshalb vor allem fuer kurze Playtests: Kann der Spieler den Grundloop verstehen? Fuehlt sich "schnell bauen vs. sauber arbeiten" bereits unterschiedlich an? Sind Bugs, Tech Debt, Burnout und Booster als erste Chaos- und Wachstumsmechaniken interessant genug?
+Technische/Design-Schulden, die bewusst bleiben:
+
+- PoC4-Balancewerte sind Startwerte fuer Playtests.
+- Recruiter-Fallbacks fuer normale Arbeit sind langsam und datengetrieben, aber noch nicht das finale "Jeder kann alles"-System.
+- Einige alte PoC-/PoC2-Detailtests sind nicht mehr der aktuelle Gesamtcheck, weil PoC3/PoC4 Regeln bewusst ersetzt haben.
+- Presentation-Lesbarkeit von Bewerbern, Angeboten, Onboarding, Recruiter und Werkstudent muss im Editor weiter bewertet werden.
+
+## Aktuelle Playtest-Fragen
+
+- Versteht der Spieler den Weg von MVP zu Launch ohne Erklaertext?
+- Ist die Entscheidung `Feature integrieren` vs. `Freelance abliefern` spuerbar?
+- Fuehlen sich Kunden nach Launch gleichzeitig wertvoll und anstrengend an?
+- Konkurrieren Gehaelter, Business Goals, Booster, Bugfixes und Hiring sinnvoll um Geld?
+- Ist der Talent-Pool mit 2 Geld fair bepreist?
+- Fuehlen sich normale Interviews mit 20s / 40% fair an oder zu frustrierend?
+- Ist der Recruiter mit 10s / 70% und Onboarding-Begleitung strategisch attraktiv?
+- Ist Onboarding ein interessanter Delay oder nur Wartezeit?
+- Ist der Werkstudent als langsame Einmalhilfe nuetzlich genug?
 
 ## Aktuelle Spielerfahrung in einem Satz
 
-Man spielt eine kleine Softwarefirma auf Kartenbasis, baut aus Ideen Funktionen, released sie fuer Geld, kauft daraus neue Karten, bezahlt Mitarbeiter und versucht, Bugs, technische Schulden, Burnout und Prod-Crashes lange genug unter Kontrolle zu halten, um mehrere Sprints zu ueberleben.
+Man baut eine Softwarefirma als Karten-Run: erst MVP-Features und Freelance-Geld, dann Launch, Kunden, Business Goals und Wachstumsdruck, waehrend Bugs, Tech Debt, Burnout, Prod-Crashes, Unzufriedenheit und eine langsame Hiring-Pipeline staendig um Board-Platz, Zeit und einzelne Geldkarten konkurrieren.
