@@ -5,6 +5,7 @@ const SHOP_DOCK_Z: int = 100
 const SHOP_HOVER_Z_OFFSET: int = 100
 const SHOP_ORDER_VALUE: String = "shop_dock_order"
 const RECYCLING_BIN_DEFINITION_ID: String = "card.shop.recycling_bin"
+const FREELANCE_SLOT_DEFINITION_ID: String = "card.shop.freelance_order"
 const RECYCLABLE_TAG: String = "recyclable"
 const RECYCLING_CARD_COUNT: int = 3
 
@@ -194,6 +195,8 @@ func _can_drop_card_on_shop(card_id: String, moving_card_count: int, shop_card: 
 		return false
 	if _is_recycling_bin_card(shop_card):
 		return moving_card_ids.size() >= RECYCLING_CARD_COUNT and _are_all_cards_tagged(moving_card_ids, RECYCLABLE_TAG)
+	if _is_freelance_slot_card(shop_card):
+		return _are_all_freelance_feature_cards(moving_card_ids)
 
 	return _are_all_cards_tagged(moving_card_ids, "money") and moving_card_ids.size() >= _get_shop_purchase_cost(shop_card)
 
@@ -226,6 +229,20 @@ func _are_all_cards_tagged(card_ids: PackedStringArray, tag: String) -> bool:
 
 func _is_recycling_bin_card(card: CardInstance) -> bool:
 	return card != null and card.definition_id == RECYCLING_BIN_DEFINITION_ID
+
+func _is_freelance_slot_card(card: CardInstance) -> bool:
+	return card != null and card.definition_id == FREELANCE_SLOT_DEFINITION_ID
+
+func _are_all_freelance_feature_cards(card_ids: PackedStringArray) -> bool:
+	if card_ids.is_empty():
+		return false
+	for card_id: String in card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			return false
+		if card.definition_id != "card.output.feature" and card.definition_id != "card.output.checked_feature":
+			return false
+	return true
 
 func _get_shop_purchase_cost(shop_card: CardInstance) -> int:
 	var definition: CardDefinition = content.get_card_definition(shop_card.definition_id)

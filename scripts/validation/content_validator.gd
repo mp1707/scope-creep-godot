@@ -25,7 +25,6 @@ const POC2_REQUIRED_CARD_TAGS: Dictionary = {
 	"card.goal.business_goal": ["goal", "business_goal"],
 	"card.value_source.coffee_machine": ["value_source", "coffee_machine"],
 	"card.value_source.order": ["value_source", "order"],
-	"card.value_source.freelance_order": ["value_source", "order", "freelance_order"],
 }
 const POC2_REQUIRED_RECIPE_INPUTS: Dictionary = {
 	"recipe.feature_from_idea.developer": ["card.input.idea", "card.employee.developer"],
@@ -48,8 +47,6 @@ const POC2_REQUIRED_RECIPE_INPUTS: Dictionary = {
 	"recipe.burnout_recovery.pizza": ["card.problem.burnout", "card.consumable.pizza_party"],
 	"recipe.burnout_recovery.stress_course": ["card.problem.burnout", "card.consumable.stress_course"],
 	"recipe.money_from_order.feature": ["card.value_source.order", "tag:feature"],
-	"recipe.money_from_freelance_order.feature": ["card.value_source.freelance_order", "card.output.feature"],
-	"recipe.money_from_freelance_order.checked_feature": ["card.value_source.freelance_order", "card.output.checked_feature"],
 }
 const POC3_REQUIRED_CARD_IDS: Array[String] = [
 	"card.product.software",
@@ -57,7 +54,7 @@ const POC3_REQUIRED_CARD_IDS: Array[String] = [
 	"card.input.idea",
 	"card.consumable.coffee",
 	"card.resource.money",
-	"card.value_source.freelance_order",
+	"card.shop.freelance_order",
 	"card.value_source.customer",
 	"card.input.customer_request",
 	"card.problem.unhappy_customer",
@@ -133,6 +130,7 @@ const POC4_REQUIRED_CARD_TAGS: Dictionary = {
 	"card.temp_worker.work_student": ["employee", "temp_worker", "work_student", "no_salary", "one_task_lifetime"],
 	"card.blocker.onboarding": ["blocker", "attachment", "onboarding", "employee_blocker"],
 	"card.shop.recycling_bin": ["shop", "recycling_bin"],
+	"card.shop.freelance_order": ["shop", "freelance_order"],
 }
 const POC4_CANDIDATE_TO_OFFER: Dictionary = {
 	"card.candidate.developer": "card.offer.developer",
@@ -737,10 +735,8 @@ func _validate_balance(balance: BalanceDefinition) -> void:
 		_errors.append("%s: Balance '%s' needs positive poc3_mvp_required_features." % [path, balance.id])
 	if balance.poc3_start_money_cards < 0:
 		_errors.append("%s: Balance '%s' needs non-negative poc3_start_money_cards." % [path, balance.id])
-	if balance.poc3_freelance_feature_money_cards < 0:
-		_errors.append("%s: Balance '%s' needs non-negative poc3_freelance_feature_money_cards." % [path, balance.id])
-	if balance.poc3_freelance_checked_feature_money_cards < 0:
-		_errors.append("%s: Balance '%s' needs non-negative poc3_freelance_checked_feature_money_cards." % [path, balance.id])
+	if balance.poc3_freelance_dump_money_cards < 0:
+		_errors.append("%s: Balance '%s' needs non-negative poc3_freelance_dump_money_cards." % [path, balance.id])
 	if balance.poc3_launch_features_per_start_customer <= 0:
 		_errors.append("%s: Balance '%s' needs positive poc3_launch_features_per_start_customer." % [path, balance.id])
 	if balance.poc5_initial_customer_money_cards < 0:

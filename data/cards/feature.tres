@@ -23,7 +23,7 @@ display_name = "Funktion"
 type = 3
 tags = PackedStringArray("feature", "output")
 short_text = "MVP-Fortschritt oder Freelance"
-tooltip_text = "Auf Software integrieren fuer Feature-Fortschritt oder vor Launch mit Freelance-Auftrag fuer 2 Geld abliefern."
+tooltip_text = "Auf Software integrieren fuer Feature-Fortschritt oder mit dem Freelance-Slot fuer 3 Geld abliefern. Kann dabei Bugs erzeugen."
 visual = SubResource("Resource_cfqru")
 base_values = {
 "feature_value": 1,

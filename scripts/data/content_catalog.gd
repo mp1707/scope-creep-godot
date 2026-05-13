@@ -60,23 +60,12 @@ func apply_balance_overrides() -> void:
 	_set_recipe_duration("recipe.interview_candidate.recruiter", balance.poc4_recruiter_interview_duration_seconds)
 	_set_recipe_duration("recipe.onboarding.employee", balance.poc4_onboarding_duration_seconds)
 	_set_work_student_balance_values()
-	_set_spawn_money_count_key("recipe.money_from_freelance_order.feature", "poc3_freelance_feature_money_cards")
-	_set_spawn_money_count_key("recipe.money_from_freelance_order.checked_feature", "poc3_freelance_checked_feature_money_cards")
 
 func _set_recipe_duration(recipe_id: String, duration_seconds: float) -> void:
 	var recipe: RecipeDefinition = get_recipe_definition(recipe_id)
 	if recipe == null or recipe.duration == null:
 		return
 	recipe.duration.base_seconds = maxf(0.1, duration_seconds)
-
-func _set_spawn_money_count_key(recipe_id: String, count_key: String) -> void:
-	var recipe: RecipeDefinition = get_recipe_definition(recipe_id)
-	if recipe == null:
-		return
-	for effect: EffectDefinition in recipe.effects_on_complete:
-		if effect != null and effect.effect_type == "spawn_money":
-			effect.parameters.erase("count")
-			effect.parameters["count_key"] = count_key
 
 func _set_work_student_balance_values() -> void:
 	var work_student: CardDefinition = get_card_definition("card.temp_worker.work_student")

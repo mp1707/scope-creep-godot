@@ -12,11 +12,13 @@ marker_text = "FREE"
 
 [resource]
 script = ExtResource("1_card")
-id = "card.value_source.freelance_order"
+id = "card.shop.freelance_order"
 display_name = "Freelance-Auftrag"
-type = 7
-tags = PackedStringArray("value_source", "order", "freelance_order")
-short_text = "Feature gegen Geld"
-tooltip_text = "Funktion abliefern fuer 2 Geld, gepruefte Funktion fuer 3 Geld. Verfaellt am Sprintstart."
+type = 6
+tags = PackedStringArray("shop", "freelance_order")
+short_text = "Feature -> 3 Geld"
+tooltip_text = "Lege eine Funktion oder gepruefte Funktion auf diesen Slot. Beide geben 3 Geld; ungepruefte Funktionen koennen einen Bug erzeugen."
 visual = SubResource("Resource_visual")
-auto_stack_on_spawn = true
+base_values = {
+"shop_dock_order": 60
+}

@@ -1,22 +1,14 @@
-[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3 uid="uid://ciulug1npudc2"]
 
-[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_oaaar"]
-[ext_resource type="Script" path="res://scripts/data/recipe_constraint_definition.gd" id="2_khhjy"]
-[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="3_r1daj"]
-[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="4_2hk0j"]
-[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="5_g78wc"]
+[ext_resource type="Script" uid="uid://bl1xx0r5217s6" path="res://scripts/data/recipe_input_matcher.gd" id="1_oaaar"]
+[ext_resource type="Script" uid="uid://d2hhjovstdpga" path="res://scripts/data/recipe_constraint_definition.gd" id="2_khhjy"]
+[ext_resource type="Script" uid="uid://ci2j6u6iliglh" path="res://scripts/data/duration_definition.gd" id="3_r1daj"]
+[ext_resource type="Script" uid="uid://csh5slb854fk0" path="res://scripts/data/effect_definition.gd" id="4_2hk0j"]
+[ext_resource type="Script" uid="uid://b7v127hkn0hwl" path="res://scripts/data/recipe_definition.gd" id="5_g78wc"]
 
 [sub_resource type="Resource" id="Resource_61yk6"]
 script = ExtResource("3_r1daj")
 base_seconds = 6.0
-
-[sub_resource type="Resource" id="Resource_8kvva"]
-script = ExtResource("4_2hk0j")
-id = "effect.consume_input.feature"
-effect_type = "consume_input"
-parameters = {
-"card_definition_id": "card.output.feature"
-}
 
 [sub_resource type="Resource" id="Resource_r53sd"]
 script = ExtResource("4_2hk0j")
@@ -35,6 +27,14 @@ effect_type = "roll_chance"
 parameters = {
 "card_definition_id": "card.problem.bug",
 "chance_key": "bug_chance"
+}
+
+[sub_resource type="Resource" id="Resource_8kvva"]
+script = ExtResource("4_2hk0j")
+id = "effect.consume_input.feature"
+effect_type = "consume_input"
+parameters = {
+"card_definition_id": "card.output.feature"
 }
 
 [sub_resource type="Resource" id="Resource_a7tst"]
@@ -56,3 +56,4 @@ duration = SubResource("Resource_61yk6")
 priority = 10
 specificity_score = 2
 effects_on_complete = Array[ExtResource("4_2hk0j")]([SubResource("Resource_r53sd"), SubResource("Resource_0bwwy"), SubResource("Resource_8kvva")])
+duration_modifier_tags = null

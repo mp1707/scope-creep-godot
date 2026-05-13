@@ -8,7 +8,7 @@ Dieses Dokument beschreibt den aktuellen Spielumfang aus Spielersicht. Es ist ke
 
 Der aktuelle Stand ist ein kleiner, aber geschlossener Management-Run auf Kartenbasis.
 
-Man startet mit einer MVP-Software, baut Features, finanziert sich vor Launch ueber Freelance-Auftraege, entscheidet den Launch manuell, bedient danach Kunden, bezahlt Business Goals, verwaltet Bugs, Tech Debt, Prod-Crashes und Burnout und kann das Team ueber eine langsame Hiring-Pipeline aus Bewerbern, Angeboten und Onboarding vergroessern.
+Man startet mit einer MVP-Software, baut Features, finanziert sich dauerhaft ueber den Freelance-Shop-Slot, entscheidet den Launch manuell, bedient danach Kunden, bezahlt Business Goals, verwaltet Bugs, Tech Debt, Prod-Crashes und Burnout und kann das Team ueber eine langsame Hiring-Pipeline aus Bewerbern, Angeboten und Onboarding vergroessern.
 
 Das Spiel ist damit mehr als ein reiner Recipe-Test. Es hat inzwischen einen Anfang, einen Launch-Wendepunkt, Post-Launch-Druck, Sieg- und Niederlagebedingungen sowie kontrolliertes Teamwachstum. Balance, Lesbarkeit, UI-Polish, Content-Breite, Konflikte, Workshops, finale Card-Art, Tutorial und Meta-Progression fehlen aber noch oder sind bewusst nicht final.
 
@@ -20,9 +20,8 @@ Der Run startet als Pre-Launch-MVP. Auf dem Board liegen im aktuellen Startsetup
 - Entwickler
 - Idee
 - Kaffee
-- Freelance-Auftrag
 - vier einzelne Geldkarten
-- Shop-/Booster-Zugaenge fuer Gruenderpanik, Wohlbefinden, Talent-Pool, externen Bugfix und Resteverwertung
+- Shop-/Booster-Zugaenge fuer Gruenderpanik, Wohlbefinden, Talent-Pool, externen Bugfix, Freelance-Auftrag und Resteverwertung
 
 Geld ist wie im GDD vorgesehen keine Zahl im UI. Eine Geldkarte entspricht immer genau 1 Geld.
 
@@ -38,7 +37,7 @@ Der Grundkonflikt ist:
 
 ```text
 Funktion ins Produkt integrieren -> MVP-Fortschritt
-Funktion an Freelance-Auftrag abliefern -> sofort Geld
+Funktion in den Freelance-Slot dumpen -> sofort Geld
 ```
 
 Der Spieler braucht genug Features fuer den Launch, muss aber gleichzeitig Gehaelter, Booster, Bugfixes und spaeter Hiring bezahlen.
@@ -96,18 +95,18 @@ Funktion + Tester -> Gepruefte Funktion
 Gepruefte Funktion + Software -> Feature integrieren ohne Bug-Risiko
 ```
 
-Gepruefte Funktionen sind ausserdem bei Freelance-Auftraegen wertvoller als ungepruefte Funktionen.
+Gepruefte Funktionen sind ausserdem beim Freelance-Slot sicherer, weil sie im Gegensatz zu ungeprueften Funktionen keinen Bug-Roll ausloesen.
 
-### Freelance als Vor-Launch-Finanzierung nutzen
+### Freelance als dauerhafte Finanzierung nutzen
 
-Vor Launch spawnen Freelance-Auftraege als sichtbare Geldchance.
+Der Freelance-Auftrag ist ein permanenter Shop-Slot. Funktionen und gepruefte Funktionen koennen dort jederzeit gedumped werden.
 
 ```text
-Funktion + Freelance-Auftrag -> 2 Geld
-Gepruefte Funktion + Freelance-Auftrag -> 3 Geld
+Funktion auf Freelance-Slot -> 3 Geld + Bug-Chance wie beim Release
+Gepruefte Funktion auf Freelance-Slot -> 3 Geld
 ```
 
-Nach Launch endet dieser automatische Freelance-Zufluss.
+Es spawnen keine sprintgebundenen Freelance-Auftragskarten mehr. Der Slot bleibt auch nach Launch als kontrollierbare Geldquelle erhalten.
 
 ### Kunden bedienen
 
@@ -325,11 +324,11 @@ Save/Load funktioniert fuer eingefrorene Runs:
 - Pizza Party
 - Stressbewaeltigungskurs
 - Boosterpack
+- Freelance-Auftrag
 - Resteverwertung
 
 ### Wertquellen und Ziele
 
-- Freelance-Auftrag
 - Kunde
 - Kaffeemaschine
 - Auftrag
@@ -352,6 +351,7 @@ Save/Load funktioniert fuer eingefrorene Runs:
 - Wohlbefinden / Office-Invest
 - Kundenchaos
 - Patch-Shop / externer Bugfix
+- Freelance-Auftrag
 - Resteverwertung
 
 ## Wie umfangreich ist das aktuell?
@@ -361,7 +361,7 @@ Vorhanden sind:
 - Board-Loop mit Drag-and-Drop, Stacks, neutralen Stacks und Processing
 - Sprint, Pause, Bezahlphase, manuelle Bezahlung und Auto-Pay
 - MVP-Featurezaehler und manueller Launch
-- Pre-Launch-Finanzierung ueber Freelance-Auftraege
+- dauerhafte Finanzierung ueber den Freelance-Shop-Slot
 - Post-Launch-Kundenwirtschaft mit Geld, Kundenwuenschen und Unzufriedenheit
 - Business Goals mit Sieg- und Niederlagebedingungen
 - direkter Feature-Loop und saubere Product-Owner-/Tester-Pipeline
@@ -396,7 +396,7 @@ Technische/Design-Schulden, die bewusst bleiben:
 ## Aktuelle Playtest-Fragen
 
 - Versteht der Spieler den Weg von MVP zu Launch ohne Erklaertext?
-- Ist die Entscheidung `Feature integrieren` vs. `Freelance abliefern` spuerbar?
+- Ist die Entscheidung `Feature integrieren` vs. `Freelance dumpen` spuerbar?
 - Fuehlen sich Kunden nach Launch gleichzeitig wertvoll und anstrengend an?
 - Konkurrieren Gehaelter, Business Goals, Booster, Bugfixes und Hiring sinnvoll um Geld?
 - Ist der Talent-Pool mit 2 Geld fair bepreist?

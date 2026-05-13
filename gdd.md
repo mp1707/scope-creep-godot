@@ -863,20 +863,21 @@ Product Owner + Kunde → 30s „Feedback sammeln..." → 1 User Story, Karten b
 
 Unzufriedenen Kunden kann keine Demo gezeigt werden und kein Feedback entlockt werden, bis die Erwartungen gemanagt wurden. Product Owner erledigen das effizient; Entwickler koennen es als langsamere Notfalloption ebenfalls.
 
-### Auftrag
+### Freelance-Auftrag
 
-Einmalige Karte. Beschreibt eine konkrete gesuchte Funktion (z. B. „Suchfunktion").
+Permanenter Shop-Slot. Der Slot ist eine kontrollierbare Geldquelle, in die fertige Funktionen gedumped werden koennen.
 
-**Lifecycle:** sprintgebundenes Consumable.
+**Lifecycle:** permanent.
 
-- Verbraucht, sobald eine passende Funktion auf den Auftrag gestapelt wurde → großer Geldbonus.
-- Wird beim nächsten Sprintstart entfernt, falls bis dahin nicht erfüllt.
-- Eine angefangene Bearbeitung darf abgebrochen werden (Stapel auflösen) und neu zugewiesen werden.
-- Spätere Auftrags-Varianten dürfen mit längeren Fristen kommen (z. B. „2-Sprint-Frist").
+- Der Freelance-Auftrag spawnt nicht mehr als sprintgebundene Karte.
+- Der Slot liegt dauerhaft im Shop-Dock.
+- Funktion und gepruefte Funktion erzeugen jeweils 3 einzelne Geldkarten.
+- Eine ungepruefte Funktion nutzt dieselbe Bug-Chance wie ein ungepruefter Release.
+- Eine gepruefte Funktion erzeugt keinen Bug-Roll.
 
 ```text
-Auftrag + passende Funktion → großer Geldbonus, Auftrag verbraucht
-Nicht erfüllter Auftrag beim nächsten Sprintstart → Auftrag verfällt
+Funktion auf Freelance-Slot → 3 Geld + Bug-Chance wie beim Release
+Gepruefte Funktion auf Freelance-Slot → 3 Geld
 ```
 
 ### Spawning-Regeln (Übersicht)
@@ -891,6 +892,7 @@ Damit das System klar ist, hier die zentralen Quellen für neue Karten:
 | **Kaffee**          | Kaffeemaschine                                               | 1× pro Sprintstart                                        |
 | **Idee (Workshop)** | Brainstorming-Workshop                                       | beim Workshop-Abschluss, 1 pro anwesendem Mitarbeiter     |
 | **Booster-Inhalt**  | Boosterpack                                                  | beim Kauf, 3 Karten aus dem Pack-Pool                     |
+| **Freelance-Geld**  | Freelance-Shop-Slot                                          | beim Dumpen von Funktion oder gepruefter Funktion         |
 
 Sprintstart-Spawns passieren erst nach Klick auf **„Sprint N+1 starten"**, nicht bereits beim Übergang in die Bezahlphase.
 

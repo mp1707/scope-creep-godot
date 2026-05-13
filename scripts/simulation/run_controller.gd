@@ -27,11 +27,13 @@ const SALARY_DUE_FROM_SPRINT_VALUE: String = "salary_due_from_sprint"
 const COMPLETED_TASK_LIFETIME_VALUE: String = "completed_task_lifetime"
 const ONBOARDING_RECIPE_ID: String = "recipe.onboarding.employee"
 const RECRUITER_ONBOARDING_MODIFIER_KEY: String = "recruiter_onboarding"
-const FREELANCE_ORDER_DEFINITION_ID: String = "card.value_source.freelance_order"
+const FREELANCE_SLOT_DEFINITION_ID: String = "card.shop.freelance_order"
 const CUSTOMER_DEFINITION_ID: String = "card.value_source.customer"
 const CUSTOMER_REQUEST_DEFINITION_ID: String = "card.input.customer_request"
 const MONEY_DEFINITION_ID: String = "card.resource.money"
+const FEATURE_DEFINITION_ID: String = "card.output.feature"
 const CHECKED_FEATURE_DEFINITION_ID: String = "card.output.checked_feature"
+const BUG_DEFINITION_ID: String = "card.problem.bug"
 const UNHAPPY_CUSTOMER_DEFINITION_ID: String = "card.problem.unhappy_customer"
 const BUSINESS_GOAL_DEFINITION_ID: String = "card.goal.business_goal"
 const INVESTOR_PANIC_DEFINITION_ID: String = "card.problem.investor_panic"
@@ -43,7 +45,7 @@ const START_CARD_IDS: Array[String] = [
 	"card.employee.developer",
 	"card.input.idea",
 	"card.consumable.coffee",
-	"card.value_source.freelance_order",
+	"card.shop.freelance_order",
 	"card.shop.booster_slot",
 	"card.resource.money",
 	"card.shop.booster_slot.office_invest",
@@ -231,6 +233,8 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 		return
 	if _try_recycle_card_stack(moving_card_ids, target_stack):
 		return
+	if _try_dump_freelance_feature_stack(moving_card_ids, target_stack):
+		return
 	if _try_hire_offer_with_money_stack(card, moving_card_ids, target_stack):
 		return
 	if _try_pay_employee_with_money(card, moving_card_ids, target_stack):
@@ -394,6 +398,36 @@ func _try_recycle_card_stack(moving_card_ids: PackedStringArray, target_stack: S
 	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
 	return true
 
+func _try_dump_freelance_feature_stack(moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
+	if not _can_interact_with_board():
+		return false
+
+	var target_shop_card: CardInstance = _find_shop_card_in_stack(target_stack)
+	if target_shop_card == null or target_shop_card.definition_id != FREELANCE_SLOT_DEFINITION_ID:
+		return false
+	if not _are_all_freelance_feature_cards(moving_card_ids):
+		return false
+
+	var spawn_index: int = 0
+	_rng.state = state.rng_state
+	for moving_card_id: String in moving_card_ids:
+		var moving_card: CardInstance = state.get_card(moving_card_id)
+		if moving_card == null:
+			continue
+		var is_unchecked_feature: bool = moving_card.definition_id == FEATURE_DEFINITION_ID
+		var money_card_count: int = _get_freelance_money_card_count()
+		_remove_card_instance(moving_card_id)
+		for money_index: int in money_card_count:
+			_spawn_card_as_new_stack(MONEY_DEFINITION_ID, _get_spawn_position_near_stack(target_stack.stack_id, spawn_index))
+			spawn_index += 1
+		if is_unchecked_feature and _rng.randf() <= _get_bug_chance():
+			_spawn_card_as_new_stack(BUG_DEFINITION_ID, _get_spawn_position_near_stack(target_stack.stack_id, spawn_index))
+			spawn_index += 1
+	state.rng_state = _rng.state
+
+	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
+	return true
+
 func _are_all_money_cards(card_ids: PackedStringArray) -> bool:
 	if card_ids.is_empty():
 		return false
@@ -409,6 +443,15 @@ func _are_all_recyclable_cards(card_ids: PackedStringArray) -> bool:
 	for card_id: String in card_ids:
 		var card: CardInstance = state.get_card(card_id)
 		if card == null or not _is_recyclable_card(card):
+			return false
+	return true
+
+func _are_all_freelance_feature_cards(card_ids: PackedStringArray) -> bool:
+	if card_ids.is_empty():
+		return false
+	for card_id: String in card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null or not _is_freelance_feature_card(card):
 			return false
 	return true
 
@@ -432,6 +475,13 @@ func _is_recyclable_card(card: CardInstance) -> bool:
 		return false
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
 	return definition != null and definition.tags.has(RECYCLABLE_TAG)
+
+func _is_freelance_feature_card(card: CardInstance) -> bool:
+	if card == null:
+		return false
+	if not card.parent_card_id.is_empty():
+		return false
+	return card.definition_id == FEATURE_DEFINITION_ID or card.definition_id == CHECKED_FEATURE_DEFINITION_ID
 
 func _get_shop_purchase(shop_card: CardInstance) -> Dictionary:
 	var definition: CardDefinition = content.get_card_definition(shop_card.definition_id)
@@ -801,16 +851,7 @@ func _run_sprint_start_effects() -> void:
 	_resolve_active_business_goal()
 	if state.phase == ScopeEnums.RunPhase.GAME_OVER or state.phase == ScopeEnums.RunPhase.VICTORY:
 		return
-	_spawn_pre_launch_freelance_order()
 	_spawn_persistent_tick_cards()
-
-func _spawn_pre_launch_freelance_order() -> void:
-	var software: CardInstance = get_software_card()
-	if software == null:
-		return
-	if _product_lifecycle.get_product_stage(software) != ProductLifecycleService.PRODUCT_STAGE_MVP:
-		return
-	_spawn_card_as_new_stack(FREELANCE_ORDER_DEFINITION_ID, _get_spawn_position_near_stack(software.stack_id, 0))
 
 func _form_prod_crashes_from_bugs() -> void:
 	var bug_ids: PackedStringArray = _find_card_ids_with_tag("bug")
@@ -1014,6 +1055,16 @@ func _get_initial_customer_request_card_count() -> int:
 	if content.balance == null:
 		return 1
 	return maxi(0, content.balance.poc5_initial_customer_request_cards)
+
+func _get_freelance_money_card_count() -> int:
+	if content.balance == null:
+		return 3
+	return maxi(0, content.balance.poc3_freelance_dump_money_cards)
+
+func _get_bug_chance() -> float:
+	if content.balance == null:
+		return 0.5
+	return clampf(content.balance.bug_chance, 0.0, 1.0)
 
 func _get_business_goal_required_money_values() -> Array[int]:
 	if content.balance == null or content.balance.poc3_business_goal_required_money.is_empty():

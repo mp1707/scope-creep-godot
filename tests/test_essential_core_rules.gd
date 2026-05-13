@@ -17,6 +17,9 @@ func _init() -> void:
 	_test_recycling_bin_consumes_top_three_and_drops_leftovers()
 	_test_recycling_bin_rejects_money_and_mixed_stacks()
 	_test_recyclable_cards_do_not_drop_on_booster_slots()
+	_test_freelance_order_is_permanent_shop_slot()
+	_test_freelance_slot_pays_three_and_rolls_bug_for_unchecked_feature()
+	_test_freelance_slot_pays_checked_feature_without_bug()
 	_test_mvp_launch_threshold_and_customer_scaling()
 	_test_customer_spawn_creates_initial_money_and_request_without_passive_tick_income()
 	_test_customer_demo_and_feedback_are_repeatable_active_work()
@@ -280,6 +283,48 @@ func _test_recyclable_cards_do_not_drop_on_booster_slots() -> void:
 	_assert_equal(bottom.stack_id, original_stack_id, "Recyclable stack should not drop onto normal booster slots.")
 	_assert_equal(middle.stack_id, original_stack_id, "Recyclable stack should stay together after rejected booster-slot drop.")
 	_assert_equal(top.stack_id, original_stack_id, "Recyclable stack should stay together after rejected booster-slot drop.")
+
+func _test_freelance_order_is_permanent_shop_slot() -> void:
+	var controller: RunController = _create_controller(1.0)
+	var state: RunState = controller.start_new_run(1031)
+	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
+	_assert_true(freelance_slot != null, "Start run should include the permanent Freelance shop slot.")
+	_assert_equal(_count_cards_by_definition(state, "card.value_source.freelance_order"), 0, "Freelance should no longer spawn as a pre-launch value-source card.")
+
+	_pay_and_start_next_sprint(controller, state)
+
+	_assert_equal(_count_cards_by_definition(state, "card.shop.freelance_order"), 1, "Freelance shop slot should persist across sprint starts.")
+	_assert_equal(_count_cards_by_definition(state, "card.value_source.freelance_order"), 0, "Sprint start should not spawn legacy Freelance order cards.")
+
+func _test_freelance_slot_pays_three_and_rolls_bug_for_unchecked_feature() -> void:
+	var controller: RunController = _create_controller(60.0)
+	controller.content.balance.bug_chance = 1.0
+	var state: RunState = controller.start_new_run(1032)
+	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
+	var feature: CardInstance = _spawn_card(controller, "card.output.feature", Vector2(5000.0, 1500.0))
+	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
+	var bugs_before: int = _count_cards_by_definition(state, "card.problem.bug")
+
+	controller.move_card_to_stack(feature.instance_id, freelance_slot.stack_id)
+
+	_assert_true(state.get_card(feature.instance_id) == null, "Freelance slot should consume the dumped unchecked feature.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before + 3, "Unchecked feature Freelance dump should create 3 money cards.")
+	_assert_equal(_count_cards_by_definition(state, "card.problem.bug"), bugs_before + 1, "Unchecked feature Freelance dump should use the release bug chance.")
+
+func _test_freelance_slot_pays_checked_feature_without_bug() -> void:
+	var controller: RunController = _create_controller(60.0)
+	controller.content.balance.bug_chance = 1.0
+	var state: RunState = controller.start_new_run(1033)
+	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
+	var checked_feature: CardInstance = _spawn_card(controller, "card.output.checked_feature", Vector2(5000.0, 1700.0))
+	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
+	var bugs_before: int = _count_cards_by_definition(state, "card.problem.bug")
+
+	controller.move_card_to_stack(checked_feature.instance_id, freelance_slot.stack_id)
+
+	_assert_true(state.get_card(checked_feature.instance_id) == null, "Freelance slot should consume the dumped checked feature.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before + 3, "Checked feature Freelance dump should create 3 money cards.")
+	_assert_equal(_count_cards_by_definition(state, "card.problem.bug"), bugs_before, "Checked feature Freelance dump should not create release bugs.")
 
 func _test_mvp_launch_threshold_and_customer_scaling() -> void:
 	var threshold_controller: RunController = _create_controller(60.0)

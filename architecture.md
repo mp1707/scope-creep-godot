@@ -591,7 +591,7 @@ Aktuelle und spaetere PoCs erweitern diese Pipeline, ohne die GDD-Reihenfolge fu
 2. alte Kundenwuensche auswerten: wenn mindestens ein alter Kundenwunsch existiert, wird genau ein zufaelliger zufriedener Kunde unzufrieden; sind alle Kunden unzufrieden, passiert nichts
 3. Business Goal aus der Bezahlphase pruefen, falls der Run live ist
 4. terminale Bedingungen pruefen, z. B. 0 Mitarbeiter, 2 Investorenpanik, 3 erfuellte Goals
-5. neue Sprintstart-Spawns erzeugen: Pre-Launch-Freelance-Auftrag, Kaffeemaschine und andere Tick-Karten. Kunden erzeugen kein passives Sprintstart-Geld mehr; Kundengeld entsteht beim Kunden-Spawn und ueber aktive Demoarbeit.
+5. neue Sprintstart-Spawns erzeugen: Kaffeemaschine und andere Tick-Karten. Der Freelance-Auftrag ist ein permanenter Shop-Slot und kein Sprintstart-Spawn mehr. Kunden erzeugen kein passives Sprintstart-Geld mehr; Kundengeld entsteht beim Kunden-Spawn und ueber aktive Demoarbeit.
 
 Diese Reihenfolge soll als zentrale Sprintstart-Pipeline umgesetzt werden. Einzelne Karten liefern Daten oder Effects, aber Presentation und einzelne Recipes duerfen die Pipeline nicht direkt steuern.
 
