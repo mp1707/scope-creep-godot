@@ -8,7 +8,7 @@ PoC4 ist kein Rewrite. Der bestehende PoC3 bleibt die technische Basis. Ziel ist
 Talent-Pool -> Bewerber -> Bewerbungsgespraech -> Angebot -> Einstellung -> Onboarding -> produktiver Mitarbeiter
 ```
 
-Der Plan ist in groessere, abhakbare Phasen geschnitten. Jede Phase soll in einer Codex-Context-Session sinnvoll umsetzbar, headless testbar und danach im Editor kurz pruefbar sein. Editor-Arbeit ist dort markiert, wo visuelle Abstimmung, Scene-/Inspector-Pflege oder Playtest-Feedback sauberer ist als Textdatei-Automation.
+Der Plan ist in groessere, abhakbare Phasen geschnitten. Jede Phase soll in einer Codex-Context-Session sinnvoll umsetzbar, mit schlanker Validation oder einem essenziellen Headless-Check absicherbar und danach im Editor kurz pruefbar sein. Editor-Arbeit ist dort markiert, wo visuelle Abstimmung, Scene-/Inspector-Pflege oder Playtest-Feedback sauberer ist als Textdatei-Automation.
 
 ## Fortschritt
 
@@ -68,6 +68,31 @@ PoC4 erweitert die Zielarchitektur, ohne die Trennung von Simulation und Present
 - Neueinstellungen in der Bezahlphase werden erst ab dem naechsten Sprint gehaltsrelevant.
 
 GDD-Spannung: `poc4-idee.md` beschreibt den Recruiter als stark auf Hiring beschraenkt. Das GDD sagt aber "Jeder kann alles - aber nicht gleich gut". Empfehlung fuer PoC4: Der Recruiter bekommt nur produktionsrelevante Recipes, wenn wir sie als extrem langsame Rollen-Fallbacks sauber in der Recipe-/Duration-Logik modellieren koennen. Sonst bleibt das als bewusst markierte PoC4-Einschraenkung im Stretch, nicht als stiller Bruch der Zielregel.
+
+## Teststrategie fuer PoC4
+
+PoC4 ist weiterhin fruehe Architektur- und Gameplay-Findung. Tests sollen das Bauen nicht ausbremsen und keine alten Implementierungsdetails festnageln.
+
+Aktiver Standard-Check bleibt:
+
+```bash
+tools/check_poc.sh
+```
+
+Dieser Check soll schlank bleiben:
+
+- Content-Validation fuer neue Resources und Referenzen.
+- `tests/test_essential_core_rules.gd` fuer wenige GDD-/Architekturregeln, die waehrend PoC4/5 nicht still brechen duerfen.
+- Keine neuen breiten `test_poc4_phase_X.gd`-Suiten als Standard.
+- Keine Presentation-, Layout-, Marker-, Spawnpositions- oder Textdetailtests, ausser ein UI-Verhalten entscheidet direkt eine Gameplay-Regel.
+
+Neue Tests werden nur ergaenzt, wenn mindestens eines gilt:
+
+- Die Regel ist eine harte GDD-Regel oder Architekturgrenze.
+- Ein Fehler waere im Editor-Playtest schwer zu erkennen.
+- Die Logik ist deterministisch und zentral, z. B. Save/Load, RNG, Content-Referenzen, Payment-/Sprintstart-Regeln.
+
+Wenn eine Phase nur neuen Content oder Balancing liefert, reicht normalerweise Content-Validation plus Editor-Playtest. Wenn eine Phase eine neue Kernregel einfuehrt, wird maximal ein kleiner Testfall in `tests/test_essential_core_rules.gd` ergaenzt.
 
 ## PoC4-Content-Scope
 
@@ -150,7 +175,7 @@ Codex:
 
 - [ ] `git status --short` pruefen und lokale User-Aenderungen nicht ueberschreiben.
 - [ ] `poc4-idee.md`, `poc3-plan.md`, `architecture.md` und `gdd.md` vor Implementierung erneut querpruefen.
-- [ ] Aktuellen PoC3-Headless-Check ausfuehren und bekannte Altlasten notieren.
+- [ ] Schlanken Baseline-Check `tools/check_poc.sh` ausfuehren und bekannte Altlasten notieren.
 - [ ] Bestehende IDs fuer Talent-Pool, Booster-Slots, Employee-Tags, Burnout, Kaffee, Bezahlphase und Save/Load erfassen.
 - [ ] Sicherstellen, dass `architecture.md` die neuen Systemgrenzen fuer Hiring Lifecycle, Onboarding und temporaere Arbeitskarten beschreibt.
 - [ ] PoC4-Content-Version und moegliche Save-Migration festlegen, bevor neue IDs produktiv genutzt werden.
@@ -188,7 +213,7 @@ Codex:
 - [ ] Tags so setzen, dass RuleQueries regulaere Mitarbeiter, temporaere Arbeitskarten, Bewerber, Angebote und Onboarding unterscheiden koennen.
 - [ ] BalanceDefinition um Interview-Dauern, Interview-Chancen, Einstellungskosten, Onboarding-Dauer und Werkstudent-Dauer-Multiplier erweitern.
 - [ ] Content-Validator erweitern: Bewerber muessen Ziel-Angebot referenzieren; Angebote muessen Ziel-Mitarbeiter referenzieren; Onboarding muss Attachment-faehig sein.
-- [ ] Headless-Validation fuer neue Resources schreiben oder vorhandene Validation erweitern.
+- [ ] Content-Validation fuer neue Resources erweitern; keinen separaten Phasen-Test anlegen, solange keine neue Kernregel entsteht.
 
 Marco:
 
@@ -203,10 +228,10 @@ Definition of Done:
 - [ ] Content-Validation meldet fehlende Hiring-Verknuepfungen.
 - [ ] Keine neue Karte ist nur implizit per String im Script bekannt.
 
-Headless-Test:
+Headless-Check:
 
 ```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://scripts/validation/run_content_validation.gd
+tools/check_poc.sh
 ```
 
 ## Phase 2 - Talent-Pool neu konfigurieren
@@ -221,7 +246,7 @@ Codex:
 - [ ] Direkte Entwickler-, Product-Owner-, Tester-, Recruiter- und Externer-Dev-Karten aus dem Talent-Pool entfernen.
 - [ ] PoC4-Startsetup um sichtbaren Talent-Pool-Slot erweitern.
 - [ ] Falls das vorhandene Startsetup zu voll wird, Sichtbarkeit ab Sprint 2 als konfigurierbare Alternative vorbereiten, aber initial direkt sichtbar lassen.
-- [ ] Tests fuer Booster-Kosten, Pool-Inhalt, deterministische Ziehung und Startsetup schreiben.
+- [ ] Content-Validation fuer Booster-Kosten und Pool-Inhalt erweitern; deterministische Ziehung bleibt ueber den essenziellen Kernregel-Test abgesichert.
 
 Marco:
 
@@ -236,10 +261,10 @@ Definition of Done:
 - [ ] Booster-Ziehung bleibt RNG-deterministisch.
 - [ ] Externer Dev bleibt aus normalem PoC4-Hiring heraus.
 
-Headless-Test:
+Headless-Check:
 
 ```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc4_phase_2_talent_pool.gd
+tools/check_poc.sh
 ```
 
 ## Phase 3 - Bewerbungsgespraeche und Angebots-Output
@@ -254,7 +279,7 @@ Codex:
 - [ ] Erfolg erzeugt passendes Angebot; Misserfolg entfernt Bewerber ohne weitere Negativkarte.
 - [ ] Interviewer-Rolle ausser Recruiter fuer PoC4 egal halten.
 - [ ] Active Processing bei Stack-Aenderung unveraendert sofort abbrechen lassen.
-- [ ] Tests fuer Erfolgspfad, Misserfolgspfad, RNG-Determinismus, spezifischeres Recruiter-Recipe und neutrale Zusatzkarten schreiben.
+- [ ] Nur einen essenziellen Kernregel-Test ergaenzen, falls Interview-RNG oder Recipe-Priority ohne Test leicht unbemerkt brechen kann; neutrale Zusatzkarten bleiben bereits im Kernregel-Test abgesichert.
 
 Marco:
 
@@ -266,13 +291,13 @@ Definition of Done:
 
 - [ ] Jeder Bewerber kann mit einem regulaeren Mitarbeiter interviewt werden.
 - [ ] Recruiter-Interview gewinnt gegen normales Interview.
-- [ ] Erfolg/Misserfolg ist headless deterministisch testbar.
+- [ ] Erfolg/Misserfolg ist deterministisch modelliert und bei Bedarf mit einem kleinen Kernregel-Test pruefbar.
 - [ ] Kein Interview-Ergebnis wird in Presentation-Code entschieden.
 
-Headless-Test:
+Headless-Check:
 
 ```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc4_phase_3_interviews.gd
+tools/check_poc.sh
 ```
 
 ## Phase 4 - Angebote bezahlen und Mitarbeiter mit Onboarding erzeugen
@@ -288,7 +313,7 @@ Codex:
 - [ ] Onboarding-Karte wird sofort an den neuen Mitarbeiter angeheftet.
 - [ ] Bezahlphase-Regel erweitern: Geld + Angebot ist erlaubt, zusaetzlich zu Geld + Mitarbeiter.
 - [ ] Neueinstellungen in der Bezahlphase erst ab naechstem Sprint gehaltsrelevant machen, z. B. ueber `salary_due_from_sprint`.
-- [ ] Tests fuer Einstellung in Sprintphase, Einstellung in Bezahlphase, Geldverbrauch, Attachment und Gehaltsfaelligkeit schreiben.
+- [ ] Nur die riskanteste Einstellungsregel headless absichern, z. B. Bezahlphase-Gehaltsfaelligkeit; Geldverbrauch und Attachment zunaechst ueber Playtest/Validation pruefen, wenn sie direkt sichtbar sind.
 
 Marco:
 
@@ -303,10 +328,10 @@ Definition of Done:
 - [ ] Neuer Mitarbeiter entsteht mit Onboarding-Attachment.
 - [ ] Bezahlphase erlaubt Angebot-Bezahlung ohne Doppelgehaltsfalle.
 
-Headless-Test:
+Headless-Check:
 
 ```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc4_phase_4_offers.gd
+tools/check_poc.sh
 ```
 
 ## Phase 5 - Onboarding als Attachment-Blocker
@@ -321,7 +346,7 @@ Codex:
 - [ ] `Mitarbeiter + Onboarding -> 20s Onboarding... -> Onboarding entfernen` implementieren.
 - [ ] Kaffee als ProcessingInteraction auf laufendes Onboarding erlauben, weil mindestens eine Mitarbeiterkarte im Stack arbeitet.
 - [ ] Kuendigt ein Mitarbeiter mit Onboarding, verschwindet das Onboarding-Attachment mit ihm.
-- [ ] Save/Load fuer Onboarding-Attachment und Timer-Fortschritt testen.
+- [ ] Save/Load fuer Onboarding-Attachment und Timer-Fortschritt nur dann als essenziellen Kernregel-Test ergaenzen, wenn neue Runtime-Felder eingefuehrt werden.
 
 Marco:
 
@@ -336,10 +361,10 @@ Definition of Done:
 - [ ] Kaffee beschleunigt Onboarding wie andere Mitarbeiterarbeit.
 - [ ] Bezahlung und Kuendigung funktionieren mit Onboarding korrekt.
 
-Headless-Test:
+Headless-Check:
 
 ```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc4_phase_5_onboarding.gd
+tools/check_poc.sh
 ```
 
 ## Phase 6 - Recruiter als Hiring-Spezialist
@@ -353,7 +378,7 @@ Codex:
 - [ ] Sicherstellen, dass Recruiter kein Entwickler-/PO-/Tester-Recipe faelschlich als beste Rolle ersetzt.
 - [ ] Falls bestehende generische "jeder kann alles"-Fallbacks existieren, Recruiter-Dauern sehr langsam konfigurieren statt hardcodiert zu blockieren.
 - [ ] Falls solche Fallbacks noch nicht existieren, Recruiter in PoC4 auf Hiring beschraenken und das als bewussten Stretch-Konflikt gegen die GDD-Zielregel dokumentieren.
-- [ ] Tests fuer Gehalt, Auto-Pay, Game Over, Interview-Vorteil und Recipe-Priority schreiben.
+- [ ] Nur Recipe-Priority oder Gehaltsklassifizierung headless absichern, falls die bestehende Kernregel-Suite diese Grenze nicht schon abdeckt; keine Auto-Pay/Game-Over-Detailmatrix fuer PoC4.
 
 Marco:
 
@@ -368,10 +393,10 @@ Definition of Done:
 - [ ] Recruiter bricht keine bestehenden Feature-/Bug-/PO-/Tester-Recipes.
 - [ ] Architektur-Spannung zur GDD-Fallbackregel ist nicht versteckt.
 
-Headless-Test:
+Headless-Check:
 
 ```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc4_phase_6_recruiter.gd
+tools/check_poc.sh
 ```
 
 ## Phase 7 - Werkstudent als temporaere Hilfskraft
@@ -390,7 +415,7 @@ Codex:
 - [ ] Ausgewaehlte Arbeitsrecipes fuer Werkstudent aktivieren: Idee/User Story/Kundenwunsch zu Funktion oder Story, Bugfix, Erwartungen managen.
 - [ ] Dauer als +100% gegenueber passender Hauptrolle modellieren, moeglichst ueber Duration/Modifier statt kopierter Recipe-Logik.
 - [ ] Kaffee auf laufende Werkstudentenarbeit erlauben.
-- [ ] Tests fuer Lifecycle, Gehaltsfreiheit, erlaubte/verbotene Recipes, Kaffee und Save/Load schreiben.
+- [ ] Maximal einen essenziellen Kernregel-Test fuer Werkstudent-Lifecycle oder Gehaltsfreiheit ergaenzen; erlaubte/verbotene Recipes primaer ueber Content-Validation und Playtest pruefen.
 
 Marco:
 
@@ -405,10 +430,10 @@ Definition of Done:
 - [ ] Werkstudent verschwindet nach Aufgabe deterministisch.
 - [ ] Werkstudent hebelt Hiring, Launch, Business Goals und Onboarding nicht aus.
 
-Headless-Test:
+Headless-Check:
 
 ```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc4_phase_7_work_student.gd
+tools/check_poc.sh
 ```
 
 ## Phase 8 - PoC3-Loop, Bezahlphase und Save/Load integrieren
@@ -423,7 +448,7 @@ Codex:
 - [ ] Neueinstellungen waehrend der Bezahlphase mit `salary_due_from_sprint` oder aequivalenter Regel absichern.
 - [ ] Game Over bei 0 regulaeren Mitarbeitern unveraendert lassen; Werkstudent zaehlt nicht als Rettung.
 - [ ] Content-Version auf `poc4` umstellen und Save/Load-Migration fuer neue Runtime-Felder vorbereiten.
-- [ ] Tests fuer Bezahlphase, Sprintstart-Kuendigungen, Game Over, Save/Load und RNG nach Laden schreiben.
+- [ ] Nur neue Save/Load-Felder und RNG-Kontinuitaet headless absichern, wenn PoC4 neue Runtime-Felder einfuehrt; bestehende Bezahl-/Sprintregeln nicht erneut breit testen.
 
 Marco:
 
@@ -438,10 +463,10 @@ Definition of Done:
 - [ ] Werkstudent verhindert kein Game Over durch 0 regulaere Mitarbeiter.
 - [ ] Save/Load erhaelt Bewerber, Angebote, Onboarding, Recruiter, Werkstudent und RNG-State.
 
-Headless-Test:
+Headless-Check:
 
 ```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path /Users/marcopreuss/Documents/ProjectsLocal/scope-creep-godot --script res://tests/test_poc4_phase_8_integration_save.gd
+tools/check_poc.sh
 ```
 
 ## Phase 9 - Presentation, Playtest-Balancing und QA
@@ -454,7 +479,7 @@ Codex:
 - [ ] Runtime-Labels fuer Onboarding und Werkstudent-Lifecycle anzeigen, falls bestehende Marker dafuer nicht reichen.
 - [ ] Action-Texte vereinheitlichen: `Bewerbungsgespraech...`, `Onboarding...`, `Onboarding begleiten...`.
 - [ ] Playtest-Script fuer PoC4 schreiben: vor Launch hiring testen, nach Launch hiring testen, Recruiter-Pfad testen, Werkstudent-Pfad testen.
-- [ ] Gesamt-Headless-Check fuer PoC1-PoC4 relevante Tests ausfuehren.
+- [ ] Schlanken Gesamt-Headless-Check `tools/check_poc.sh` ausfuehren; keine alten PoC1-PoC3-Detailtests reaktivieren.
 - [ ] Balancing-Notizen in diesem Plan oder separater `POC4_NOTES.md` dokumentieren.
 
 Marco:
