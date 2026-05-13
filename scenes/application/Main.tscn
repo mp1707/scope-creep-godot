@@ -1,10 +1,12 @@
-[gd_scene load_steps=6 format=3 uid="uid://dnrupx5g5thqf"]
+[gd_scene format=3 uid="uid://dnrupx5g5thqf"]
 
 [ext_resource type="Script" uid="uid://b5is11hjvcojl" path="res://scripts/presentation/board_view.gd" id="1_elqb8"]
 [ext_resource type="Script" uid="uid://eqsd0qqb0py0" path="res://scripts/application/main_application.gd" id="1_v00px"]
 [ext_resource type="Script" uid="uid://dm5tc2d2ujqsc" path="res://scripts/presentation/board_camera.gd" id="3_q8r2a"]
 [ext_resource type="Script" uid="uid://bxgdeoish6jpn" path="res://scripts/presentation/board_audio_player.gd" id="3_u1y2g"]
-[ext_resource type="PackedScene" path="res://scenes/ui/Hud.tscn" id="5_qwri1"]
+[ext_resource type="PackedScene" uid="uid://b8ng174af7u4u" path="res://scenes/ui/Hud.tscn" id="5_qwri1"]
+[ext_resource type="Script" uid="uid://cjrxrigslrb7k" path="res://scripts/presentation/shop_dock_view.gd" id="6_shopdock"]
+[ext_resource type="Script" uid="uid://cjmoxfespcb0o" path="res://scripts/presentation/shop_dock_slot.gd" id="7_shopslot"]
 
 [node name="Main" type="Node" unique_id=1075243361]
 script = ExtResource("1_v00px")
@@ -21,7 +23,150 @@ metadata/_custom_type_script = "uid://bxgdeoish6jpn"
 position = Vector2(960, 540)
 script = ExtResource("3_q8r2a")
 
-[node name="UiLayer" type="CanvasLayer" parent="."]
+[node name="UiLayer" type="CanvasLayer" parent="." unique_id=911460833]
 layer = 10
 
-[node name="Hud" parent="UiLayer" instance=ExtResource("5_qwri1")]
+[node name="Hud" parent="UiLayer" unique_id=1665278943 instance=ExtResource("5_qwri1")]
+
+[node name="ShopDock" type="Control" parent="UiLayer" unique_id=573149377]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("6_shopdock")
+
+[node name="FounderPanicSlot" type="Control" parent="UiLayer/ShopDock" unique_id=56639836]
+custom_minimum_size = Vector2(144, 196)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -942.0
+offset_top = -89.0
+offset_right = -798.0
+offset_bottom = 107.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("7_shopslot")
+card_definition_id = "card.shop.booster_slot"
+preview_label = "Gruenderpanik"
+
+[node name="WellbeingSlot" type="Control" parent="UiLayer/ShopDock" unique_id=1418177653]
+custom_minimum_size = Vector2(144, 196)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -778.0
+offset_top = -89.0
+offset_right = -634.0
+offset_bottom = 107.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("7_shopslot")
+card_definition_id = "card.shop.booster_slot.office_invest"
+preview_label = "Wohlbefinden"
+
+[node name="ExternalHelpSlot" type="Control" parent="UiLayer/ShopDock" unique_id=1438723163]
+custom_minimum_size = Vector2(144, 196)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -614.0
+offset_top = -89.0
+offset_right = -470.0
+offset_bottom = 107.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("7_shopslot")
+card_definition_id = "card.shop.bugfix_patch_slot"
+preview_label = "Externe Hilfe"
+
+[node name="CustomerChaosSlot" type="Control" parent="UiLayer/ShopDock" unique_id=1538085392]
+custom_minimum_size = Vector2(144, 196)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -289.0
+offset_top = -89.0
+offset_right = -145.0
+offset_bottom = 107.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("7_shopslot")
+card_definition_id = "card.shop.booster_slot.customer_chaos"
+preview_label = "Kundenchaos"
+
+[node name="TalentPoolSlot" type="Control" parent="UiLayer/ShopDock" unique_id=1056744752]
+custom_minimum_size = Vector2(144, 196)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -451.0
+offset_top = -89.0
+offset_right = -307.0
+offset_bottom = 107.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("7_shopslot")
+card_definition_id = "card.shop.booster_slot.talent_pool"
+preview_label = "Talent-Pool"
+
+[node name="FreelanceSlot" type="Control" parent="UiLayer/ShopDock" unique_id=686774058]
+custom_minimum_size = Vector2(144, 196)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 638.0
+offset_top = -89.0
+offset_right = 782.0
+offset_bottom = 107.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("7_shopslot")
+card_definition_id = "card.shop.freelance_order"
+preview_label = "Freelance"
+
+[node name="RecyclingSlot" type="Control" parent="UiLayer/ShopDock" unique_id=1047047330]
+custom_minimum_size = Vector2(144, 196)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 802.0
+offset_top = -89.0
+offset_right = 946.0
+offset_bottom = 107.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("7_shopslot")
+card_definition_id = "card.shop.recycling_bin"
+preview_label = "Resteverwertung"

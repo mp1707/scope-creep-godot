@@ -216,6 +216,8 @@ Die Zielwerte starten bei 1 Geld und steigen pro erledigtem Goal um 1: 1, 2, 3, 
 
 Der Shop ist live im Run nutzbar. Geldkarten werden auf Shop-/Booster-Slots gelegt; Boosterpacks werden danach per Klick schrittweise geoeffnet.
 
+Die Shop-Slots werden in der Presentation ueber `UiLayer/ShopDock` als editor-positionierbare Slot-Marker platziert. Die Simulation behandelt sie weiterhin als normale Shop-CardInstances; ihre Board-Positionen sind fuer das sichtbare Dock nicht massgeblich.
+
 Aktuelle Shop-/Booster-Richtungen:
 
 - Gruenderpanik: fruehe Hilfe fuer Startdruck.

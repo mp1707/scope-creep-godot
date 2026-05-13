@@ -69,6 +69,8 @@ Zustaendig fuer:
 
 Presentation sendet Spielerabsichten als Commands an Application/Simulation, z. B. `move_card_to_stack`, `split_stack`, `start_next_sprint`, `pay_employee`.
 
+Permanente Shop-Karten werden nicht auf dem Board gerendert, sondern im `UiLayer/ShopDock`. Editor-seitig platzierte `ShopDockSlot`-Marker bestimmen die sichtbare Dock-Position; falls kein Marker existiert, darf `ShopDockView` auf ein automatisches Layout zurueckfallen. Die Simulation bleibt dafuer unveraendert datengetrieben: Shop-Slots sind weiterhin normale CardInstances mit `shop`-Tag und eigenem Stack.
+
 ### Application
 
 Application verbindet Menues, Scenes, Save/Load und Simulation.
