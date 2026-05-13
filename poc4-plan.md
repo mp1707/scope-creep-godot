@@ -479,7 +479,7 @@ Definition of Done:
 - [x] Werkstudent verhindert kein Game Over durch 0 regulaere Mitarbeiter.
 - [x] Save/Load erhaelt Bewerber, Angebote, Onboarding, Recruiter, Werkstudent und RNG-State.
 
-Status: abgeschlossen und per `tools/check_poc.sh` geprueft. Das bestehende Startsetup bleibt bewusst bei den aktuellen Balance-Werten aus `data/balance/poc_default.tres`; PoC4 aendert das nicht still. Save/Load sichert PoC4-Content-Version, Hiring-Karten, Attachments und RNG-State.
+Status: abgeschlossen und per `tools/check_poc.sh` geprueft. Das Startgeld wurde fuer realistischere PoC4-Runs auf 4 Geldkarten zurueckgesetzt; der alte PoC3-Wert 30 war nur Playtest-Hilfe. Save/Load sichert PoC4-Content-Version, Hiring-Karten, Attachments und RNG-State.
 
 Headless-Check:
 
