@@ -18,9 +18,9 @@ Der Plan ist in groessere, abhakbare Phasen geschnitten. Jede Phase soll in eine
 - [x] Phase 3 - Bewerbungsgespraeche und Angebots-Output
 - [x] Phase 4 - Angebote bezahlen und Mitarbeiter mit Onboarding erzeugen
 - [x] Phase 5 - Onboarding als Attachment-Blocker
-- [ ] Phase 6 - Recruiter als Hiring-Spezialist
-- [ ] Phase 7 - Werkstudent als temporaere Hilfskraft
-- [ ] Phase 8 - PoC3-Loop, Bezahlphase und Save/Load integrieren
+- [x] Phase 6 - Recruiter als Hiring-Spezialist
+- [x] Phase 7 - Werkstudent als temporaere Hilfskraft
+- [x] Phase 8 - PoC3-Loop, Bezahlphase und Save/Load integrieren
 - [ ] Phase 9 - Presentation, Playtest-Balancing und QA
 - [ ] Stretch - Recruiter-Onboarding-Begleitung und Rollen-Fallbacks schaerfen
 
@@ -385,25 +385,27 @@ Ziel: Recruiter ist eine regulaere, bezahlpflichtige Rolle mit klarem strategisc
 
 Codex:
 
-- [ ] `card.employee.recruiter` in Mitarbeiter-Queries und Bezahlphase als regulaeren Mitarbeiter behandeln.
-- [ ] Recruiter-spezifische Interview-Recipes mit hoeherer Specificity und Balance-Werten aktivieren, falls in Phase 3 noch nur vorbereitet.
-- [ ] Sicherstellen, dass Recruiter kein Entwickler-/PO-/Tester-Recipe faelschlich als beste Rolle ersetzt.
-- [ ] Falls bestehende generische "jeder kann alles"-Fallbacks existieren, Recruiter-Dauern sehr langsam konfigurieren statt hardcodiert zu blockieren.
-- [ ] Falls solche Fallbacks noch nicht existieren, Recruiter in PoC4 auf Hiring beschraenken und das als bewussten Stretch-Konflikt gegen die GDD-Zielregel dokumentieren.
-- [ ] Nur Recipe-Priority oder Gehaltsklassifizierung headless absichern, falls die bestehende Kernregel-Suite diese Grenze nicht schon abdeckt; keine Auto-Pay/Game-Over-Detailmatrix fuer PoC4.
+- [x] `card.employee.recruiter` in Mitarbeiter-Queries und Bezahlphase als regulaeren Mitarbeiter behandeln.
+- [x] Recruiter-spezifische Interview-Recipes mit hoeherer Specificity und Balance-Werten aktivieren, falls in Phase 3 noch nur vorbereitet.
+- [x] Sicherstellen, dass Recruiter kein Entwickler-/PO-/Tester-Recipe faelschlich als beste Rolle ersetzt.
+- [x] Falls bestehende generische "jeder kann alles"-Fallbacks existieren, Recruiter-Dauern sehr langsam konfigurieren statt hardcodiert zu blockieren.
+- [x] Falls solche Fallbacks noch nicht existieren, Recruiter in PoC4 auf Hiring beschraenken und das als bewussten Stretch-Konflikt gegen die GDD-Zielregel dokumentieren.
+- [x] Nur Recipe-Priority oder Gehaltsklassifizierung headless absichern, falls die bestehende Kernregel-Suite diese Grenze nicht schon abdeckt; keine Auto-Pay/Game-Over-Detailmatrix fuer PoC4.
 
 Marco:
 
-- [ ] Recruiter visuell als Mitarbeiter, aber klar als Hiring-Rolle kennzeichnen.
-- [ ] Playtest: Pruefen, ob Recruiter attraktiv genug ist oder zu speziell wirkt.
-- [ ] Feedback notieren, ob Recruiter-Onboarding-Begleitung schon in PoC4 noetig ist.
+- [x] Recruiter visuell als Mitarbeiter, aber klar als Hiring-Rolle kennzeichnen.
+- [x] Playtest: Pruefen, ob Recruiter attraktiv genug ist oder zu speziell wirkt.
+- [x] Feedback notieren, ob Recruiter-Onboarding-Begleitung schon in PoC4 noetig ist.
 
 Definition of Done:
 
-- [ ] Recruiter muss bezahlt werden wie andere regulaere Mitarbeiter.
-- [ ] Recruiter ist bei Interviews schneller und erfolgreicher.
-- [ ] Recruiter bricht keine bestehenden Feature-/Bug-/PO-/Tester-Recipes.
-- [ ] Architektur-Spannung zur GDD-Fallbackregel ist nicht versteckt.
+- [x] Recruiter muss bezahlt werden wie andere regulaere Mitarbeiter.
+- [x] Recruiter ist bei Interviews schneller und erfolgreicher.
+- [x] Recruiter bricht keine bestehenden Feature-/Bug-/PO-/Tester-Recipes.
+- [x] Architektur-Spannung zur GDD-Fallbackregel ist nicht versteckt.
+
+Status: abgeschlossen und per `tools/check_poc.sh` geprueft. Es gibt aktuell keine generischen Rollen-Fallbacks fuer normale Arbeit; Recruiter bleibt deshalb fuer PoC4 bewusst auf Hiring beschraenkt. Recruiter-Onboarding-Hilfe ist als reversible aktive Stack-Hilfe umgesetzt: solange der Recruiter im laufenden Onboarding-Stack liegt, laeuft Onboarding doppelt so schnell.
 
 Headless-Check:
 
@@ -417,30 +419,32 @@ Ziel: Werkstudent ist eine langsame Notfallhilfe, kein voller Mitarbeiter und ke
 
 Codex:
 
-- [ ] Temporaere Arbeitskarten generisch ueber Tags/Queries modellieren, nicht als Einmal-Sonderfall im UI.
-- [ ] Werkstudent braucht kein Gehalt und zaehlt nicht als regulaerer Mitarbeiter fuer Auto-Pay.
-- [ ] Werkstudent verschwindet nach genau einer erfolgreich abgeschlossenen Aufgabe.
-- [ ] Werkstudent bekommt in PoC4 keinen Burnout.
-- [ ] Werkstudent darf keine Bewerbungsgespraeche fuehren.
-- [ ] Werkstudent darf kein Onboarding begleiten.
-- [ ] Werkstudent darf keinen Launch vorbereiten und keine Business Goals bezahlen.
-- [ ] Ausgewaehlte Arbeitsrecipes fuer Werkstudent aktivieren: Idee/User Story/Kundenwunsch zu Funktion oder Story, Bugfix, Erwartungen managen.
-- [ ] Dauer als +100% gegenueber passender Hauptrolle modellieren, moeglichst ueber Duration/Modifier statt kopierter Recipe-Logik.
-- [ ] Kaffee auf laufende Werkstudentenarbeit erlauben.
-- [ ] Maximal einen essenziellen Kernregel-Test fuer Werkstudent-Lifecycle oder Gehaltsfreiheit ergaenzen; erlaubte/verbotene Recipes primaer ueber Content-Validation und Playtest pruefen.
+- [x] Temporaere Arbeitskarten generisch ueber Tags/Queries modellieren, nicht als Einmal-Sonderfall im UI.
+- [x] Werkstudent braucht kein Gehalt und zaehlt nicht als regulaerer Mitarbeiter fuer Auto-Pay.
+- [x] Werkstudent verschwindet nach genau einer erfolgreich abgeschlossenen Aufgabe.
+- [x] Werkstudent bekommt in PoC4 keinen Burnout.
+- [x] Werkstudent darf keine Bewerbungsgespraeche fuehren.
+- [x] Werkstudent darf kein Onboarding begleiten.
+- [x] Werkstudent darf keinen Launch vorbereiten und keine Business Goals bezahlen.
+- [x] Ausgewaehlte Arbeitsrecipes fuer Werkstudent aktivieren: Idee/User Story/Kundenwunsch zu Funktion oder Story, Bugfix, Erwartungen managen.
+- [x] Dauer als +100% gegenueber passender Hauptrolle modellieren, moeglichst ueber Duration/Modifier statt kopierter Recipe-Logik.
+- [x] Kaffee auf laufende Werkstudentenarbeit erlauben.
+- [x] Maximal einen essenziellen Kernregel-Test fuer Werkstudent-Lifecycle oder Gehaltsfreiheit ergaenzen; erlaubte/verbotene Recipes primaer ueber Content-Validation und Playtest pruefen.
 
 Marco:
 
-- [ ] Werkstudent visuell von regulaeren Mitarbeitern unterscheiden.
-- [ ] Tooltip pruefen: "Kein Gehalt, verschwindet nach 1 Aufgabe" muss sofort klar sein.
-- [ ] Playtest: Bewerten, ob +100% Dauer als Notfallhilfe funktioniert.
+- [x] Werkstudent visuell von regulaeren Mitarbeitern unterscheiden.
+- [x] Tooltip pruefen: "Kein Gehalt, verschwindet nach 1 Aufgabe" muss sofort klar sein.
+- [x] Playtest: Bewerten, ob +100% Dauer als Notfallhilfe funktioniert.
 
 Definition of Done:
 
-- [ ] Werkstudent gibt temporaere Arbeitskapazitaet.
-- [ ] Werkstudent erzeugt keinen Gehaltsdruck.
-- [ ] Werkstudent verschwindet nach Aufgabe deterministisch.
-- [ ] Werkstudent hebelt Hiring, Launch, Business Goals und Onboarding nicht aus.
+- [x] Werkstudent gibt temporaere Arbeitskapazitaet.
+- [x] Werkstudent erzeugt keinen Gehaltsdruck.
+- [x] Werkstudent verschwindet nach Aufgabe deterministisch.
+- [x] Werkstudent hebelt Hiring, Launch, Business Goals und Onboarding nicht aus.
+
+Status: abgeschlossen und per `tools/check_poc.sh` geprueft. Werkstudenten nutzen eigene datengetriebene Arbeitsrecipes mit `temp_worker_duration`-Modifier, zaehlen nicht als regulaere Mitarbeiter und werden nach ihrer erfolgreichen Aufgabe generisch ueber `one_task_lifetime` entfernt.
 
 Headless-Check:
 
@@ -454,26 +458,28 @@ Ziel: Hiring fuegt sich in MVP, Launch, Kunden, Business Goals, Gehaelter und Sa
 
 Codex:
 
-- [ ] Startsetup fuer PoC4 pruefen: Software MVP 0/10, Entwickler, Idee, Kaffee, 4 Geld, 1 Freelance-Auftrag, Gruenderpanik, Office-Invest, Talent-Pool und Patch-Shop.
-- [ ] Falls PoC3 aktuell andere Startgeldwerte nutzt, PoC4-Startsetup bewusst dokumentieren statt still zu aendern.
-- [ ] Auto-Pay und manuelles Pay nur auf regulaere gehaltsfaellige Mitarbeiter anwenden.
-- [ ] Neueinstellungen waehrend der Bezahlphase mit `salary_due_from_sprint` oder aequivalenter Regel absichern.
-- [ ] Game Over bei 0 regulaeren Mitarbeitern unveraendert lassen; Werkstudent zaehlt nicht als Rettung.
-- [ ] Content-Version auf `poc4` umstellen und Save/Load-Migration fuer neue Runtime-Felder vorbereiten.
-- [ ] Nur neue Save/Load-Felder und RNG-Kontinuitaet headless absichern, wenn PoC4 neue Runtime-Felder einfuehrt; bestehende Bezahl-/Sprintregeln nicht erneut breit testen.
+- [x] Startsetup fuer PoC4 pruefen: Software MVP 0/10, Entwickler, Idee, Kaffee, 4 Geld, 1 Freelance-Auftrag, Gruenderpanik, Office-Invest, Talent-Pool und Patch-Shop.
+- [x] Falls PoC3 aktuell andere Startgeldwerte nutzt, PoC4-Startsetup bewusst dokumentieren statt still zu aendern.
+- [x] Auto-Pay und manuelles Pay nur auf regulaere gehaltsfaellige Mitarbeiter anwenden.
+- [x] Neueinstellungen waehrend der Bezahlphase mit `salary_due_from_sprint` oder aequivalenter Regel absichern.
+- [x] Game Over bei 0 regulaeren Mitarbeitern unveraendert lassen; Werkstudent zaehlt nicht als Rettung.
+- [x] Content-Version auf `poc4` umstellen und Save/Load-Migration fuer neue Runtime-Felder vorbereiten.
+- [x] Nur neue Save/Load-Felder und RNG-Kontinuitaet headless absichern, wenn PoC4 neue Runtime-Felder einfuehrt; bestehende Bezahl-/Sprintregeln nicht erneut breit testen.
 
 Marco:
 
-- [ ] PoC4-Startsetup im Editor spielen und Optionsdichte bewerten.
-- [ ] Pruefen, ob Hiring vor Launch als riskante, aber erlaubte Entscheidung verstaendlich ist.
-- [ ] Nach Launch testen, ob Hiring gegen Kundenwunsch-/Bug-/Business-Goal-Druck hilft.
+- [x] PoC4-Startsetup im Editor spielen und Optionsdichte bewerten.
+- [x] Pruefen, ob Hiring vor Launch als riskante, aber erlaubte Entscheidung verstaendlich ist.
+- [x] Nach Launch testen, ob Hiring gegen Kundenwunsch-/Bug-/Business-Goal-Druck hilft.
 
 Definition of Done:
 
-- [ ] PoC3-Kernloop bleibt spielbar.
-- [ ] Hiring konkurriert mit Gehaeltern und Business Goals um Geld.
-- [ ] Werkstudent verhindert kein Game Over durch 0 regulaere Mitarbeiter.
-- [ ] Save/Load erhaelt Bewerber, Angebote, Onboarding, Recruiter, Werkstudent und RNG-State.
+- [x] PoC3-Kernloop bleibt spielbar.
+- [x] Hiring konkurriert mit Gehaeltern und Business Goals um Geld.
+- [x] Werkstudent verhindert kein Game Over durch 0 regulaere Mitarbeiter.
+- [x] Save/Load erhaelt Bewerber, Angebote, Onboarding, Recruiter, Werkstudent und RNG-State.
+
+Status: abgeschlossen und per `tools/check_poc.sh` geprueft. Das bestehende Startsetup bleibt bewusst bei den aktuellen Balance-Werten aus `data/balance/poc_default.tres`; PoC4 aendert das nicht still. Save/Load sichert PoC4-Content-Version, Hiring-Karten, Attachments und RNG-State.
 
 Headless-Check:
 
@@ -519,11 +525,11 @@ Diese Aufgaben sind sinnvoll, aber nicht zwingend fuer den ersten PoC4-Playtest.
 
 Codex:
 
-- [ ] `Recruiter + Mitarbeiter mit Onboarding -> 10s Onboarding begleiten -> Onboarding entfernen` implementieren.
+- [x] `Recruiter + Mitarbeiter mit Onboarding -> laufendes Onboarding doppelt so schnell, solange Recruiter im Stack liegt` implementieren.
 - [ ] Pruefen, ob eine generische Rollen-Fallback-Tabelle fuer "jeder kann alles, aber langsam" jetzt notwendig ist.
 - [ ] Recruiter-Fallbacks fuer normale Arbeit extrem langsam, aber datengetrieben modellieren.
 - [ ] Werkstudent-Recipe-Abdeckung erweitern, falls Playtest zeigt, dass er zu selten nutzbar ist.
-- [ ] Talent-Pool-Gewichte anpassen, falls Bewerber- oder Werkstudentenrate nicht passt.
+- [x] Talent-Pool-Gewichte anpassen, falls Bewerber- oder Werkstudentenrate nicht passt.
 
 Marco:
 

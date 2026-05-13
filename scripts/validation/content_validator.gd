@@ -101,6 +101,14 @@ const POC4_HIRING_RECIPE_IDS: Array[String] = [
 	"recipe.interview_candidate.recruiter",
 	"recipe.onboarding.employee",
 ]
+const POC4_WORK_STUDENT_RECIPE_IDS: Array[String] = [
+	"recipe.feature_from_idea.work_student",
+	"recipe.feature_from_user_story.work_student",
+	"recipe.feature_from_promising_user_story.work_student",
+	"recipe.promising_user_story_from_customer_request.work_student",
+	"recipe.debug_bug.work_student",
+	"recipe.manage_unhappy_customer.work_student",
+]
 const POC4_REQUIRED_CARD_TAGS: Dictionary = {
 	"card.employee.developer": ["employee", "regular_employee", "salary_required", "developer"],
 	"card.employee.product_owner": ["employee", "regular_employee", "salary_required", "product_owner"],
@@ -269,6 +277,10 @@ func _validate_processing_interaction(card: CardDefinition) -> void:
 			var progress_fraction_per_card: float = interaction.progress_fraction_per_card
 			if progress_fraction_per_card <= 0.0 or progress_fraction_per_card > 1.0:
 				_errors.append("%s: Processing interaction on '%s' needs progress_fraction_per_card in (0, 1]." % [card.resource_path, card.id])
+		ProcessingInteractionDefinition.Operation.MULTIPLY_REMAINING_DURATION:
+			var remaining_duration_multiplier: float = interaction.remaining_duration_multiplier_per_card
+			if remaining_duration_multiplier <= 0.0 or remaining_duration_multiplier >= 1.0:
+				_errors.append("%s: Processing interaction on '%s' needs remaining_duration_multiplier_per_card in (0, 1)." % [card.resource_path, card.id])
 		_:
 			_errors.append("%s: Processing interaction on '%s' uses an unknown operation." % [card.resource_path, card.id])
 
@@ -479,6 +491,16 @@ func _validate_poc4_recipe_patterns(recipes: Array) -> void:
 	for recipe_id: String in POC4_HIRING_RECIPE_IDS:
 		if not recipes_by_id.has(recipe_id):
 			_errors.append("PoC4 requires recipe '%s'." % recipe_id)
+
+	for recipe_id: String in POC4_WORK_STUDENT_RECIPE_IDS:
+		if not recipes_by_id.has(recipe_id):
+			_errors.append("PoC4 requires work-student recipe '%s'." % recipe_id)
+			continue
+		var work_student_recipe: RecipeDefinition = recipes_by_id[recipe_id] as RecipeDefinition
+		if not _recipe_has_card_input(work_student_recipe, "card.temp_worker.work_student"):
+			_errors.append("%s: PoC4 work-student recipe '%s' needs the work-student input." % [work_student_recipe.resource_path, work_student_recipe.id])
+		if not work_student_recipe.duration_modifier_tags.has("temp_worker_duration"):
+			_errors.append("%s: PoC4 work-student recipe '%s' needs temp_worker_duration modifier tag." % [work_student_recipe.resource_path, work_student_recipe.id])
 
 	var normal_interview: RecipeDefinition = recipes_by_id.get("recipe.interview_candidate.regular_employee", null) as RecipeDefinition
 	var recruiter_interview: RecipeDefinition = recipes_by_id.get("recipe.interview_candidate.recruiter", null) as RecipeDefinition

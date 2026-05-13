@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_card"]
 [ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+[ext_resource type="Script" path="res://scripts/data/processing_interaction_definition.gd" id="3_interaction"]
 
 [sub_resource type="Resource" id="Resource_visual"]
 script = ExtResource("2_visual")
@@ -10,12 +11,23 @@ accent_color = Color(0.34, 0.16, 0.42, 1)
 text_color = Color(0.98, 0.95, 0.88, 1)
 marker_text = "HR"
 
+[sub_resource type="Resource" id="Resource_processing_interaction"]
+script = ExtResource("3_interaction")
+operation = 1
+remaining_duration_multiplier_per_card = 0.5
+max_applications_per_drop = 1
+required_target_card_type = 0
+required_active_recipe_id = "recipe.onboarding.employee"
+consume_cards_on_success = false
+allow_instant_complete = false
+
 [resource]
 script = ExtResource("1_card")
 id = "card.employee.recruiter"
 display_name = "Recruiter"
 type = 0
 tags = PackedStringArray("employee", "regular_employee", "salary_required", "recruiter")
-short_text = "Fuehrt Interviews"
-tooltip_text = "Spezialist fuer Bewerbungsgespraeche. Kostet wie andere regulaere Mitarbeiter Gehalt."
+short_text = "Interviews, Onboarding-Hilfe"
+tooltip_text = "Spezialist fuer Bewerbungsgespraeche. Auf laufendes Onboarding droppen: halbiert die Restzeit. Kostet wie andere regulaere Mitarbeiter Gehalt."
 visual = SubResource("Resource_visual")
+processing_interaction = SubResource("Resource_processing_interaction")

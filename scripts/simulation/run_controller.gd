@@ -21,6 +21,9 @@ const UNHAPPY_CUSTOMER_ATTACHMENT_SLOT: String = "unhappy_customer"
 const ONBOARDING_ATTACHMENT_SLOT: String = "onboarding"
 const BURNOUT_PROGRESS_VALUE: String = "burnout_progress"
 const SALARY_DUE_FROM_SPRINT_VALUE: String = "salary_due_from_sprint"
+const COMPLETED_TASK_LIFETIME_VALUE: String = "completed_task_lifetime"
+const ONBOARDING_RECIPE_ID: String = "recipe.onboarding.employee"
+const RECRUITER_ONBOARDING_MODIFIER_KEY: String = "recruiter_onboarding"
 const FREELANCE_ORDER_DEFINITION_ID: String = "card.value_source.freelance_order"
 const CUSTOMER_DEFINITION_ID: String = "card.value_source.customer"
 const CUSTOMER_REQUEST_DEFINITION_ID: String = "card.input.customer_request"
@@ -188,7 +191,7 @@ func _advance_processing(delta_seconds: float) -> void:
 		var stack: StackState = _get_existing_stack(stack_id)
 		if not stack.processing_state.is_active():
 			continue
-		stack.processing_state.elapsed += delta_seconds
+		stack.processing_state.elapsed += delta_seconds * _get_processing_speed_multiplier(stack.processing_state)
 		if stack.processing_state.elapsed >= stack.processing_state.duration:
 			_complete_processing(stack)
 		elif state.stacks.has(stack.stack_id):
@@ -258,17 +261,52 @@ func _try_apply_processing_interaction(moving_card_ids: PackedStringArray, targe
 	if not state.stacks.has(target_stack.stack_id):
 		return true
 
+	_move_unconsumed_interaction_cards_to_target(moving_card_ids, result.consumed_card_ids, target_stack.stack_id)
+
 	var updated_target_stack: StackState = _get_existing_stack(target_stack.stack_id)
 	if not updated_target_stack.processing_state.is_active():
 		return true
 
 	updated_target_stack.processing_state.elapsed = result.new_elapsed
+	_refresh_reversible_processing_modifiers(updated_target_stack)
 	if result.should_complete and _can_complete_processing_from_interaction():
 		_complete_processing(updated_target_stack)
 	elif state.stacks.has(updated_target_stack.stack_id):
 		_emit(SimulationEvent.stack_changed(updated_target_stack.stack_id))
 
 	return true
+
+func _move_unconsumed_interaction_cards_to_target(
+	moving_card_ids: PackedStringArray,
+	consumed_card_ids: PackedStringArray,
+	target_stack_id: String
+) -> void:
+	var target_stack: StackState = state.get_stack(target_stack_id)
+	if target_stack == null:
+		return
+
+	var touched_stack_ids: PackedStringArray = PackedStringArray()
+	for moving_card_id: String in moving_card_ids:
+		if consumed_card_ids.has(moving_card_id):
+			continue
+		var moving_card: CardInstance = state.get_card(moving_card_id)
+		if moving_card == null or moving_card.stack_id == target_stack_id:
+			continue
+		var source_stack: StackState = state.get_stack(moving_card.stack_id)
+		if source_stack != null:
+			_remove_card_from_stack(source_stack, moving_card_id)
+			if not touched_stack_ids.has(source_stack.stack_id):
+				touched_stack_ids.append(source_stack.stack_id)
+		target_stack.card_ids.append(moving_card_id)
+		moving_card.stack_id = target_stack.stack_id
+		moving_card.position = target_stack.base_position
+
+	for stack_id: String in touched_stack_ids:
+		if not state.stacks.has(stack_id):
+			continue
+		var stack: StackState = _get_existing_stack(stack_id)
+		_emit(SimulationEvent.stack_changed(stack.stack_id))
+		_delete_stack_if_empty(stack)
 
 func _can_complete_processing_from_interaction() -> bool:
 	return state.phase == ScopeEnums.RunPhase.SPRINT and not state.is_paused
@@ -1102,6 +1140,8 @@ func _refresh_stack_recipe(stack: StackState) -> void:
 
 	if not current_recipe_id.is_empty():
 		if current_recipe_id == matched_recipe_id and _active_processing_inputs_still_present(stack):
+			if _refresh_reversible_processing_modifiers(stack):
+				_emit(SimulationEvent.stack_changed(stack.stack_id))
 			return
 		_cancel_processing(stack)
 
@@ -1114,7 +1154,9 @@ func _start_processing(stack: StackState, match_result: RecipeMatchResult) -> vo
 	stack.processing_state.active_input_card_ids = match_result.active_input_card_ids
 	stack.processing_state.status = ScopeEnums.ProcessingStatus.ACTIVE
 	stack.processing_state.elapsed = 0.0
-	stack.processing_state.duration = _tech_debt_modifiers.get_duration_seconds(recipe, state, content)
+	stack.processing_state.duration = _tech_debt_modifiers.get_duration_seconds(recipe, state, content, stack, match_result.active_input_card_ids)
+	stack.processing_state.active_modifier_keys = PackedStringArray()
+	_refresh_reversible_processing_modifiers(stack)
 	_emit(SimulationEvent.recipe_started(stack.stack_id))
 	_emit(SimulationEvent.stack_changed(stack.stack_id))
 
@@ -1134,6 +1176,7 @@ func _complete_processing(stack: StackState) -> void:
 
 	_execute_effects(recipe.effects_on_complete, stack, recipe, active_input_card_ids)
 	_apply_burnout_risk(productive_employee_ids)
+	_consume_one_task_lifetime_workers(productive_employee_ids)
 	_emit(SimulationEvent.recipe_completed(stack.stack_id))
 	if state.stacks.has(stack.stack_id):
 		_delete_stack_if_empty(stack)
@@ -1145,6 +1188,42 @@ func _clear_processing(stack: StackState) -> void:
 	stack.processing_state.status = ScopeEnums.ProcessingStatus.IDLE
 	stack.processing_state.elapsed = 0.0
 	stack.processing_state.duration = 0.0
+	stack.processing_state.active_modifier_keys = PackedStringArray()
+
+func _refresh_reversible_processing_modifiers(stack: StackState) -> bool:
+	if stack == null or not stack.processing_state.is_active():
+		return false
+	if stack.processing_state.active_recipe_id != ONBOARDING_RECIPE_ID:
+		return _set_processing_modifier_active(stack.processing_state, RECRUITER_ONBOARDING_MODIFIER_KEY, false)
+
+	var should_apply_recruiter: bool = _stack_has_recruiter_onboarding_helper(stack)
+	return _set_processing_modifier_active(stack.processing_state, RECRUITER_ONBOARDING_MODIFIER_KEY, should_apply_recruiter)
+
+func _set_processing_modifier_active(processing: ProcessingState, modifier_key: String, active: bool) -> bool:
+	var was_active: bool = processing.active_modifier_keys.has(modifier_key)
+	if was_active == active:
+		return false
+
+	if active:
+		processing.active_modifier_keys.append(modifier_key)
+	else:
+		processing.active_modifier_keys.remove_at(processing.active_modifier_keys.find(modifier_key))
+	return true
+
+func _get_processing_speed_multiplier(processing: ProcessingState) -> float:
+	var multiplier: float = 1.0
+	if processing.active_modifier_keys.has(RECRUITER_ONBOARDING_MODIFIER_KEY):
+		multiplier *= 2.0
+	return multiplier
+
+func _stack_has_recruiter_onboarding_helper(stack: StackState) -> bool:
+	for card_id: String in stack.card_ids:
+		if stack.processing_state.active_input_card_ids.has(card_id):
+			continue
+		var card: CardInstance = state.get_card(card_id)
+		if card != null and _has_definition_tag(card, "recruiter"):
+			return true
+	return false
 
 func _active_processing_inputs_still_present(stack: StackState) -> bool:
 	for card_id: String in stack.processing_state.active_input_card_ids:
@@ -1351,6 +1430,8 @@ func _apply_burnout_risk(employee_ids: PackedStringArray) -> void:
 		var employee: CardInstance = state.get_card(employee_id)
 		if employee == null or _has_attachment(employee.instance_id, BURNOUT_ATTACHMENT_SLOT):
 			continue
+		if _is_temp_worker(employee):
+			continue
 		var burnout_progress: float = clampf(float(employee.values.get(BURNOUT_PROGRESS_VALUE, 0.0)) + increment, 0.0, 1.0)
 		employee.values[BURNOUT_PROGRESS_VALUE] = burnout_progress
 		if _rng.randf() <= burnout_progress:
@@ -1358,6 +1439,29 @@ func _apply_burnout_risk(employee_ids: PackedStringArray) -> void:
 			_spawn_attached_card(employee.instance_id, "card.problem.burnout", BURNOUT_ATTACHMENT_SLOT)
 	state.rng_state = _rng.state
 	_refresh_attachment_runtime_states()
+
+func _consume_one_task_lifetime_workers(employee_ids: PackedStringArray) -> void:
+	for employee_id: String in employee_ids:
+		var employee: CardInstance = state.get_card(employee_id)
+		if employee == null or not _has_definition_tag(employee, "one_task_lifetime"):
+			continue
+		var remaining_tasks: int = int(employee.values.get(COMPLETED_TASK_LIFETIME_VALUE, _get_default_completed_task_lifetime()))
+		remaining_tasks -= 1
+		employee.values[COMPLETED_TASK_LIFETIME_VALUE] = remaining_tasks
+		if remaining_tasks <= 0:
+			_remove_card_instance(employee.instance_id)
+
+func _get_default_completed_task_lifetime() -> int:
+	if content.balance == null:
+		return 1
+	return maxi(1, content.balance.poc4_work_student_completed_task_lifetime)
+
+func _is_temp_worker(card: CardInstance) -> bool:
+	return _has_definition_tag(card, "temp_worker")
+
+func _has_definition_tag(card: CardInstance, tag: String) -> bool:
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition != null and definition.tags.has(tag)
 
 func _get_burnout_increment() -> float:
 	if content.balance == null:

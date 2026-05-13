@@ -57,6 +57,7 @@ func apply_balance_overrides() -> void:
 	_set_recipe_duration("recipe.interview_candidate.regular_employee", balance.poc4_normal_interview_duration_seconds)
 	_set_recipe_duration("recipe.interview_candidate.recruiter", balance.poc4_recruiter_interview_duration_seconds)
 	_set_recipe_duration("recipe.onboarding.employee", balance.poc4_onboarding_duration_seconds)
+	_set_work_student_balance_values()
 	_set_spawn_money_count_key("recipe.money_from_freelance_order.feature", "poc3_freelance_feature_money_cards")
 	_set_spawn_money_count_key("recipe.money_from_freelance_order.checked_feature", "poc3_freelance_checked_feature_money_cards")
 
@@ -74,6 +75,13 @@ func _set_spawn_money_count_key(recipe_id: String, count_key: String) -> void:
 		if effect != null and effect.effect_type == "spawn_money":
 			effect.parameters.erase("count")
 			effect.parameters["count_key"] = count_key
+
+func _set_work_student_balance_values() -> void:
+	var work_student: CardDefinition = get_card_definition("card.temp_worker.work_student")
+	if work_student == null:
+		return
+	work_student.base_values["duration_multiplier"] = maxf(1.0, balance.poc4_work_student_duration_multiplier)
+	work_student.base_values["completed_task_lifetime"] = maxi(1, balance.poc4_work_student_completed_task_lifetime)
 
 func _load_cards(directory_path: String) -> void:
 	var directory: DirAccess = DirAccess.open(directory_path)

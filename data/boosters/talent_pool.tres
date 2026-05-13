@@ -21,7 +21,7 @@ weight = 3
 [sub_resource type="Resource" id="Entry_recruiter"]
 script = ExtResource("1_entry")
 card_definition_id = "card.candidate.recruiter"
-weight = 2
+weight = 3
 
 [sub_resource type="Resource" id="Entry_work_student"]
 script = ExtResource("1_entry")

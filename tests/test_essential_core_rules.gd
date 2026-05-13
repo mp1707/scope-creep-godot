@@ -15,6 +15,9 @@ func _init() -> void:
 	_test_interview_recipes_are_deterministic_and_recruiter_specific()
 	_test_offer_hiring_in_payment_defers_salary_and_attaches_onboarding()
 	_test_onboarding_blocks_work_and_accepts_coffee()
+	_test_recruiter_halves_active_onboarding_remaining_time()
+	_test_work_student_is_temporary_unsalaried_work_capacity()
+	_test_poc4_save_load_preserves_hiring_cards_and_rng_state()
 
 	if _failed:
 		quit(1)
@@ -158,6 +161,17 @@ func _test_talent_pool_costs_two_money_and_draws_no_regular_employee() -> void:
 	_assert_equal(_count_cards_by_definition(state, "card.employee.recruiter"), 0, "Talent-Pool should not draw a direct recruiter.")
 	_assert_equal(_count_cards_by_definition(state, "card.employee.external_dev"), 0, "Talent-Pool should not draw an external dev.")
 
+	var seeded_controller: RunController = _create_controller(60.0)
+	var seeded_state: RunState = seeded_controller.start_new_run(1)
+	var seeded_slot: CardInstance = _find_card_by_definition(seeded_state, "card.shop.booster_slot.talent_pool")
+	var seeded_money: CardInstance = _spawn_card(seeded_controller, "card.resource.money", Vector2(5200.0, 5000.0))
+	_spawn_card(seeded_controller, "card.resource.money", Vector2(5210.0, 5000.0))
+	seeded_controller.move_card_to_stack(seeded_money.instance_id, seeded_slot.stack_id)
+	var seeded_pack: CardInstance = _find_card_by_definition(seeded_state, "card.resource.booster_pack")
+	while seeded_state.get_card(seeded_pack.instance_id) != null:
+		_assert_true(seeded_controller.open_booster_pack_step(seeded_pack.instance_id), "Seeded Talent-Pool pack should open one card per step.")
+	_assert_true(_count_cards_by_definition(seeded_state, "card.candidate.recruiter") >= 1, "Default playtest seed should expose a recruiter candidate in the first Talent-Pool pack.")
+
 func _test_interview_recipes_are_deterministic_and_recruiter_specific() -> void:
 	var controller: RunController = _create_controller(60.0)
 	controller.content.balance.poc4_normal_interview_success_chance = 1.0
@@ -218,6 +232,79 @@ func _test_onboarding_blocks_work_and_accepts_coffee() -> void:
 	controller.advance_time(30.0)
 	_assert_equal(_count_cards_by_definition(state, "card.blocker.onboarding"), 0, "Completed onboarding should remove only the onboarding card.")
 	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.developer", "Queued normal work should start after onboarding is removed.")
+
+func _test_recruiter_halves_active_onboarding_remaining_time() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1015)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var recruiter: CardInstance = _spawn_card(controller, "card.employee.recruiter", Vector2(1200.0, 300.0))
+	controller.call("_spawn_attached_card", developer.instance_id, "card.blocker.onboarding", "onboarding")
+
+	var stack: StackState = state.get_stack(developer.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.onboarding.employee", "Attached onboarding should start onboarding.")
+	controller.advance_time(4.0)
+	controller.move_card_to_stack(recruiter.instance_id, developer.stack_id)
+
+	_assert_equal(_count_cards_by_definition(state, "card.employee.recruiter"), 1, "Recruiter should not be consumed by onboarding assistance.")
+	_assert_equal(recruiter.stack_id, developer.stack_id, "Recruiter should be stacked onto the onboarding employee after assisting.")
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.onboarding.employee", "Recruiter assistance should keep onboarding active.")
+	_assert_equal(stack.processing_state.elapsed, 4.0, "Recruiter should not jump onboarding progress when added.")
+	controller.advance_time(2.0)
+	_assert_equal(stack.processing_state.elapsed, 8.0, "Onboarding should progress twice as fast while recruiter assists.")
+	controller.split_stack_from_card(recruiter.instance_id, Vector2(1500.0, 300.0))
+	_assert_equal(recruiter.stack_id != developer.stack_id, true, "Recruiter should be removable from the onboarding stack.")
+	_assert_equal(stack.processing_state.elapsed, 8.0, "Removing recruiter should not jump onboarding progress.")
+	controller.advance_time(12.0)
+	_assert_equal(_count_cards_by_definition(state, "card.blocker.onboarding"), 0, "Onboarding should complete at normal speed after recruiter leaves.")
+
+func _test_work_student_is_temporary_unsalaried_work_capacity() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1012)
+	var work_student: CardInstance = _spawn_card(controller, "card.temp_worker.work_student", Vector2(1200.0, 300.0))
+	var idea: CardInstance = _spawn_card(controller, "card.input.idea", Vector2(1220.0, 300.0))
+
+	controller.move_card_to_stack(idea.instance_id, work_student.stack_id)
+	var stack: StackState = state.get_stack(work_student.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.work_student", "Work student should be able to perform selected work recipes.")
+	_assert_equal(stack.processing_state.duration, 16.0, "Work student work should use the configured +100% duration.")
+	controller.advance_time(16.0)
+
+	_assert_equal(_count_cards_by_definition(state, "card.output.feature"), 1, "Work student should complete the selected task.")
+	_assert_equal(_count_cards_by_definition(state, "card.temp_worker.work_student"), 0, "Work student should disappear after one completed task.")
+
+	var payment_controller: RunController = _create_controller(1.0)
+	var payment_state: RunState = payment_controller.start_new_run(1013)
+	_spawn_card(payment_controller, "card.temp_worker.work_student", Vector2(1400.0, 300.0))
+	payment_controller.advance_time(1.0)
+	_assert_equal(payment_state.phase, ScopeEnums.RunPhase.PAYMENT, "Short sprint should enter payment for work-student salary check.")
+	_assert_equal(_count_payment_targets(payment_state), 1, "Only the regular developer should be a payment target.")
+	_assert_true(payment_controller.can_auto_pay(), "Auto-pay should ignore the unsalaried work student.")
+	payment_controller.start_next_sprint()
+	_assert_equal(payment_state.phase, ScopeEnums.RunPhase.GAME_OVER, "Work student should not prevent game over when all regular employees quit.")
+
+func _test_poc4_save_load_preserves_hiring_cards_and_rng_state() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1014)
+	var recruiter: CardInstance = _spawn_card(controller, "card.employee.recruiter", Vector2(1200.0, 300.0))
+	var candidate: CardInstance = _spawn_card(controller, "card.candidate.recruiter", Vector2(1220.0, 300.0))
+	var offer: CardInstance = _spawn_card(controller, "card.offer.developer", Vector2(1240.0, 300.0))
+	var work_student: CardInstance = _spawn_card(controller, "card.temp_worker.work_student", Vector2(1260.0, 300.0))
+	controller.call("_spawn_attached_card", recruiter.instance_id, "card.blocker.onboarding", "onboarding")
+	state.rng_state = 123456789
+	controller.set_paused(true)
+
+	_assert_true(controller.save_current_run(SAVE_PATH), "PoC4 paused save should succeed.")
+	var loaded_controller: RunController = _create_controller(60.0)
+	_assert_true(loaded_controller.load_run_from_file(SAVE_PATH), "PoC4 save should load.")
+	var loaded_state: RunState = loaded_controller.state
+
+	_assert_equal(_count_cards_by_definition(loaded_state, candidate.definition_id), 1, "Save/load should preserve candidates.")
+	_assert_equal(_count_cards_by_definition(loaded_state, offer.definition_id), 1, "Save/load should preserve offers.")
+	_assert_equal(_count_cards_by_definition(loaded_state, recruiter.definition_id), 1, "Save/load should preserve recruiter.")
+	_assert_equal(_count_cards_by_definition(loaded_state, work_student.definition_id), 1, "Save/load should preserve work student.")
+	var loaded_recruiter: CardInstance = _find_card_by_definition(loaded_state, "card.employee.recruiter")
+	_assert_true(_find_attachment(loaded_state, loaded_recruiter.instance_id, "onboarding") != null, "Save/load should preserve onboarding attachment.")
+	_assert_equal(loaded_state.rng_state, 123456789, "Save/load should preserve RNG state.")
 
 func _open_spawned_booster_and_get_result(run_seed: int) -> Dictionary:
 	var controller: RunController = _create_controller(60.0)
@@ -295,6 +382,13 @@ func _count_money_cards_in_stack(state: RunState, stack_id: String) -> int:
 	for card_id: String in stack.card_ids:
 		var card: CardInstance = state.get_card(card_id)
 		if card != null and card.definition_id == "card.resource.money":
+			count += 1
+	return count
+
+func _count_payment_targets(state: RunState) -> int:
+	var count: int = 0
+	for card: CardInstance in state.cards.values():
+		if card.state.is_payment_target:
 			count += 1
 	return count
 
