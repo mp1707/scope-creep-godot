@@ -5,27 +5,27 @@ const DRAG_LAYER_Z: int = 4090
 const STACK_Z_STEP: int = 8
 const STACK_PROGRESS_Z_OFFSET: int = 4
 const MAX_STACK_LAYER: int = 360
-const BOARD_RECT_POSITION: Vector2 = Vector2(72.0, 96.0)
-const BOARD_RECT_END_MARGIN: Vector2 = Vector2(72.0, 96.0)
-const BOARD_OUTER_RECT_POSITION: Vector2 = Vector2(56.0, 80.0)
-const BOARD_OUTER_RECT_END_MARGIN: Vector2 = Vector2(56.0, 80.0)
+const BOARD_RECT_POSITION: Vector2 = Vector2.ZERO
+const BOARD_RECT_END_MARGIN: Vector2 = Vector2.ZERO
 const BOARD_BACKGROUND_COLOR: Color = Color(0.955, 0.948, 0.918, 1.0)
-const BOARD_OUTER_COLOR: Color = Color(0.99, 0.985, 0.955, 1.0)
 const BOARD_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
 const BOARD_GRID_COLOR: Color = Color(0.58, 0.64, 0.62, 0.12)
 const BOARD_NOTE_COLOR: Color = Color(0.38, 0.52, 0.58, 0.16)
-const BOARD_CORNER_RADIUS: int = 22
-const BOARD_BORDER_WIDTH: int = 7
-const PROGRESS_OFFSET: Vector2 = Vector2(0.0, -82.0)
-const PROGRESS_CONTAINER_SIZE: Vector2 = Vector2(144.0, 72.0)
-const PROGRESS_LABEL_SIZE: Vector2 = Vector2(144.0, 42.0)
-const PROGRESS_BAR_POSITION: Vector2 = Vector2(0.0, 46.0)
+const PROGRESS_LABEL_EXTRA_WIDTH: float = 28.0
+const PROGRESS_OFFSET: Vector2 = Vector2(-PROGRESS_LABEL_EXTRA_WIDTH * 0.5, -82.0)
+const PROGRESS_CONTAINER_SIZE: Vector2 = Vector2(172.0, 72.0)
+const PROGRESS_LABEL_SIZE: Vector2 = Vector2(172.0, 42.0)
+const PROGRESS_LABEL_BASE_FONT_SIZE: int = 16
+const PROGRESS_LABEL_MIN_FONT_SIZE: int = 11
+const PROGRESS_LABEL_HORIZONTAL_PADDING: float = 8.0
+const PROGRESS_BAR_POSITION: Vector2 = Vector2(PROGRESS_LABEL_EXTRA_WIDTH * 0.5, 46.0)
 const PROGRESS_BAR_SIZE: Vector2 = Vector2(144.0, 24.0)
 const PROGRESS_BORDER_WIDTH: int = 5
 const PROGRESS_CORNER_RADIUS: int = 7
 const PROGRESS_BACKGROUND_COLOR: Color = Color(0.99, 0.985, 0.955, 1.0)
 const PROGRESS_FILL_COLOR: Color = Color(0.56, 0.78, 0.90, 1.0)
 const PROGRESS_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
+const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
 const CLICK_DRAG_THRESHOLD: float = 8.0
 const VISUAL_EVENT_STEP_SECONDS: float = 0.12
 
@@ -64,6 +64,7 @@ var _last_board_pan_viewport_position: Vector2 = Vector2.ZERO
 var _queued_visual_events: Array[SimulationEvent] = []
 var _is_processing_visual_events: bool = false
 var _audio: BoardAudioPlayer = null
+var _progress_font: FontFile = null
 
 func _ready() -> void:
 	set_process_unhandled_input(true)
@@ -81,29 +82,7 @@ func _process(_delta: float) -> void:
 
 func _draw() -> void:
 	var board_rect: Rect2 = _get_board_rect()
-	var board_outer_rect: Rect2 = _get_board_outer_rect()
-
-	var outer_style: StyleBoxFlat = StyleBoxFlat.new()
-	outer_style.bg_color = BOARD_OUTER_COLOR
-	outer_style.border_color = BOARD_OUTER_COLOR
-	outer_style.corner_radius_bottom_left = BOARD_CORNER_RADIUS + 8
-	outer_style.corner_radius_bottom_right = BOARD_CORNER_RADIUS + 8
-	outer_style.corner_radius_top_left = BOARD_CORNER_RADIUS + 8
-	outer_style.corner_radius_top_right = BOARD_CORNER_RADIUS + 8
-	draw_style_box(outer_style, board_outer_rect)
-
-	var board_style: StyleBoxFlat = StyleBoxFlat.new()
-	board_style.bg_color = BOARD_BACKGROUND_COLOR
-	board_style.border_color = BOARD_BORDER_COLOR
-	board_style.border_width_bottom = BOARD_BORDER_WIDTH
-	board_style.border_width_left = BOARD_BORDER_WIDTH
-	board_style.border_width_right = BOARD_BORDER_WIDTH
-	board_style.border_width_top = BOARD_BORDER_WIDTH
-	board_style.corner_radius_bottom_left = BOARD_CORNER_RADIUS
-	board_style.corner_radius_bottom_right = BOARD_CORNER_RADIUS
-	board_style.corner_radius_top_left = BOARD_CORNER_RADIUS
-	board_style.corner_radius_top_right = BOARD_CORNER_RADIUS
-	draw_style_box(board_style, board_rect)
+	draw_rect(board_rect, BOARD_BACKGROUND_COLOR, true)
 
 	for x_index: int in range(int(board_rect.position.x) + 96, int(board_rect.end.x), 160):
 		var x: float = float(x_index)
@@ -444,7 +423,7 @@ func _move_drag_views_to_layer() -> void:
 		if view != null and view.get_parent() != target_layer:
 			view.reparent(target_layer, true)
 	var progress_view: Control = get_stack_progress_view(_drag_start_stack_id)
-	if progress_view != null and progress_view.get_parent() != target_layer:
+	if _should_drag_stack_progress_view() and progress_view != null and progress_view.get_parent() != target_layer:
 		progress_view.reparent(target_layer, true)
 
 func _restore_drag_views_to_board() -> void:
@@ -649,10 +628,13 @@ func _update_stack_progress_view(stack: StackState) -> void:
 	var label: Label = container.get_node("ActionLabel") as Label
 	var progress_bar: FramedProgressBar = container.get_node("ProgressBar") as FramedProgressBar
 	label.text = _get_stack_action_text(stack)
+	_fit_progress_label(label)
 	progress_bar.max_value = processing.duration
 	progress_bar.value = processing.elapsed
 
 func _update_drag_progress_preview(preview_base_position: Vector2) -> void:
+	if not _should_drag_stack_progress_view():
+		return
 	var progress_view: Control = get_stack_progress_view(_drag_start_stack_id)
 	if progress_view == null:
 		return
@@ -681,11 +663,14 @@ func _ensure_stack_progress_view(stack_id: String) -> Control:
 	label.size = PROGRESS_LABEL_SIZE
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	label.clip_text = true
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.add_theme_color_override("font_color", PROGRESS_TEXT_COLOR)
-	label.add_theme_font_size_override("font_size", 16)
+	var progress_font: FontFile = _get_progress_font()
+	if progress_font != null:
+		label.add_theme_font_override("font", progress_font)
+	label.add_theme_font_size_override("font_size", PROGRESS_LABEL_BASE_FONT_SIZE)
 	container.add_child(label)
 
 	var progress_bar: FramedProgressBar = FramedProgressBar.new()
@@ -709,6 +694,28 @@ func _remove_stack_progress_view(stack_id: String) -> void:
 	if view != null:
 		view.queue_free()
 	_stack_progress_views.erase(stack_id)
+
+func _should_drag_stack_progress_view() -> bool:
+	return _drag_start_card_index == 0
+
+func _fit_progress_label(label: Label) -> void:
+	var font: Font = label.get_theme_font("font")
+	if font == null:
+		label.add_theme_font_size_override("font_size", PROGRESS_LABEL_BASE_FONT_SIZE)
+		return
+	var available_width: float = maxf(1.0, label.size.x - PROGRESS_LABEL_HORIZONTAL_PADDING)
+	var font_size: int = PROGRESS_LABEL_BASE_FONT_SIZE
+	while font_size > PROGRESS_LABEL_MIN_FONT_SIZE:
+		var text_size: Vector2 = font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size)
+		if text_size.x <= available_width:
+			break
+		font_size -= 1
+	label.add_theme_font_size_override("font_size", font_size)
+
+func _get_progress_font() -> FontFile:
+	if _progress_font == null:
+		_progress_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
+	return _progress_font
 
 func _ensure_stack_layer(stack_id: String) -> void:
 	if _stack_layers.has(stack_id):
@@ -774,14 +781,6 @@ func _get_board_rect() -> Rect2:
 		maxf(0.0, board_size.y - BOARD_RECT_POSITION.y - BOARD_RECT_END_MARGIN.y)
 	)
 	return Rect2(BOARD_RECT_POSITION, rect_size)
-
-func _get_board_outer_rect() -> Rect2:
-	var board_size: Vector2 = _get_board_size()
-	var rect_size: Vector2 = Vector2(
-		maxf(0.0, board_size.x - BOARD_OUTER_RECT_POSITION.x - BOARD_OUTER_RECT_END_MARGIN.x),
-		maxf(0.0, board_size.y - BOARD_OUTER_RECT_POSITION.y - BOARD_OUTER_RECT_END_MARGIN.y)
-	)
-	return Rect2(BOARD_OUTER_RECT_POSITION, rect_size)
 
 func _get_board_size() -> Vector2:
 	if state != null and state.board != null:

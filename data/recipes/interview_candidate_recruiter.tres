@@ -41,7 +41,7 @@ required_tags = PackedStringArray("regular_employee", "recruiter")
 [resource]
 script = ExtResource("4_recipe")
 id = "recipe.interview_candidate.recruiter"
-display_text = "Bewerbungsgespraech..."
+display_text = "Bewerbungsgespräch..."
 inputs = Array[ExtResource("1_matcher")]([SubResource("Input_candidate"), SubResource("Input_recruiter")])
 duration = SubResource("Duration_interview")
 priority = 30

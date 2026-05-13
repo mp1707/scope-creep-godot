@@ -15,6 +15,7 @@ const MIN_VOLUME_DB: float = -80.0
 @export var next_sprint_button_path: NodePath = NodePath("StatusPanel/ButtonRow/NextSprintButton")
 @export var save_button_path: NodePath = NodePath("StatusPanel/ButtonRow/SaveButton")
 @export var load_button_path: NodePath = NodePath("StatusPanel/ButtonRow/LoadButton")
+@export var master_volume_row_path: NodePath = NodePath("MasterVolumeRow")
 @export var master_volume_slider_path: NodePath = NodePath("MasterVolumeRow/MasterVolumeSlider")
 @export var master_volume_value_label_path: NodePath = NodePath("MasterVolumeRow/MasterVolumeValueLabel")
 
@@ -23,6 +24,7 @@ var _auto_pay_button: Button = null
 var _next_sprint_button: Button = null
 var _save_button: Button = null
 var _load_button: Button = null
+var _master_volume_row: Control = null
 var _master_volume_slider: HSlider = null
 var _master_volume_value_label: Label = null
 var _master_bus_index: int = -1
@@ -33,6 +35,7 @@ func _ready() -> void:
 	_next_sprint_button = get_node_or_null(next_sprint_button_path) as Button
 	_save_button = get_node_or_null(save_button_path) as Button
 	_load_button = get_node_or_null(load_button_path) as Button
+	_master_volume_row = get_node_or_null(master_volume_row_path) as Control
 	_master_volume_slider = get_node_or_null(master_volume_slider_path) as HSlider
 	_master_volume_value_label = get_node_or_null(master_volume_value_label_path) as Label
 	_master_bus_index = AudioServer.get_bus_index(MASTER_BUS_NAME)
@@ -64,10 +67,15 @@ func update_from_run(run_state: RunState, sprint_remaining: float, can_auto_pay:
 	if _next_sprint_button != null:
 		_next_sprint_button.visible = run_state.phase == ScopeEnums.RunPhase.PAYMENT
 		_next_sprint_button.text = "Sprint %d starten" % (run_state.sprint_index + 1)
+	var options_visible: bool = run_state.is_paused or run_state.phase == ScopeEnums.RunPhase.PAYMENT
 	if _save_button != null:
-		_save_button.disabled = not can_save
+		_save_button.visible = options_visible
+		_save_button.disabled = not options_visible or not can_save
 	if _load_button != null:
-		_load_button.disabled = not can_load
+		_load_button.visible = options_visible
+		_load_button.disabled = not options_visible or not can_load
+	if _master_volume_row != null:
+		_master_volume_row.visible = options_visible
 
 func _get_phase_display_text(phase: ScopeEnums.RunPhase) -> String:
 	match phase:
