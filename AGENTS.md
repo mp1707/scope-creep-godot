@@ -35,15 +35,18 @@ Vor Architektur- oder Gameplay-Entscheidungen pruefen:
 
 1. `gdd.md` - Game Design Document und Regelwahrheit.
 2. `architecture.md` - langfristiges technisches Zielbild.
-3. `poc-plan.md` - aktueller Vertical-Slice-Arbeitsplan und Fortschritt.
+3. `current_scope.md` - aktueller Umsetzungsstand und Scope-Kontext.
 
 Wenn eine geplante Loesung einem dieser Dokumente widerspricht:
 
 - nicht still ueberbruecken,
 - Widerspruch kurz benennen,
-- entweder Vorschlag anpassen oder ein Dokument-Update vorschlagen.
+- bei Widerspruch zu `gdd.md` oder `architecture.md` Marco vor der Umsetzung explizit fragen,
+- nach bestaetigter Abweichung die betroffenen Dokumente im selben Arbeitsschritt aktualisieren, damit sie aktuell bleiben.
 
 Wenn Dokumente unklar oder widerspruechlich sind, klaeren wir die Regel, statt implizit eine neue zu erfinden.
+
+Dokumente sollen laufend aktuell gehalten werden. Wenn eine Implementierung Regeln, Architektur oder bereits umgesetzten Scope veraendert, werden `gdd.md`, `architecture.md` und/oder `current_scope.md` entsprechend aktualisiert.
 
 ## Godot-Version und Technologie
 
@@ -125,7 +128,7 @@ Das GDD plant 50-100 sichtbare Karten, Spitzen bis ca. 200 Karten.
 
 - `gdd.md` v1.4 ist die Regelquelle.
 - `architecture.md` ist die technische Zielquelle.
-- `poc-plan.md` steuert den Vertical Slice.
+- `current_scope.md` beschreibt, was bereits umgesetzt ist und welcher Scope aktuell gilt.
 - Keine PoC-Sonderwege, die spaeter sicher ersetzt werden muessen, ohne sie klar als technische Schuld zu markieren.
 - Simulation und Presentation bleiben getrennt.
 - UI sendet Commands/Intents; Simulation mutiert `RunState`.
