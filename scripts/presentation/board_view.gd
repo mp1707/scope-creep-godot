@@ -748,10 +748,24 @@ func _compact_stack_layers_if_needed() -> void:
 func _get_stack_action_text(stack: StackState) -> String:
 	if content == null or stack.processing_state.active_recipe_id.is_empty():
 		return ""
+	if stack.processing_state.active_recipe_id == "recipe.onboarding.employee" and _stack_has_card_with_tag(stack, "recruiter"):
+		return "Onboarding begleiten..."
 	var recipe: RecipeDefinition = content.get_recipe_definition(stack.processing_state.active_recipe_id)
 	if recipe == null:
 		return ""
 	return recipe.display_text
+
+func _stack_has_card_with_tag(stack: StackState, tag: String) -> bool:
+	if state == null or content == null:
+		return false
+	for card_id: String in stack.card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			continue
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has(tag):
+			return true
+	return false
 
 func _get_board_rect() -> Rect2:
 	var board_size: Vector2 = _get_board_size()

@@ -17,6 +17,7 @@ func _init() -> void:
 	_test_onboarding_blocks_work_and_accepts_coffee()
 	_test_recruiter_halves_active_onboarding_remaining_time()
 	_test_work_student_is_temporary_unsalaried_work_capacity()
+	_test_recruiter_fallback_work_is_slow_but_available()
 	_test_poc4_save_load_preserves_hiring_cards_and_rng_state()
 
 	if _failed:
@@ -281,6 +282,17 @@ func _test_work_student_is_temporary_unsalaried_work_capacity() -> void:
 	_assert_true(payment_controller.can_auto_pay(), "Auto-pay should ignore the unsalaried work student.")
 	payment_controller.start_next_sprint()
 	_assert_equal(payment_state.phase, ScopeEnums.RunPhase.GAME_OVER, "Work student should not prevent game over when all regular employees quit.")
+
+func _test_recruiter_fallback_work_is_slow_but_available() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1016)
+	var recruiter: CardInstance = _spawn_card(controller, "card.employee.recruiter", Vector2(1200.0, 300.0))
+	var idea: CardInstance = _spawn_card(controller, "card.input.idea", Vector2(1220.0, 300.0))
+
+	controller.move_card_to_stack(idea.instance_id, recruiter.stack_id)
+	var stack: StackState = state.get_stack(recruiter.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.recruiter", "Recruiter should have a data-driven fallback for normal work.")
+	_assert_true(stack.processing_state.duration > 8.0, "Recruiter fallback work should be slower than the primary developer path.")
 
 func _test_poc4_save_load_preserves_hiring_cards_and_rng_state() -> void:
 	var controller: RunController = _create_controller(60.0)

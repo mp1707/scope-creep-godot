@@ -109,6 +109,14 @@ const POC4_WORK_STUDENT_RECIPE_IDS: Array[String] = [
 	"recipe.debug_bug.work_student",
 	"recipe.manage_unhappy_customer.work_student",
 ]
+const POC4_RECRUITER_FALLBACK_RECIPE_IDS: Array[String] = [
+	"recipe.feature_from_idea.recruiter",
+	"recipe.feature_from_user_story.recruiter",
+	"recipe.feature_from_promising_user_story.recruiter",
+	"recipe.promising_user_story_from_customer_request.recruiter",
+	"recipe.debug_bug.recruiter",
+	"recipe.manage_unhappy_customer.recruiter",
+]
 const POC4_REQUIRED_CARD_TAGS: Dictionary = {
 	"card.employee.developer": ["employee", "regular_employee", "salary_required", "developer"],
 	"card.employee.product_owner": ["employee", "regular_employee", "salary_required", "product_owner"],
@@ -501,6 +509,16 @@ func _validate_poc4_recipe_patterns(recipes: Array) -> void:
 			_errors.append("%s: PoC4 work-student recipe '%s' needs the work-student input." % [work_student_recipe.resource_path, work_student_recipe.id])
 		if not work_student_recipe.duration_modifier_tags.has("temp_worker_duration"):
 			_errors.append("%s: PoC4 work-student recipe '%s' needs temp_worker_duration modifier tag." % [work_student_recipe.resource_path, work_student_recipe.id])
+
+	for recipe_id: String in POC4_RECRUITER_FALLBACK_RECIPE_IDS:
+		if not recipes_by_id.has(recipe_id):
+			_errors.append("PoC4 Stretch requires recruiter fallback recipe '%s'." % recipe_id)
+			continue
+		var recruiter_recipe: RecipeDefinition = recipes_by_id[recipe_id] as RecipeDefinition
+		if not _recipe_has_card_input(recruiter_recipe, "card.employee.recruiter"):
+			_errors.append("%s: PoC4 recruiter fallback recipe '%s' needs the recruiter input." % [recruiter_recipe.resource_path, recruiter_recipe.id])
+		if recruiter_recipe.priority >= 10:
+			_errors.append("%s: PoC4 recruiter fallback recipe '%s' should stay below primary role priority." % [recruiter_recipe.resource_path, recruiter_recipe.id])
 
 	var normal_interview: RecipeDefinition = recipes_by_id.get("recipe.interview_candidate.regular_employee", null) as RecipeDefinition
 	var recruiter_interview: RecipeDefinition = recipes_by_id.get("recipe.interview_candidate.recruiter", null) as RecipeDefinition

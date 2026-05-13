@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_matcher"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="2_duration"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_effect"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_recipe"]
+
+[sub_resource type="Resource" id="Duration_feature"]
+script = ExtResource("2_duration")
+base_seconds = 24.0
+
+[sub_resource type="Resource" id="Effect_consume_user_story"]
+script = ExtResource("3_effect")
+id = "effect.consume_input.user_story.recruiter"
+effect_type = "consume_input"
+parameters = {
+"card_definition_id": "card.task.user_story"
+}
+
+[sub_resource type="Resource" id="Effect_spawn_feature"]
+script = ExtResource("3_effect")
+id = "effect.spawn_card.feature.recruiter.story"
+effect_type = "spawn_card"
+parameters = {
+"card_definition_id": "card.output.feature",
+"count": 1,
+"marker_value_key": "feature_value",
+"values": {
+"feature_value": 1,
+"is_checked": false,
+"source_quality": "fallback"
+}
+}
+
+[sub_resource type="Resource" id="Input_user_story"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.task.user_story"
+
+[sub_resource type="Resource" id="Input_recruiter"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.employee.recruiter"
+
+[resource]
+script = ExtResource("4_recipe")
+id = "recipe.feature_from_user_story.recruiter"
+display_text = "Improvisiert Feature..."
+inputs = Array[ExtResource("1_matcher")]([SubResource("Input_user_story"), SubResource("Input_recruiter")])
+duration = SubResource("Duration_feature")
+priority = 5
+specificity_score = 2
+effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_consume_user_story"), SubResource("Effect_spawn_feature")])
+duration_modifier_tags = PackedStringArray("feature_work")

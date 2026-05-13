@@ -493,12 +493,12 @@ Ziel: PoC4 ist nicht nur technisch korrekt, sondern im Playtest lesbar und entsc
 
 Codex:
 
-- [ ] CardView-Marker fuer Bewerber, Angebote, Onboarding, Recruiter und Werkstudent pruefen oder minimal erweitern.
-- [ ] Runtime-Labels fuer Onboarding und Werkstudent-Lifecycle anzeigen, falls bestehende Marker dafuer nicht reichen.
-- [ ] Action-Texte vereinheitlichen: `Bewerbungsgespraech...`, `Onboarding...`, `Onboarding begleiten...`.
-- [ ] Playtest-Script fuer PoC4 schreiben: vor Launch hiring testen, nach Launch hiring testen, Recruiter-Pfad testen, Werkstudent-Pfad testen.
-- [ ] Schlanken Gesamt-Headless-Check `tools/check_poc.sh` ausfuehren; keine alten PoC1-PoC3-Detailtests reaktivieren.
-- [ ] Balancing-Notizen in diesem Plan oder separater `POC4_NOTES.md` dokumentieren.
+- [x] CardView-Marker fuer Bewerber, Angebote, Onboarding, Recruiter und Werkstudent pruefen; keine sichtbaren Zusatz-Badges auf Karten.
+- [x] Runtime-Labels fuer Onboarding und Werkstudent-Lifecycle bewusst nicht auf Karten anzeigen.
+- [x] Action-Texte vereinheitlichen: `Bewerbungsgespraech...`, `Onboarding...`, `Onboarding begleiten...`.
+- [x] Playtest-Script fuer PoC4 schreiben: vor Launch hiring testen, nach Launch hiring testen, Recruiter-Pfad testen, Werkstudent-Pfad testen.
+- [x] Schlanken Gesamt-Headless-Check `tools/check_poc.sh` ausfuehren; keine alten PoC1-PoC3-Detailtests reaktivieren.
+- [x] Balancing-Notizen in diesem Plan oder separater `POC4_NOTES.md` dokumentieren.
 
 Marco:
 
@@ -510,8 +510,10 @@ Definition of Done:
 
 - [ ] Hiring-Pipeline ist ohne Erklaertext im Spiel grob verstaendlich.
 - [ ] Recruiter und Werkstudent haben klar unterscheidbare Rollen.
-- [ ] Kein neuer PoC4-State lebt nur in Presentation.
-- [ ] Tests/Validation laufen oder bekannte Blocker sind dokumentiert.
+- [x] Kein neuer PoC4-State lebt nur in Presentation.
+- [x] Tests/Validation laufen oder bekannte Blocker sind dokumentiert.
+
+Codex-Status: umgesetzt. CardView-Marker und Runtime-Labels bleiben auf Karten ausgeblendet; PoC4-Lesbarkeit muss ueber Titel, Farbe, Icon, Tooltip und Stack-Action laufen. Laufendes Onboarding zeigt mit Recruiter im Stack `Onboarding begleiten...`. Das Playtest-Script und Balancing-Fragen liegen in `POC4_NOTES.md`. Der Headless-Check wurde ausgefuehrt. Die lesbarkeitsbezogenen DoD-Punkte bleiben bis zum Editor-Playtest offen.
 
 Headless-Check:
 
@@ -526,9 +528,9 @@ Diese Aufgaben sind sinnvoll, aber nicht zwingend fuer den ersten PoC4-Playtest.
 Codex:
 
 - [x] `Recruiter + Mitarbeiter mit Onboarding -> laufendes Onboarding doppelt so schnell, solange Recruiter im Stack liegt` implementieren.
-- [ ] Pruefen, ob eine generische Rollen-Fallback-Tabelle fuer "jeder kann alles, aber langsam" jetzt notwendig ist.
-- [ ] Recruiter-Fallbacks fuer normale Arbeit extrem langsam, aber datengetrieben modellieren.
-- [ ] Werkstudent-Recipe-Abdeckung erweitern, falls Playtest zeigt, dass er zu selten nutzbar ist.
+- [x] Pruefen, ob eine generische Rollen-Fallback-Tabelle fuer "jeder kann alles, aber langsam" jetzt notwendig ist.
+- [x] Recruiter-Fallbacks fuer normale Arbeit extrem langsam, aber datengetrieben modellieren.
+- [x] Werkstudent-Recipe-Abdeckung erweitern, falls Playtest zeigt, dass er zu selten nutzbar ist.
 - [x] Talent-Pool-Gewichte anpassen, falls Bewerber- oder Werkstudentenrate nicht passt.
 
 Marco:
@@ -539,7 +541,9 @@ Marco:
 Definition of Done:
 
 - [ ] Stretch-Regeln verbessern Spieltiefe, ohne PoC4-Kernloop zu verwischen.
-- [ ] Neue Fallbacks sind datengetrieben und headless testbar.
+- [x] Neue Fallbacks sind datengetrieben und headless testbar.
+
+Codex-Status: umgesetzt. Eine generische Rollen-Fallback-Tabelle ist fuer PoC4 noch nicht noetig, weil nur der Recruiter als neue regulaere Rolle betroffen ist. Recruiter-Fallbacks fuer normale Arbeit sind als langsame Resource-Recipes modelliert und per Content-Validation plus essenziellem Kernregel-Test abgesichert. Werkstudent-Abdeckung bleibt unveraendert, weil die bereits vorhandenen PoC4-Recipes Idee, User Story, vielversprechende User Story, Kundenwunsch, Bug und Erwartungen managen abdecken; weitere Ausweitung sollte aus Playtest-Feedback kommen. Der Spieltiefe-DoD bleibt bis zum Playtest offen.
 
 ## PoC4-Playtest-Fragen
 

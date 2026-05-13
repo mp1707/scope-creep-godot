@@ -427,7 +427,10 @@ func _update_runtime_short_text(card: CardInstance, definition: CardDefinition) 
 	var status_text: String = _product_lifecycle.get_status_text(card)
 	if status_text.is_empty():
 		return
-	_short_text_label.text = status_text
+	_set_runtime_short_text(status_text, 22)
+
+func _set_runtime_short_text(text: String, font_size: int) -> void:
+	_short_text_label.text = text
 	_short_text_label.visible = true
 	_short_text_label.position = Vector2(12.0, DEFAULT_ICON_CENTER.y - 44.0)
 	_short_text_label.size = Vector2(120.0, 88.0)
@@ -436,7 +439,7 @@ func _update_runtime_short_text(card: CardInstance, definition: CardDefinition) 
 	_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if _card_font != null:
 		_short_text_label.add_theme_font_override("font", _card_font)
-	_short_text_label.add_theme_font_size_override("font_size", 22)
+	_short_text_label.add_theme_font_size_override("font_size", font_size)
 
 func _get_runtime_marker_text(card: CardInstance, definition: CardDefinition) -> String:
 	if card.state.is_paid:
@@ -485,6 +488,14 @@ func _update_tooltip(card: CardInstance, definition: CardDefinition) -> void:
 			maxi(0, int(card.values.get("paid_money", 0))),
 			maxi(1, int(card.values.get("required_money", 1))),
 		])
+	if definition.tags.has("candidate"):
+		details.append("Noch kein Mitarbeiter: erst interviewen")
+	if definition.tags.has("offer"):
+		details.append("Einstellung: 1 Geldkarte auf Angebot ziehen")
+	if definition.tags.has("work_student"):
+		details.append("Kein Gehalt, verschwindet nach einer abgeschlossenen Aufgabe")
+	if definition.tags.has("onboarding"):
+		details.append("Blockiert Arbeit, aber nicht Gehalt")
 	if card.state != null and card.state.is_paid:
 		details.append("Bezahlt fuer den naechsten Sprint")
 	elif card.state != null and card.state.is_payment_target:

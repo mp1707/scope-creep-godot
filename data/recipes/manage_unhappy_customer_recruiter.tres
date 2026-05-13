@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="RecipeDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/recipe_input_matcher.gd" id="1_matcher"]
+[ext_resource type="Script" path="res://scripts/data/duration_definition.gd" id="2_duration"]
+[ext_resource type="Script" path="res://scripts/data/effect_definition.gd" id="3_effect"]
+[ext_resource type="Script" path="res://scripts/data/recipe_definition.gd" id="4_recipe"]
+[ext_resource type="Script" path="res://scripts/data/recipe_constraint_definition.gd" id="5_constraint"]
+
+[sub_resource type="Resource" id="Duration_manage_expectations"]
+script = ExtResource("2_duration")
+base_seconds = 24.0
+
+[sub_resource type="Resource" id="Effect_remove_unhappy_customer"]
+script = ExtResource("3_effect")
+id = "effect.remove_card.unhappy_customer.recruiter"
+effect_type = "remove_card"
+parameters = {
+"card_definition_id": "card.problem.unhappy_customer"
+}
+
+[sub_resource type="Resource" id="Input_customer"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.value_source.customer"
+
+[sub_resource type="Resource" id="Input_unhappy_customer"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.problem.unhappy_customer"
+
+[sub_resource type="Resource" id="Input_recruiter"]
+script = ExtResource("1_matcher")
+card_definition_id = "card.employee.recruiter"
+
+[sub_resource type="Resource" id="Constraint_unhappy_attached_to_customer"]
+script = ExtResource("5_constraint")
+constraint_type = "attached_card"
+parameters = {
+"attachment_card_definition_id": "card.problem.unhappy_customer",
+"attachment_slot": "unhappy_customer",
+"parent_card_definition_id": "card.value_source.customer"
+}
+
+[resource]
+script = ExtResource("4_recipe")
+id = "recipe.manage_unhappy_customer.recruiter"
+display_text = "Erwartungen improvisieren..."
+inputs = Array[ExtResource("1_matcher")]([SubResource("Input_customer"), SubResource("Input_unhappy_customer"), SubResource("Input_recruiter")])
+constraints = Array[ExtResource("5_constraint")]([SubResource("Constraint_unhappy_attached_to_customer")])
+duration = SubResource("Duration_manage_expectations")
+priority = 5
+specificity_score = 3
+effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_remove_unhappy_customer")])
+duration_modifier_tags = PackedStringArray("planning_work")
