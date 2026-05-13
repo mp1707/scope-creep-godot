@@ -211,7 +211,7 @@ Nachdem der Spieler in der Bezahlphase auf **„Sprint N+1 starten"** klickt, we
 3. **Bug-Verdopplung**: jeder übrig gebliebene, nicht behobene Bug verdoppelt sich. Aus 1 Bug werden 2 Bugs. Neu verdoppelte Bugs bilden erst beim nächsten Sprintstart einen Prod-Crash, falls dann wieder 3+ Bugs vorhanden sind.
 4. **Auftrag-Verfall**: nicht erfüllte Auftragskarten werden entfernt.
 5. **Externer Dev**: wird entfernt, wenn er bisher keine Aufgabe abgeschlossen hat.
-6. **Persistente Tick-Karten spawnen**: Kunde, Kaffeemaschine und spätere Tick-Karten erzeugen ihre Karten (siehe Kap. 8.7).
+6. **Persistente Tick-Karten spawnen**: Kaffeemaschine und spätere Tick-Karten erzeugen ihre Karten. Kunden erzeugen keine Sprintstart-Spawns; neue Kunden entstehen durch Feature-Schwellen und erzeugen ihre Startkarten sofort beim Erscheinen.
 
 Das System ist generisch ausgelegt: spätere Karten dürfen Lebensdauern >1 Sprint haben (z. B. „Externer Senior Dev" mit 3 Aufgaben oder beliebig vielen Sprints, „Auftrag mit 2-Sprint-Frist").
 
@@ -851,7 +851,9 @@ Diese Karten sind die positive Seite des Spiels: sie erzeugen Geld oder Nachfrag
 
 ### Kunde
 
-Persistente Karte am Spielfeld. Kommt via Boosterpack (Kundenchaos).
+Persistente Karte am Spielfeld. Kommt beim Launch und danach über Feature-Schwellen; Boosterpacks wie Kundenchaos koennen zusaetzliche Kunden bringen.
+
+**Feature-Schwellen:** Pro 5 integrierte Features existiert 1 Kunde. Beim Launch spawnt die Software sofort so viele Kunden wie ihr aktueller Feature-Stand erlaubt: 5 oder 6 Features erzeugen 1 Kunden, 10 Features erzeugen 2 Kunden, 15 Features erzeugen 3 Kunden. Nach dem Launch wird dieselbe Schwelle sofort beim Release-Abschluss geprüft: Wird z. B. das 10. Live-Feature integriert, spawnt direkt der naechste Kunde, nicht erst am Sprintende.
 
 **Spawning:** Wenn ein Kunde im Live-Produkt erscheint, spawnt er sofort **1 Geld** und **1 Kundenwunsch**.
 

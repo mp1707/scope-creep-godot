@@ -50,11 +50,11 @@ Ab 5 integrierten Features ist die Software launchbereit. Der Launch passiert ni
 Launchbereite Software + Entwickler -> Launch
 ```
 
-Beim Launch wird die Software live, Startkunden erscheinen, und das erste Business Goal kommt ins Spiel. Pro 5 Launch-Features erscheint 1 Startkunde: 5 Features erzeugen 1 Kunden, 10 Features erzeugen 2 Kunden, 15 Features erzeugen 3 Kunden.
+Beim Launch wird die Software live, Startkunden erscheinen, und das erste Business Goal kommt ins Spiel. Pro 5 Features erscheint 1 Kunde: 5 oder 6 Features erzeugen 1 Kunden, 10 Features erzeugen 2 Kunden, 15 Features erzeugen 3 Kunden.
 
 ### 3. Post-Launch: Kunden, Druck und Business Goals
 
-Nach Launch erzeugen neu erscheinende Kunden sofort 1 Geld und 1 Kundenwunsch. Danach sind Kunden aktive Wertquellen: Entwickler koennen ihnen Demos zeigen, Product Owner koennen Feedback sammeln. Kundenwuensche sind echte Karten und muessen verarbeitet werden. Ignorierte alte Kundenwuensche koennen genau einen Kunden pro Sprintstart unzufrieden machen.
+Nach Launch wird die Kundenschwelle bei jedem Feature-Release sofort geprueft. Erreicht die Software dadurch das naechste Vielfache von 5 Features, erscheint direkt ein weiterer Kunde, nicht erst am Sprintende. Neu erscheinende Kunden erzeugen sofort 1 Geld und 1 Kundenwunsch. Danach sind Kunden aktive Wertquellen: Entwickler koennen ihnen Demos zeigen, Product Owner koennen Feedback sammeln. Kundenwuensche sind echte Karten und muessen verarbeitet werden. Ignorierte alte Kundenwuensche koennen genau einen Kunden pro Sprintstart unzufrieden machen.
 
 Unzufriedene Kunden bleiben im Run, koennen aber keine Demo- oder Feedbackarbeit ausloesen, bis ein Product Owner oder langsamer ein Entwickler die Erwartungen managt.
 
@@ -113,6 +113,7 @@ Es spawnen keine sprintgebundenen Freelance-Auftragskarten mehr. Der Slot bleibt
 Nach Launch erzeugen Kunden Wert und Arbeit:
 
 - Neu gespawnte Kunden erzeugen 1 Geld und 1 Kundenwunsch.
+- Pro 5 integrierte Features existiert 1 Kunde; weitere Kunden spawnen sofort beim Release, sobald 10, 15, 20 usw. Features erreicht werden.
 - Entwickler + Kunde erzeugt nach 10s Demoarbeit 1 Geld und 1 Kundenwunsch und wiederholt sich, solange der Stack liegen bleibt.
 - Product Owner + Kunde erzeugt nach 30s Feedbackarbeit 1 User Story und wiederholt sich, solange der Stack liegen bleibt.
 - Alte, unbearbeitete Kundenwuensche koennen pro Sprintstart maximal eine Unzufriedenheit an einen Kunden anheften.

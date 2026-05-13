@@ -6,6 +6,7 @@ const PRODUCT_STAGE_VALUE: String = "product_stage"
 const FEATURE_COUNT_VALUE: String = "feature_count"
 const MVP_REQUIRED_FEATURES_VALUE: String = "mvp_required_features"
 const LAUNCH_FEATURE_COUNT_VALUE: String = "launch_feature_count"
+const CUSTOMER_FEATURE_COUNT_VALUE: String = "customer_feature_count"
 const PRODUCT_STAGE_MVP: String = "mvp"
 const PRODUCT_STAGE_LIVE: String = "live"
 const DEFAULT_MVP_REQUIRED_FEATURES: int = 5
@@ -35,6 +36,11 @@ func ensure_card_defaults(card: CardInstance, default_mvp_required_features: int
 		card.values[MVP_REQUIRED_FEATURES_VALUE] = safe_required_features
 	if not card.values.has(LAUNCH_FEATURE_COUNT_VALUE):
 		card.values[LAUNCH_FEATURE_COUNT_VALUE] = 0
+	if not card.values.has(CUSTOMER_FEATURE_COUNT_VALUE):
+		var processed_customer_features: int = 0
+		if card.values.get(PRODUCT_STAGE_VALUE, PRODUCT_STAGE_MVP) == PRODUCT_STAGE_LIVE:
+			processed_customer_features = int(card.values.get(LAUNCH_FEATURE_COUNT_VALUE, 0))
+		card.values[CUSTOMER_FEATURE_COUNT_VALUE] = maxi(0, processed_customer_features)
 
 func is_launch_ready(state: RunState) -> bool:
 	var software: CardInstance = get_software_card(state)
@@ -62,6 +68,35 @@ func get_mvp_required_features(software: CardInstance) -> int:
 		return DEFAULT_MVP_REQUIRED_FEATURES
 	ensure_card_defaults(software)
 	return maxi(1, int(software.values.get(MVP_REQUIRED_FEATURES_VALUE, DEFAULT_MVP_REQUIRED_FEATURES)))
+
+func get_customer_feature_count(software: CardInstance) -> int:
+	if software == null:
+		return 0
+	ensure_card_defaults(software)
+	return maxi(0, int(software.values.get(CUSTOMER_FEATURE_COUNT_VALUE, 0)))
+
+func get_pending_customer_spawn_count(software: CardInstance, features_per_customer: int) -> int:
+	if software == null:
+		return 0
+	ensure_card_defaults(software)
+	if get_product_stage(software) != PRODUCT_STAGE_LIVE:
+		return 0
+
+	var safe_features_per_customer: int = maxi(1, features_per_customer)
+	var processed_customer_features: int = get_customer_feature_count(software)
+	var current_customer_features: int = get_feature_count(software)
+	if current_customer_features <= processed_customer_features:
+		return 0
+
+	var previous_customer_count: int = floori(float(processed_customer_features) / float(safe_features_per_customer))
+	var current_customer_count: int = floori(float(current_customer_features) / float(safe_features_per_customer))
+	return maxi(0, current_customer_count - previous_customer_count)
+
+func mark_customer_features_processed(software: CardInstance) -> void:
+	if software == null:
+		return
+	ensure_card_defaults(software)
+	software.values[CUSTOMER_FEATURE_COUNT_VALUE] = get_feature_count(software)
 
 func get_status_text(software: CardInstance) -> String:
 	if software == null:

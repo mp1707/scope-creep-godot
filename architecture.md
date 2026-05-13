@@ -355,7 +355,7 @@ Empfohlene Runtime-Werte auf `card.product.software`:
 - `feature_count: int`
 - `mvp_required_features: int`
 - `launch_feature_count: int`
-- optional `next_customer_feature_threshold: int`
+- `customer_feature_count: int` als letzter Feature-Stand, fuer den Kunden-Schwellen verarbeitet wurden
 
 Ein `ProductLifecycleService` oder aequivalenter Simulation-Service kapselt Queries und Mutationen:
 
@@ -363,8 +363,8 @@ Ein `ProductLifecycleService` oder aequivalenter Simulation-Service kapselt Quer
 - Feature-Fortschritt erhoehen
 - Launchbereitschaft pruefen
 - Launch durchfuehren
-- Startkunden aus Featurezahl berechnen
-- optional spaeter Kundenwachstum durch weitere Live-Features pruefen
+- Kundenwachstum aus Feature-Schwellen berechnen
+- verarbeitete Kunden-Schwellen markieren
 
 Recipes und Presentation duerfen Launchbereitschaft nicht jeweils selbst nachbauen. Recipes nutzen Constraints oder Effects, die diesen Service fragen. Presentation zeigt nur die Runtime-Werte an, z. B. `MVP 7/10`, `Launchbereit 10/10` oder `Live 14 Features`.
 
@@ -583,7 +583,7 @@ Nach Klick auf `Sprint N+1 starten` werden Effects in exakt dieser Reihenfolge a
 3. Uebrig gebliebene Bugs verdoppeln sich.
 4. Nicht erfuellte Auftraege verfallen.
 5. Temporaere Arbeitskarten wie Externer Dev verfallen, wenn ihre Lifecycle-Regel greift.
-6. Persistente Tick-Karten wie Kaffeemaschine spawnen ihre Karten. Kunden duerfen weiterhin Sprintstart-Regeln fuer Blockaden ausloesen, erzeugen aber kein passives Geld mehr.
+6. Persistente Tick-Karten wie Kaffeemaschine spawnen ihre Karten. Kunden erzeugen keine Sprintstart-Spawns; neue Kunden kommen ueber Feature-Schwellen und erzeugen ihre Startkarten sofort beim Erscheinen.
 
 Danach startet die neue Sprint-Phase und der Sprint-Timer laeuft wieder.
 
@@ -593,7 +593,7 @@ Aktuelle und spaetere PoCs erweitern diese Pipeline, ohne die GDD-Reihenfolge fu
 2. alte Kundenwuensche auswerten: wenn mindestens ein alter Kundenwunsch existiert, wird genau ein zufaelliger zufriedener Kunde unzufrieden; sind alle Kunden unzufrieden, passiert nichts
 3. Business Goal aus der Bezahlphase pruefen, falls der Run live ist
 4. terminale Bedingungen pruefen, z. B. 0 Mitarbeiter, 2 Investorenpanik, 3 erfuellte Goals
-5. neue Sprintstart-Spawns erzeugen: Kaffeemaschine und andere Tick-Karten. Der Freelance-Auftrag ist ein permanenter Shop-Slot und kein Sprintstart-Spawn mehr. Kunden erzeugen kein passives Sprintstart-Geld mehr; Kundengeld entsteht beim Kunden-Spawn und ueber aktive Demoarbeit.
+5. neue Sprintstart-Spawns erzeugen: Kaffeemaschine und andere Tick-Karten. Der Freelance-Auftrag ist ein permanenter Shop-Slot und kein Sprintstart-Spawn mehr. Kunden erzeugen keine passiven Sprintstart-Karten; Kundengeld entsteht beim Kunden-Spawn und ueber aktive Demoarbeit.
 
 Diese Reihenfolge soll als zentrale Sprintstart-Pipeline umgesetzt werden. Einzelne Karten liefern Daten oder Effects, aber Presentation und einzelne Recipes duerfen die Pipeline nicht direkt steuern.
 

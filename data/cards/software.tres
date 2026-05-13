@@ -24,6 +24,7 @@ short_text = "MVP-Feature-Fortschritt"
 tooltip_text = "Vor Launch sammeln integrierte Funktionen MVP-Features. Ab 5 Features ist die Software launchbereit."
 visual = SubResource("Resource_e23bo")
 base_values = {
+"customer_feature_count": 0,
 "feature_count": 0,
 "launch_feature_count": 0,
 "mvp_required_features": 5,

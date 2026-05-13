@@ -13,7 +13,7 @@ func _init() -> void:
 
 func _save_cards() -> int:
 	var exit_code: int = 0
-	exit_code = max(exit_code, _save_resource(_create_card(
+	var software_card: CardDefinition = _create_card(
 		"card.product.software",
 		"Software",
 		ScopeEnums.CardType.PRODUCT,
@@ -22,7 +22,15 @@ func _save_cards() -> int:
 		Color(0.62, 0.82, 0.92),
 		Color(0.16, 0.42, 0.58),
 		"res://assets/icons/handdrawn/cardIcons/calendar.png"
-	), "res://data/cards/software.tres"))
+	)
+	software_card.base_values = {
+		"customer_feature_count": 0,
+		"feature_count": 0,
+		"launch_feature_count": 0,
+		"mvp_required_features": 5,
+		"product_stage": "mvp",
+	}
+	exit_code = max(exit_code, _save_resource(software_card, "res://data/cards/software.tres"))
 	exit_code = max(exit_code, _save_resource(_create_card(
 		"card.employee.developer",
 		"Entwickler",
@@ -270,6 +278,7 @@ func _save_balance() -> int:
 	balance.sprint_duration_seconds = 60.0
 	balance.release_duration_seconds = 6.0
 	balance.bug_chance = 0.5
+	balance.poc3_features_per_customer = 5
 	balance.tech_debt_duration_seconds_per_card = 5.0
 	balance.board_snap_distance = 96.0
 	balance.stack_offset = Vector2(0.0, 40.0)

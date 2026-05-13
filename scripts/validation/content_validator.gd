@@ -737,8 +737,8 @@ func _validate_balance(balance: BalanceDefinition) -> void:
 		_errors.append("%s: Balance '%s' needs non-negative poc3_start_money_cards." % [path, balance.id])
 	if balance.poc3_freelance_dump_money_cards < 0:
 		_errors.append("%s: Balance '%s' needs non-negative poc3_freelance_dump_money_cards." % [path, balance.id])
-	if balance.poc3_launch_features_per_start_customer <= 0:
-		_errors.append("%s: Balance '%s' needs positive poc3_launch_features_per_start_customer." % [path, balance.id])
+	if balance.poc3_features_per_customer <= 0:
+		_errors.append("%s: Balance '%s' needs positive poc3_features_per_customer." % [path, balance.id])
 	if balance.poc5_initial_customer_money_cards < 0:
 		_errors.append("%s: Balance '%s' needs non-negative poc5_initial_customer_money_cards." % [path, balance.id])
 	if balance.poc5_initial_customer_request_cards < 0:

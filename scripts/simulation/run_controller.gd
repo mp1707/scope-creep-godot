@@ -892,26 +892,10 @@ func _spawn_persistent_tick_cards() -> void:
 		var spawner: CardInstance = state.get_card(card_id)
 		if spawner == null:
 			continue
-		var spawner_definition: CardDefinition = content.get_card_definition(spawner.definition_id)
-		if spawner_definition != null and spawner_definition.tags.has("customer"):
-			_spawn_customer_tick_cards(spawner)
-			continue
 		var spawned_card_definition_id: String = spawner.values.get("sprint_tick_spawn_card_id", "") as String
 		if spawned_card_definition_id.is_empty():
 			continue
 		_spawn_card_as_new_stack(spawned_card_definition_id, _get_spawn_position_near_stack(spawner.stack_id, 0))
-
-func _spawn_customer_tick_cards(customer: CardInstance) -> void:
-	var software: CardInstance = get_software_card()
-	if software == null:
-		return
-	if _product_lifecycle.get_product_stage(software) != ProductLifecycleService.PRODUCT_STAGE_LIVE:
-		return
-	if _has_attachment(customer.instance_id, UNHAPPY_CUSTOMER_ATTACHMENT_SLOT):
-		return
-	if _has_card_with_tag("prod_crash"):
-		_spawn_attached_card(customer.instance_id, UNHAPPY_CUSTOMER_DEFINITION_ID, UNHAPPY_CUSTOMER_ATTACHMENT_SLOT)
-		return
 
 func _attach_unhappy_customers_from_old_requests() -> void:
 	if not _is_software_live():
@@ -1116,9 +1100,6 @@ func _find_card_ids_by_definition(definition_id: String) -> PackedStringArray:
 		if card.definition_id == definition_id:
 			card_ids.append(card.instance_id)
 	return card_ids
-
-func _has_card_with_tag(tag: String) -> bool:
-	return not _find_card_ids_with_tag(tag).is_empty()
 
 func _has_no_employees() -> bool:
 	for card: CardInstance in state.cards.values():

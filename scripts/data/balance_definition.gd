@@ -21,7 +21,7 @@ extends Resource
 @export_range(1, 100, 1, "or_greater") var poc3_mvp_required_features: int = 5
 @export_range(0, 200, 1, "or_greater") var poc3_start_money_cards: int = 30
 @export_range(0, 100, 1, "or_greater") var poc3_freelance_dump_money_cards: int = 3
-@export_range(1, 100, 1, "or_greater") var poc3_launch_features_per_start_customer: int = 5
+@export_range(1, 100, 1, "or_greater") var poc3_features_per_customer: int = 5
 @export var poc3_business_goal_required_money: Array[int] = [1, 2, 3, 4, 5]
 @export_range(1, 20, 1, "or_greater") var poc3_business_goal_win_count: int = 3
 @export_range(1, 20, 1, "or_greater") var poc3_investor_panic_game_over_count: int = 2

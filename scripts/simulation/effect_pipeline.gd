@@ -103,6 +103,8 @@ func _modify_card_value(effect: EffectDefinition, context: EffectContext) -> voi
 		return
 	var delta: int = int(effect.parameters.get("delta", 0))
 	card.values[key] = int(card.values.get(key, 0)) + delta
+	if card.definition_id == ProductLifecycleService.SOFTWARE_DEFINITION_ID and key == ProductLifecycleService.FEATURE_COUNT_VALUE:
+		_spawn_customers_for_live_feature_thresholds(effect, context, card)
 
 func _launch_software(effect: EffectDefinition, context: EffectContext) -> void:
 	var software: CardInstance = _find_card_in_stack(ProductLifecycleService.SOFTWARE_DEFINITION_ID, context)
@@ -116,11 +118,9 @@ func _launch_software(effect: EffectDefinition, context: EffectContext) -> void:
 	var feature_count: int = lifecycle.get_feature_count(software)
 	software.values[ProductLifecycleService.PRODUCT_STAGE_VALUE] = ProductLifecycleService.PRODUCT_STAGE_LIVE
 	software.values[ProductLifecycleService.LAUNCH_FEATURE_COUNT_VALUE] = feature_count
+	software.values[ProductLifecycleService.CUSTOMER_FEATURE_COUNT_VALUE] = 0
 
-	var customer_card_definition_id: String = effect.parameters.get("customer_card_definition_id", "card.value_source.customer") as String
-	var customer_count: int = floori(float(feature_count) / float(_get_launch_features_per_start_customer(context)))
-	for index: int in customer_count:
-		context.spawn_card.call(customer_card_definition_id, _get_spawn_position(context, index))
+	var customer_count: int = _spawn_customers_for_live_feature_thresholds(effect, context, software)
 
 	var goal_card_definition_id: String = effect.parameters.get("goal_card_definition_id", "card.goal.business_goal") as String
 	if not goal_card_definition_id.is_empty():
@@ -135,6 +135,22 @@ func _launch_software(effect: EffectDefinition, context: EffectContext) -> void:
 	var shop_slot_card_definition_id: String = effect.parameters.get("shop_slot_card_definition_id", "") as String
 	if not shop_slot_card_definition_id.is_empty():
 		context.spawn_card.call(shop_slot_card_definition_id, _get_spawn_position(context, customer_count + 1))
+
+func _spawn_customers_for_live_feature_thresholds(effect: EffectDefinition, context: EffectContext, software: CardInstance) -> int:
+	var lifecycle: ProductLifecycleService = ProductLifecycleService.new()
+	if lifecycle.get_product_stage(software) != ProductLifecycleService.PRODUCT_STAGE_LIVE:
+		return 0
+
+	var customer_count: int = lifecycle.get_pending_customer_spawn_count(software, _get_features_per_customer(context))
+	if customer_count <= 0:
+		lifecycle.mark_customer_features_processed(software)
+		return 0
+
+	var customer_card_definition_id: String = effect.parameters.get("customer_card_definition_id", "card.value_source.customer") as String
+	for index: int in customer_count:
+		context.spawn_card.call(customer_card_definition_id, _get_spawn_position(context, index))
+	lifecycle.mark_customer_features_processed(software)
+	return customer_count
 
 func _open_booster(effect: EffectDefinition, context: EffectContext) -> void:
 	var booster_id: String = effect.parameters.get("booster_definition_id", "") as String
@@ -212,10 +228,10 @@ func _get_spawn_count(effect: EffectDefinition, context: EffectContext) -> int:
 
 	return maxi(0, effect.parameters.get("count", 1) as int)
 
-func _get_launch_features_per_start_customer(context: EffectContext) -> int:
+func _get_features_per_customer(context: EffectContext) -> int:
 	if context.content.balance == null:
 		return 5
-	return maxi(1, context.content.balance.poc3_launch_features_per_start_customer)
+	return maxi(1, context.content.balance.poc3_features_per_customer)
 
 func _get_business_goal_required_money(context: EffectContext, goal_index: int) -> int:
 	if context.content.balance == null or context.content.balance.poc3_business_goal_required_money.is_empty():

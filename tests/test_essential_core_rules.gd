@@ -21,6 +21,7 @@ func _init() -> void:
 	_test_freelance_slot_pays_three_and_rolls_bug_for_unchecked_feature()
 	_test_freelance_slot_pays_checked_feature_without_bug()
 	_test_mvp_launch_threshold_and_customer_scaling()
+	_test_live_feature_threshold_spawns_next_customer_immediately()
 	_test_customer_spawn_creates_initial_money_and_request_without_passive_tick_income()
 	_test_customer_demo_and_feedback_are_repeatable_active_work()
 	_test_old_customer_requests_make_only_one_customer_unhappy_per_sprint()
@@ -335,7 +336,7 @@ func _test_mvp_launch_threshold_and_customer_scaling() -> void:
 	threshold_software.values[ProductLifecycleService.FEATURE_COUNT_VALUE] = 5
 	_assert_true(threshold_controller.is_software_launch_ready(), "Five features should be launch-ready.")
 
-	for feature_count: int in [5, 10, 15]:
+	for feature_count: int in [5, 6, 10, 15]:
 		var controller: RunController = _create_controller(60.0)
 		var state: RunState = controller.start_new_run(1022 + feature_count)
 		var software: CardInstance = _find_card_by_definition(state, "card.product.software")
@@ -344,6 +345,27 @@ func _test_mvp_launch_threshold_and_customer_scaling() -> void:
 		controller.move_card_to_stack(developer.instance_id, software.stack_id)
 		controller.advance_time(4.0)
 		_assert_equal(_count_cards_by_definition(state, "card.value_source.customer"), floori(float(feature_count) / 5.0), "Launch should spawn one customer per five launch features.")
+
+func _test_live_feature_threshold_spawns_next_customer_immediately() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1024)
+	var software: CardInstance = _find_card_by_definition(state, "card.product.software")
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	software.values[ProductLifecycleService.FEATURE_COUNT_VALUE] = 5
+	controller.move_card_to_stack(developer.instance_id, software.stack_id)
+	controller.advance_time(4.0)
+	_assert_equal(_count_cards_by_definition(state, "card.value_source.customer"), 1, "Launch with five features should spawn one customer.")
+
+	controller.split_stack_from_card(developer.instance_id, Vector2(1400.0, 300.0))
+	software.values[ProductLifecycleService.FEATURE_COUNT_VALUE] = 9
+	var customer_count_before_release: int = _count_cards_by_definition(state, "card.value_source.customer")
+	var checked_feature: CardInstance = _spawn_card(controller, "card.output.checked_feature", Vector2(1200.0, 300.0))
+	controller.move_card_to_stack(checked_feature.instance_id, software.stack_id)
+	controller.advance_time(6.0)
+
+	_assert_equal(state.phase, ScopeEnums.RunPhase.SPRINT, "The next customer should spawn during the sprint, not at sprint end.")
+	_assert_equal(int(software.values.get(ProductLifecycleService.FEATURE_COUNT_VALUE, 0)), 10, "The checked feature release should become the tenth live feature.")
+	_assert_equal(_count_cards_by_definition(state, "card.value_source.customer"), customer_count_before_release + 1, "The tenth live feature should immediately spawn the next customer.")
 
 func _test_customer_spawn_creates_initial_money_and_request_without_passive_tick_income() -> void:
 	var controller: RunController = _create_controller(1.0)
