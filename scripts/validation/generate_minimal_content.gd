@@ -7,7 +7,6 @@ func _init() -> void:
 	exit_code = max(exit_code, _save_cards())
 	exit_code = max(exit_code, _save_recipes())
 	exit_code = max(exit_code, _save_booster())
-	exit_code = max(exit_code, _save_shop())
 	exit_code = max(exit_code, _save_balance())
 	quit(exit_code)
 
@@ -182,22 +181,6 @@ func _save_recipes() -> int:
 	]
 	exit_code = max(exit_code, _save_resource(feature_to_money, "res://data/recipes/money_from_feature_software.tres"))
 
-	var booster_buy: RecipeDefinition = RecipeDefinition.new()
-	booster_buy.id = "recipe.booster_pack_from_money.slot"
-	booster_buy.display_text = "Booster kaufen"
-	booster_buy.inputs = [
-		_create_input("card.resource.money"),
-		_create_input("card.shop.booster_slot"),
-	]
-	booster_buy.duration = _create_duration(1.0)
-	booster_buy.priority = 10
-	booster_buy.specificity_score = 2
-	booster_buy.effects_on_complete = [
-		_create_effect("effect.consume_input.money.booster_buy", "consume_input", {"card_definition_id": "card.resource.money"}),
-		_create_effect("effect.spawn_card.booster_pack", "spawn_card", {"card_definition_id": "card.resource.booster_pack", "count": 1}),
-	]
-	exit_code = max(exit_code, _save_resource(booster_buy, "res://data/recipes/booster_pack_from_money_slot.tres"))
-
 	var debug_bug: RecipeDefinition = RecipeDefinition.new()
 	debug_bug.id = "recipe.debug_bug.developer"
 	debug_bug.display_text = "Debugging..."
@@ -258,19 +241,6 @@ func _save_booster() -> int:
 		_create_pool_entry("card.resource.money", 2),
 	]
 	return _save_resource(booster, "res://data/boosters/founder_test_pack.tres")
-
-func _save_shop() -> int:
-	var entry: ShopEntryDefinition = ShopEntryDefinition.new()
-	entry.id = "shop_entry.booster.founder_test_pack"
-	entry.display_name = "Gründerpanik"
-	entry.cost_money_cards = 1
-	entry.card_definition_id = "card.resource.booster_pack"
-	entry.booster_definition_id = "booster.founder.test_pack"
-
-	var shop: ShopDefinition = ShopDefinition.new()
-	shop.id = "shop.poc.boosters"
-	shop.entries = [entry]
-	return _save_resource(shop, "res://data/shops/poc_booster_shop.tres")
 
 func _save_balance() -> int:
 	var balance: BalanceDefinition = BalanceDefinition.new()

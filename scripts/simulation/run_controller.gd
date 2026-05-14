@@ -2,23 +2,13 @@ class_name RunController
 extends RefCounted
 
 const SPRINT_TIMER_ID: String = "sprint_remaining_seconds"
-const SPAWN_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
-const SPAWN_GAP: float = 36.0
-const SPAWN_BOARD_MARGIN: float = 56.0
-const SPAWN_SEARCH_RINGS: int = 7
-const INVALID_SPAWN_POSITION: Vector2 = Vector2(100000000.0, 100000000.0)
 const START_LAYOUT_ORIGIN: Vector2 = Vector2(420.0, 322.0)
 const START_LAYOUT_COLUMNS: int = 6
 const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
 const DEFAULT_BOOSTER_DEFINITION_ID: String = "booster.founder.test_pack"
-const CONTENT_VERSION: String = "poc5"
+const CONTENT_VERSION: String = "poc_cleanup1"
 const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
 const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
-const BOOSTER_PACK_DEFINITION_ID: String = "card.resource.booster_pack"
-const BUGFIX_PATCH_DEFINITION_ID: String = "card.consumable.bugfix_patch"
-const RECYCLING_BIN_DEFINITION_ID: String = "card.shop.recycling_bin"
-const RECYCLABLE_TAG: String = "recyclable"
-const RECYCLING_CARD_COUNT: int = 3
 const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
 const UNHAPPY_CUSTOMER_ATTACHMENT_SLOT: String = "unhappy_customer"
 const ONBOARDING_ATTACHMENT_SLOT: String = "onboarding"
@@ -27,19 +17,20 @@ const SALARY_DUE_FROM_SPRINT_VALUE: String = "salary_due_from_sprint"
 const COMPLETED_TASK_LIFETIME_VALUE: String = "completed_task_lifetime"
 const ONBOARDING_RECIPE_ID: String = "recipe.onboarding.employee"
 const RECRUITER_ONBOARDING_MODIFIER_KEY: String = "recruiter_onboarding"
-const FREELANCE_SLOT_DEFINITION_ID: String = "card.shop.freelance_order"
 const CUSTOMER_DEFINITION_ID: String = "card.value_source.customer"
 const CUSTOMER_REQUEST_DEFINITION_ID: String = "card.input.customer_request"
 const MONEY_DEFINITION_ID: String = "card.resource.money"
-const FEATURE_DEFINITION_ID: String = "card.output.feature"
 const CHECKED_FEATURE_DEFINITION_ID: String = "card.output.checked_feature"
-const BUG_DEFINITION_ID: String = "card.problem.bug"
 const UNHAPPY_CUSTOMER_DEFINITION_ID: String = "card.problem.unhappy_customer"
 const BUSINESS_GOAL_DEFINITION_ID: String = "card.goal.business_goal"
 const INVESTOR_PANIC_DEFINITION_ID: String = "card.problem.investor_panic"
 const START_CHECKED_FEATURE_CARD_COUNT: int = 0
 const ActiveProcessingInteractionServiceScript: Script = preload("res://scripts/simulation/active_processing_interaction_service.gd")
 const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")
+const ShopInteractionServiceScript: Script = preload("res://scripts/simulation/shop_interaction_service.gd")
+const HiringLifecycleServiceScript: Script = preload("res://scripts/simulation/hiring_lifecycle_service.gd")
+const SprintStartPipelineServiceScript: Script = preload("res://scripts/simulation/sprint_start_pipeline_service.gd")
+const SpawnPlacementServiceScript: Script = preload("res://scripts/simulation/spawn_placement_service.gd")
 const START_CARD_IDS: Array[String] = [
 	"card.product.software",
 	"card.employee.developer",
@@ -63,6 +54,10 @@ var _effect_pipeline: EffectPipeline = EffectPipeline.new()
 var _tech_debt_modifiers: TechDebtModifierService = TechDebtModifierService.new()
 var _processing_interactions: ActiveProcessingInteractionService = ActiveProcessingInteractionServiceScript.new() as ActiveProcessingInteractionService
 var _product_lifecycle: RefCounted = ProductLifecycleServiceScript.new()
+var _shop_interactions: RefCounted = ShopInteractionServiceScript.new()
+var _hiring_lifecycle: RefCounted = HiringLifecycleServiceScript.new()
+var _sprint_start_pipeline: RefCounted = SprintStartPipelineServiceScript.new()
+var _spawn_placement: RefCounted = SpawnPlacementServiceScript.new()
 var _save_serializer: RunSaveSerializer = RunSaveSerializer.new()
 var _next_card_index: int = 1
 var _next_stack_index: int = 1
@@ -88,6 +83,9 @@ func start_new_run(run_seed: int = 1) -> RunState:
 	state.rng_state = _rng.state
 	state.content_version = CONTENT_VERSION
 	state.active_timers[SPRINT_TIMER_ID] = _get_sprint_duration()
+	_shop_interactions.setup(state, content)
+	_hiring_lifecycle.setup(state, content)
+	_spawn_placement.setup(state, content)
 
 	for index: int in START_CARD_IDS.size():
 		var column: int = index % START_LAYOUT_COLUMNS
@@ -148,6 +146,9 @@ func load_run(loaded_state: RunState) -> void:
 	assert(loaded_state != null, "Loaded RunState must not be null.")
 	pending_events.clear()
 	state = loaded_state
+	_shop_interactions.setup(state, content)
+	_hiring_lifecycle.setup(state, content)
+	_spawn_placement.setup(state, content)
 	_rng.seed = state.rng_seed
 	_rng.state = state.rng_state
 	_sync_next_runtime_ids()
@@ -324,191 +325,40 @@ func _can_complete_processing_from_interaction() -> bool:
 	return state.phase == ScopeEnums.RunPhase.SPRINT and not state.is_paused
 
 func _try_buy_shop_with_money_stack(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
-	if not _can_interact_with_board():
-		return false
-	if not _is_money_card(card):
-		return false
-	if not _are_all_money_cards(moving_card_ids):
-		return false
-
-	var target_shop_card: CardInstance = _find_shop_card_in_stack(target_stack)
-	if target_shop_card == null:
-		return false
-	var purchase: Dictionary = _get_shop_purchase(target_shop_card)
-	if purchase.is_empty():
-		return false
-
-	var cost_money_cards: int = purchase["cost_money_cards"] as int
-	if moving_card_ids.size() < cost_money_cards:
-		return false
-
-	var consumed_money_ids: PackedStringArray = PackedStringArray()
-	var leftover_money_ids: PackedStringArray = PackedStringArray()
-	for index: int in moving_card_ids.size():
-		if index < cost_money_cards:
-			consumed_money_ids.append(moving_card_ids[index])
-		else:
-			leftover_money_ids.append(moving_card_ids[index])
-
-	for consumed_money_id: String in consumed_money_ids:
-		_consume_money_card(consumed_money_id)
-
-	var spawned_card_definition_id: String = purchase["spawned_card_definition_id"] as String
-	var spawned_card: CardInstance = _spawn_card_as_new_stack(spawned_card_definition_id, _get_spawn_position_near_stack(target_stack.stack_id, 0))
-	if spawned_card != null:
-		var copied_values: Dictionary = purchase.get("values", {}) as Dictionary
-		for key: Variant in copied_values.keys():
-			spawned_card.values[key] = copied_values[key]
-
-	if not leftover_money_ids.is_empty():
-		_move_existing_cards_to_new_stack(leftover_money_ids, _get_spawn_position_near_stack(target_stack.stack_id, 1))
-
-	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
-	return true
+	return _shop_interactions.try_buy_shop_with_money_stack(
+		card,
+		moving_card_ids,
+		target_stack,
+		Callable(self, "_consume_money_card"),
+		Callable(self, "_spawn_card_as_new_stack"),
+		Callable(self, "_move_existing_cards_to_new_stack"),
+		Callable(self, "_get_spawn_position_near_stack"),
+		Callable(self, "_emit_stack_changed")
+	)
 
 func _try_recycle_card_stack(moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
-	if not _can_interact_with_board():
-		return false
-
-	var target_shop_card: CardInstance = _find_shop_card_in_stack(target_stack)
-	if target_shop_card == null or not _is_recycling_bin_card(target_shop_card):
-		return false
-	if moving_card_ids.size() < RECYCLING_CARD_COUNT:
-		return false
-	if not _are_all_recyclable_cards(moving_card_ids):
-		return false
-
-	var consumed_card_ids: PackedStringArray = PackedStringArray()
-	var leftover_card_ids: PackedStringArray = PackedStringArray()
-	var first_consumed_index: int = moving_card_ids.size() - RECYCLING_CARD_COUNT
-	for index: int in moving_card_ids.size():
-		if index >= first_consumed_index:
-			consumed_card_ids.append(moving_card_ids[index])
-		else:
-			leftover_card_ids.append(moving_card_ids[index])
-
-	for consumed_card_id: String in consumed_card_ids:
-		_remove_card_instance(consumed_card_id)
-
-	_spawn_card_as_new_stack(MONEY_DEFINITION_ID, _get_spawn_position_near_stack(target_stack.stack_id, 0))
-
-	if not leftover_card_ids.is_empty():
-		_move_existing_cards_to_new_stack(leftover_card_ids, _get_spawn_position_near_stack(target_stack.stack_id, 1))
-
-	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
-	return true
+	return _shop_interactions.try_recycle_card_stack(
+		moving_card_ids,
+		target_stack,
+		Callable(self, "_remove_card_instance"),
+		Callable(self, "_spawn_card_as_new_stack"),
+		Callable(self, "_move_existing_cards_to_new_stack"),
+		Callable(self, "_get_spawn_position_near_stack"),
+		Callable(self, "_emit_stack_changed")
+	)
 
 func _try_dump_freelance_feature_stack(moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
-	if not _can_interact_with_board():
-		return false
-
-	var target_shop_card: CardInstance = _find_shop_card_in_stack(target_stack)
-	if target_shop_card == null or target_shop_card.definition_id != FREELANCE_SLOT_DEFINITION_ID:
-		return false
-	if not _are_all_freelance_feature_cards(moving_card_ids):
-		return false
-
-	var spawn_index: int = 0
-	_rng.state = state.rng_state
-	for moving_card_id: String in moving_card_ids:
-		var moving_card: CardInstance = state.get_card(moving_card_id)
-		if moving_card == null:
-			continue
-		var is_unchecked_feature: bool = moving_card.definition_id == FEATURE_DEFINITION_ID
-		var money_card_count: int = _get_freelance_money_card_count()
-		_remove_card_instance(moving_card_id)
-		for money_index: int in money_card_count:
-			_spawn_card_as_new_stack(MONEY_DEFINITION_ID, _get_spawn_position_near_stack(target_stack.stack_id, spawn_index))
-			spawn_index += 1
-		if is_unchecked_feature and _rng.randf() <= _get_bug_chance():
-			_spawn_card_as_new_stack(BUG_DEFINITION_ID, _get_spawn_position_near_stack(target_stack.stack_id, spawn_index))
-			spawn_index += 1
-	state.rng_state = _rng.state
-
-	_emit(SimulationEvent.stack_changed(target_stack.stack_id))
-	return true
-
-func _are_all_money_cards(card_ids: PackedStringArray) -> bool:
-	if card_ids.is_empty():
-		return false
-	for card_id: String in card_ids:
-		var card: CardInstance = state.get_card(card_id)
-		if card == null or not _is_money_card(card):
-			return false
-	return true
-
-func _are_all_recyclable_cards(card_ids: PackedStringArray) -> bool:
-	if card_ids.is_empty():
-		return false
-	for card_id: String in card_ids:
-		var card: CardInstance = state.get_card(card_id)
-		if card == null or not _is_recyclable_card(card):
-			return false
-	return true
-
-func _are_all_freelance_feature_cards(card_ids: PackedStringArray) -> bool:
-	if card_ids.is_empty():
-		return false
-	for card_id: String in card_ids:
-		var card: CardInstance = state.get_card(card_id)
-		if card == null or not _is_freelance_feature_card(card):
-			return false
-	return true
-
-func _find_shop_card_in_stack(stack: StackState) -> CardInstance:
-	for card_id: String in stack.card_ids:
-		var card: CardInstance = state.get_card(card_id)
-		if card == null:
-			continue
-		var definition: CardDefinition = content.get_card_definition(card.definition_id)
-		if definition != null and definition.tags.has("shop"):
-			return card
-	return null
-
-func _is_recycling_bin_card(card: CardInstance) -> bool:
-	return card != null and card.definition_id == RECYCLING_BIN_DEFINITION_ID
-
-func _is_recyclable_card(card: CardInstance) -> bool:
-	if card == null:
-		return false
-	if not card.parent_card_id.is_empty():
-		return false
-	var definition: CardDefinition = content.get_card_definition(card.definition_id)
-	return definition != null and definition.tags.has(RECYCLABLE_TAG)
-
-func _is_freelance_feature_card(card: CardInstance) -> bool:
-	if card == null:
-		return false
-	if not card.parent_card_id.is_empty():
-		return false
-	return card.definition_id == FEATURE_DEFINITION_ID or card.definition_id == CHECKED_FEATURE_DEFINITION_ID
-
-func _get_shop_purchase(shop_card: CardInstance) -> Dictionary:
-	var definition: CardDefinition = content.get_card_definition(shop_card.definition_id)
-	if definition == null:
-		return {}
-
-	var booster_id: String = shop_card.values.get(BOOSTER_DEFINITION_ID_VALUE, "") as String
-	if booster_id.is_empty():
-		booster_id = definition.base_values.get(BOOSTER_DEFINITION_ID_VALUE, "") as String
-	if not booster_id.is_empty():
-		var booster: BoosterDefinition = content.get_booster_definition(booster_id)
-		if booster == null:
-			return {}
-		return {
-			"cost_money_cards": maxi(1, booster.cost_money_cards),
-			"spawned_card_definition_id": BOOSTER_PACK_DEFINITION_ID,
-			"values": {BOOSTER_DEFINITION_ID_VALUE: booster_id},
-		}
-
-	if definition.tags.has("bugfix_patch_slot"):
-		return {
-			"cost_money_cards": 1,
-			"spawned_card_definition_id": BUGFIX_PATCH_DEFINITION_ID,
-			"values": {},
-		}
-
-	return {}
+	return _shop_interactions.try_dump_freelance_feature_stack(
+		moving_card_ids,
+		target_stack,
+		_rng,
+		_get_freelance_money_card_count(),
+		_get_bug_chance(),
+		Callable(self, "_remove_card_instance"),
+		Callable(self, "_spawn_card_as_new_stack"),
+		Callable(self, "_get_spawn_position_near_stack"),
+		Callable(self, "_emit_stack_changed")
+	)
 
 func split_stack_from_card(card_id: String, new_position: Vector2) -> StackState:
 	_require_state()
@@ -629,14 +479,7 @@ func start_next_sprint() -> void:
 	if state.phase != ScopeEnums.RunPhase.PAYMENT:
 		return
 
-	_quit_unpaid_employees()
-	if _has_no_employees():
-		_enter_game_over()
-		return
-
-	state.sprint_index += 1
-	_run_sprint_start_effects()
-	if state.phase == ScopeEnums.RunPhase.GAME_OVER or state.phase == ScopeEnums.RunPhase.VICTORY:
+	if not _run_sprint_start_pipeline():
 		return
 	state.phase = ScopeEnums.RunPhase.SPRINT
 	state.is_paused = false
@@ -701,52 +544,20 @@ func _try_pay_employee_with_money(card: CardInstance, moving_card_ids: PackedStr
 	return true
 
 func _try_hire_offer_with_money_stack(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
-	if not _can_interact_with_board():
-		return false
-	if not _is_money_card(card):
-		return false
-	if not _are_all_money_cards(moving_card_ids):
-		return false
-	var offer: CardInstance = _find_offer_in_stack(target_stack)
-	if offer == null:
-		return false
-	var offer_definition: CardDefinition = content.get_card_definition(offer.definition_id)
-	if offer_definition == null:
-		return false
-	var target_employee_definition_id: String = offer.values.get("target_employee_card_definition_id", "") as String
-	if target_employee_definition_id.is_empty():
-		target_employee_definition_id = offer_definition.base_values.get("target_employee_card_definition_id", "") as String
-	if target_employee_definition_id.is_empty() or not content.has_card_definition(target_employee_definition_id):
-		return false
-
-	var hire_cost: int = _get_offer_hire_cost_money_cards()
-	if moving_card_ids.size() < hire_cost:
-		return false
-
-	var spawn_position: Vector2 = _get_spawn_position_near_stack(target_stack.stack_id, 0)
-	var leftover_position: Vector2 = _get_spawn_position_near_stack(target_stack.stack_id, 1)
-	var consumed_money_ids: PackedStringArray = PackedStringArray()
-	var leftover_money_ids: PackedStringArray = PackedStringArray()
-	for index: int in moving_card_ids.size():
-		if index < hire_cost:
-			consumed_money_ids.append(moving_card_ids[index])
-		else:
-			leftover_money_ids.append(moving_card_ids[index])
-
-	for consumed_money_id: String in consumed_money_ids:
-		_consume_money_card(consumed_money_id)
-	_remove_card_instance(offer.instance_id)
-
-	var employee: CardInstance = _spawn_card_as_new_stack(target_employee_definition_id, spawn_position)
-	if employee != null:
-		employee.values[SALARY_DUE_FROM_SPRINT_VALUE] = _get_salary_due_from_sprint_for_new_hire()
-		_spawn_attached_card(employee.instance_id, "card.blocker.onboarding", ONBOARDING_ATTACHMENT_SLOT)
-
-	if not leftover_money_ids.is_empty():
-		_move_existing_cards_to_new_stack(leftover_money_ids, leftover_position)
-
-	_refresh_payment_card_states()
-	return true
+	return _hiring_lifecycle.try_hire_offer_with_money_stack(
+		card,
+		moving_card_ids,
+		target_stack,
+		_get_offer_hire_cost_money_cards(),
+		_get_salary_due_from_sprint_for_new_hire(),
+		Callable(self, "_consume_money_card"),
+		Callable(self, "_remove_card_instance"),
+		Callable(self, "_spawn_card_as_new_stack"),
+		Callable(self, "_spawn_attached_card"),
+		Callable(self, "_move_existing_cards_to_new_stack"),
+		Callable(self, "_get_spawn_position_near_stack"),
+		Callable(self, "_refresh_payment_card_states")
+	)
 
 func _try_pay_business_goal_with_money(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
 	if not _is_money_card(card):
@@ -842,16 +653,24 @@ func _quit_unpaid_employees() -> void:
 			_cancel_processing(stack)
 		_remove_card_instance(employee_id)
 
-func _run_sprint_start_effects() -> void:
-	_form_prod_crashes_from_bugs()
-	_duplicate_remaining_bugs()
-	_expire_open_orders()
-	_expire_unused_external_devs()
-	_attach_unhappy_customers_from_old_requests()
-	_resolve_active_business_goal()
-	if state.phase == ScopeEnums.RunPhase.GAME_OVER or state.phase == ScopeEnums.RunPhase.VICTORY:
-		return
-	_spawn_persistent_tick_cards()
+func _run_sprint_start_pipeline() -> bool:
+	return _sprint_start_pipeline.run(
+		state,
+		Callable(self, "_quit_unpaid_employees"),
+		Callable(self, "_has_no_employees"),
+		Callable(self, "_enter_game_over"),
+		Callable(self, "_advance_sprint_index"),
+		Callable(self, "_form_prod_crashes_from_bugs"),
+		Callable(self, "_duplicate_remaining_bugs"),
+		Callable(self, "_expire_open_orders"),
+		Callable(self, "_expire_unused_external_devs"),
+		Callable(self, "_attach_unhappy_customers_from_old_requests"),
+		Callable(self, "_resolve_active_business_goal"),
+		Callable(self, "_spawn_persistent_tick_cards")
+	)
+
+func _advance_sprint_index() -> void:
+	state.sprint_index += 1
 
 func _form_prod_crashes_from_bugs() -> void:
 	var bug_ids: PackedStringArray = _find_card_ids_with_tag("bug")
@@ -972,15 +791,6 @@ func _find_business_goal_in_stack(stack: StackState) -> CardInstance:
 	for card_id: String in stack.card_ids:
 		var card: CardInstance = state.get_card(card_id)
 		if card != null and card.definition_id == BUSINESS_GOAL_DEFINITION_ID:
-			return card
-	return null
-
-func _find_offer_in_stack(stack: StackState) -> CardInstance:
-	if stack == null:
-		return null
-	for card_id: String in stack.card_ids:
-		var card: CardInstance = state.get_card(card_id)
-		if card != null and _is_offer_card(card):
 			return card
 	return null
 
@@ -1140,10 +950,6 @@ func _is_money_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
 	return definition != null and definition.tags.has("money")
 
-func _is_offer_card(card: CardInstance) -> bool:
-	var definition: CardDefinition = content.get_card_definition(card.definition_id)
-	return definition != null and definition.tags.has("offer")
-
 func _is_booster_pack_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
 	return definition != null and definition.tags.has("booster") and definition.tags.has("pack")
@@ -1204,6 +1010,9 @@ func _set_booster_pack_marker(booster_pack: CardInstance, remaining_count: int) 
 func _emit_all_stacks_changed() -> void:
 	for stack_id: String in state.stacks.keys():
 		_emit(SimulationEvent.stack_changed(stack_id))
+
+func _emit_stack_changed(stack_id: String) -> void:
+	_emit(SimulationEvent.stack_changed(stack_id))
 
 func _refresh_stack_recipe_if_present(stack_id: String) -> void:
 	if state.stacks.has(stack_id):
@@ -1381,50 +1190,10 @@ func _spawn_initial_customer_cards(customer: CardInstance) -> void:
 			request.values["spawned_sprint_index"] = state.sprint_index
 
 func _get_spawn_position_near_position(source_position: Vector2, spawn_index: int = 0) -> Vector2:
-	var temporary_source_stack: StackState = _create_stack(source_position)
-	var spawn_position: Vector2 = _get_spawn_position_near_stack(temporary_source_stack.stack_id, spawn_index)
-	state.stacks.erase(temporary_source_stack.stack_id)
-	return spawn_position
+	return _spawn_placement.get_spawn_position_near_position(source_position, spawn_index)
 
 func _find_auto_stack_spawn_target(definition: CardDefinition, position: Vector2) -> StackState:
-	if definition == null or not definition.auto_stack_on_spawn:
-		return null
-
-	var radius: float = _get_auto_stack_spawn_radius()
-	if radius <= 0.0:
-		return null
-
-	var best_stack: StackState = null
-	var best_distance: float = radius
-	for stack: StackState in state.stacks.values():
-		if _is_shop_stack(stack):
-			continue
-		if not _is_pure_stack_for_definition(stack, definition.id):
-			continue
-		var distance: float = stack.base_position.distance_to(position)
-		if distance <= best_distance:
-			best_distance = distance
-			best_stack = stack
-	return best_stack
-
-func _is_pure_stack_for_definition(stack: StackState, card_definition_id: String) -> bool:
-	if stack == null or stack.card_ids.is_empty():
-		return false
-
-	for card_id: String in stack.card_ids:
-		var card: CardInstance = state.get_card(card_id)
-		if card == null:
-			return false
-		if card.definition_id != card_definition_id:
-			return false
-		if not card.parent_card_id.is_empty():
-			return false
-	return true
-
-func _get_auto_stack_spawn_radius() -> float:
-	if content.balance == null:
-		return 180.0
-	return content.balance.auto_stack_spawn_radius
+	return _spawn_placement.find_auto_stack_spawn_target(definition, position)
 
 func _spawn_attached_card(parent_card_id: String, card_definition_id: String, attachment_slot: String) -> CardInstance:
 	if not content.has_card_definition(card_definition_id):
@@ -1618,169 +1387,13 @@ func _delete_stack_if_empty(stack: StackState) -> void:
 		state.stacks.erase(stack.stack_id)
 
 func _get_spawn_position_near_stack(source_stack_id: String, spawn_index: int = 0) -> Vector2:
-	_prune_stale_spawn_history()
-	var source_position: Vector2 = _get_spawn_source_position(source_stack_id)
-
-	var step_x: float = SPAWN_CARD_SIZE.x + SPAWN_GAP
-	var step_y: float = SPAWN_CARD_SIZE.y + SPAWN_GAP
-	var candidates: Array[Vector2] = []
-	var directions: Array[Vector2] = [
-		Vector2.RIGHT,
-		Vector2.DOWN,
-		Vector2.LEFT,
-		Vector2.UP,
-		Vector2(1.0, 1.0),
-		Vector2(-1.0, 1.0),
-		Vector2(1.0, -1.0),
-		Vector2(-1.0, -1.0),
-	]
-
-	var radius: float = 160.0
-	if content.balance != null:
-		radius = maxf(radius, content.balance.spawn_placement_radius)
-	for ring: int in SPAWN_SEARCH_RINGS:
-		var ring_distance: Vector2 = Vector2(radius + float(ring) * step_x, radius + float(ring) * step_y)
-		for direction: Vector2 in directions:
-			candidates.append(source_position + Vector2(direction.x * ring_distance.x, direction.y * ring_distance.y))
-
-	var spawn_row: int = floori(float(spawn_index) / 4.0)
-	var spawn_column: int = spawn_index % 4
-	if spawn_index > 0:
-		candidates.append(source_position + Vector2(float(spawn_column + 1) * step_x, float(spawn_row) * step_y))
-
-	for candidate: Vector2 in candidates:
-		if not _does_spawn_overlap(candidate):
-			state.board.spawn_history.append(candidate)
-			return candidate
-
-	var grid_position: Vector2 = _find_free_spawn_grid_position(source_position)
-	if grid_position != INVALID_SPAWN_POSITION:
-		state.board.spawn_history.append(grid_position)
-		return grid_position
-
-	var fallback: Vector2 = _clamp_spawn_position_to_board(source_position + Vector2(step_x * float(spawn_index + 1), step_y))
-	state.board.spawn_history.append(fallback)
-	return fallback
+	return _spawn_placement.get_spawn_position_near_stack(source_stack_id, spawn_index)
 
 func _prune_stale_spawn_history() -> void:
-	if state == null or state.board.spawn_history.is_empty():
-		return
-
-	var active_history: Array[Vector2] = []
-	for previous_position: Vector2 in state.board.spawn_history:
-		if _is_spawn_history_position_occupied(previous_position):
-			active_history.append(previous_position)
-	state.board.spawn_history = active_history
-
-func _is_spawn_history_position_occupied(position: Vector2) -> bool:
-	var history_rect: Rect2 = Rect2(position, SPAWN_CARD_SIZE)
-	for stack: StackState in state.stacks.values():
-		if _is_shop_stack(stack):
-			continue
-		if history_rect.intersects(_get_stack_rect(stack)):
-			return true
-	return false
-
-func _does_spawn_overlap(position: Vector2) -> bool:
-	var spawn_rect: Rect2 = Rect2(position, SPAWN_CARD_SIZE)
-	if not _get_spawn_bounds().encloses(spawn_rect):
-		return true
-	for reserved_area: Rect2 in state.board.reserved_areas:
-		if spawn_rect.intersects(reserved_area):
-			return true
-	for previous_position: Vector2 in state.board.spawn_history:
-		if spawn_rect.intersects(Rect2(previous_position, SPAWN_CARD_SIZE)):
-			return true
-	for stack: StackState in state.stacks.values():
-		if _is_shop_stack(stack):
-			continue
-		if spawn_rect.intersects(_get_stack_rect(stack)):
-			return true
-	return false
-
-func _get_spawn_source_position(source_stack_id: String) -> Vector2:
-	if not state.stacks.has(source_stack_id):
-		return Vector2.ZERO
-
-	var source_stack: StackState = _get_existing_stack(source_stack_id)
-	if _is_shop_stack(source_stack):
-		return _get_shop_spawn_source_position()
-	return source_stack.base_position
-
-func _get_shop_spawn_source_position() -> Vector2:
-	var safe_zoom: float = 1.0
-	if state.board.camera_zoom.x > 0.0:
-		safe_zoom = state.board.camera_zoom.x
-	var visible_size: Vector2 = BoardState.INITIAL_VIEWPORT_SIZE / safe_zoom
-	var source_position: Vector2 = state.board.camera_position + Vector2(
-		0.0,
-		visible_size.y * 0.5 - SPAWN_CARD_SIZE.y - 160.0
-	)
-	return _clamp_spawn_position_to_board(source_position)
+	_spawn_placement.prune_stale_spawn_history()
 
 func _is_shop_stack(stack: StackState) -> bool:
-	if stack == null:
-		return false
-	for card_id: String in stack.card_ids:
-		var card: CardInstance = state.get_card(card_id)
-		if card == null:
-			continue
-		var definition: CardDefinition = content.get_card_definition(card.definition_id)
-		if definition != null and definition.tags.has("shop"):
-			return true
-	return false
-
-func _get_spawn_bounds() -> Rect2:
-	var board_size: Vector2 = state.board.size
-	var available_size: Vector2 = Vector2(
-		maxf(SPAWN_CARD_SIZE.x, board_size.x - SPAWN_BOARD_MARGIN * 2.0),
-		maxf(SPAWN_CARD_SIZE.y, board_size.y - SPAWN_BOARD_MARGIN * 2.0)
-	)
-	return Rect2(Vector2(SPAWN_BOARD_MARGIN, SPAWN_BOARD_MARGIN), available_size)
-
-func _clamp_spawn_position_to_board(position: Vector2) -> Vector2:
-	var bounds: Rect2 = _get_spawn_bounds()
-	return Vector2(
-		clampf(position.x, bounds.position.x, bounds.end.x - SPAWN_CARD_SIZE.x),
-		clampf(position.y, bounds.position.y, bounds.end.y - SPAWN_CARD_SIZE.y)
-	)
-
-func _find_free_spawn_grid_position(source_position: Vector2) -> Vector2:
-	var bounds: Rect2 = _get_spawn_bounds()
-	var step: Vector2 = SPAWN_CARD_SIZE + Vector2(SPAWN_GAP, SPAWN_GAP)
-	var column_count: int = maxi(1, floori((bounds.size.x - SPAWN_CARD_SIZE.x) / step.x) + 1)
-	var row_count: int = maxi(1, floori((bounds.size.y - SPAWN_CARD_SIZE.y) / step.y) + 1)
-	var candidates: Array[Vector2] = []
-	for row: int in row_count:
-		for column: int in column_count:
-			candidates.append(bounds.position + Vector2(float(column) * step.x, float(row) * step.y))
-
-	candidates.sort_custom(func(left: Vector2, right: Vector2) -> bool:
-		return left.distance_squared_to(source_position) < right.distance_squared_to(source_position)
-	)
-
-	for candidate: Vector2 in candidates:
-		if not _does_spawn_overlap(candidate):
-			return candidate
-	return INVALID_SPAWN_POSITION
-
-func _get_stack_rect(stack: StackState) -> Rect2:
-	if stack.card_ids.is_empty():
-		return Rect2(stack.base_position, SPAWN_CARD_SIZE)
-
-	var stack_offset: Vector2 = Vector2(0.0, 40.0)
-	if content.balance != null:
-		stack_offset = content.balance.stack_offset
-	var bottom_position: Vector2 = stack.base_position + stack_offset * float(stack.card_ids.size() - 1)
-	var min_position: Vector2 = Vector2(
-		minf(stack.base_position.x, bottom_position.x),
-		minf(stack.base_position.y, bottom_position.y)
-	)
-	var max_position: Vector2 = Vector2(
-		maxf(stack.base_position.x + SPAWN_CARD_SIZE.x, bottom_position.x + SPAWN_CARD_SIZE.x),
-		maxf(stack.base_position.y + SPAWN_CARD_SIZE.y, bottom_position.y + SPAWN_CARD_SIZE.y)
-	)
-	return Rect2(min_position, max_position - min_position)
+	return _spawn_placement.is_shop_stack(stack)
 
 func _get_sprint_duration() -> float:
 	if content.balance == null:

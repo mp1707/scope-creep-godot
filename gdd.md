@@ -837,11 +837,13 @@ Teambuilding + Team → Burnout am Team entfernt + verlorene Zeit
 Erzeugt neue Mitarbeiter.
 
 ```text
-Hiring + Geld → Kandidat
-Kandidat + Gespräch → Mitarbeiter / Absage
+Talent-Pool + Geld → Bewerber oder Werkstudent
+Bewerber + Gespräch → Angebot / Absage
+Angebot + Geld → Mitarbeiter mit Onboarding
+Mitarbeiter + Onboarding → produktiver Mitarbeiter
 ```
 
-Im Early Game kann man einfache Mitarbeiter über Einzelkauf im Shop holen. Boosterpacks (Talent-Pool) sind die Glücks-Variante mit höherer Vielfalt.
+Der aktuelle Zielpfad fuer Teamwachstum laeuft ueber sichtbare Bewerber, Angebote und Onboarding. Direkte Mitarbeiterkaeufe sind nicht Teil des aktuellen PoC-Standes.
 
 ---
 
@@ -1155,7 +1157,7 @@ Spieler darf alle 3 Karten aus einem geöffneten Pack behalten. Boosterpacks sin
 | ----------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **Gründerpaket**  | Idee, Entwickler, Kaffee, kleines Geld                                    | günstiger Early-Game-Restock                                    |
 | **Office-Invest** | Pizza Party, Stressbewältigungskurs, Konfliktworkshop, Kaffeemaschine, Kaffee, Teambuilding | Mitarbeiter gesund halten und Konflikte lösen                   |
-| **Talent-Pool**   | Entwickler, Product Owner, Tester, Support, Designer                      | gezieltes Hiring (mit Glücksfaktor)                             |
+| **Talent-Pool**   | Bewerber für Entwickler/Product Owner/Tester/Recruiter und Werkstudenten  | gezieltes Hiring über Interview, Angebot und Onboarding         |
 | **Hot Fix Kit**   | Externer Dev, Code aufräumen, Testlauf                                    | Krisen-Pack für Bug-Stau                                        |
 | **Kundenchaos**   | Kunde, Auftrag, Kundenwunsch                                              | Wertquelle: mehr Nachfrage = mehr Umsatz, wenn man liefern kann |
 
@@ -1163,7 +1165,7 @@ Spieler darf alle 3 Karten aus einem geöffneten Pack behalten. Boosterpacks sin
 
 ### 13.3 Einzelkarten-Shop
 
-Daneben gibt es weiterhin Einzelkarten zum Festpreis (Mitarbeiter-Hire, Idee-Karten, Geld-Boosts, **Bugfix-Patch für 1 Geld**). Boosterpacks sind die Glücks-/Strategie-Wahl, Einzelkauf die deterministische.
+Daneben gibt es weiterhin einzelne feste Shop-Slots fuer gezielte Hilfen, aktuell vor allem **Bugfix-Patch fuer 1 Geld**. Mitarbeiter-Hiring laeuft im aktuellen PoC nicht ueber direkten Einzelkauf, sondern ueber Talent-Pool, Bewerbungsgespraech, Angebot und Onboarding.
 
 ### 13.4 Kaufinteraktion
 

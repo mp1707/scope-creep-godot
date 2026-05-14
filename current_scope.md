@@ -370,6 +370,7 @@ Vorhanden sind:
 - direkter Feature-Loop und saubere Product-Owner-/Tester-Pipeline
 - Problemwirtschaft mit Bugs, Tech Debt, Prod-Crash und Burnout
 - Booster-/Shop-System mit deterministischem RNG
+- Shop-Kaeufe als Instant-Interaktionen ueber permanente Shop-Slot-Karten; alte Shop-Kauf-Recipes und separate ShopDefinition-Resources sind entfernt
 - Hiring-Pipeline mit Bewerbern, Interviews, Angeboten und Onboarding
 - Recruiter als Hiring-Spezialist
 - Werkstudent als temporaere, gehaltsfreie Hilfskraft
@@ -393,9 +394,16 @@ Noch nicht vorhanden oder noch nicht final sind:
 Technische/Design-Schulden, die bewusst bleiben:
 
 - Balancewerte sind Startwerte fuer Playtests.
+- `RunController` bleibt die Application-Fassade fuer Simulation-Commands, ist aber nach dem Cleanup bereits in Services fuer Shop, Hiring, Sprintstart und Spawn-Placement geschnitten.
 - Recruiter-Fallbacks fuer normale Arbeit sind langsam und datengetrieben, aber noch nicht das finale "Jeder kann alles"-System.
 - Einige alte Detailtests sind nicht mehr der aktuelle Gesamtcheck, weil spaetere Regeln sie bewusst ersetzt haben.
 - Presentation-Lesbarkeit von Bewerbern, Angeboten, Onboarding, Recruiter und Werkstudent muss im Editor weiter bewertet werden.
+
+Cleanup-Stand:
+
+- Content-Version: `poc_cleanup1`; alte `poc5`-Saves werden wegen entfernter Shop-Recipe-IDs nicht still geladen.
+- Entfernt wurden die alten Shop-Kauf-Recipes fuer Booster-Slot, Talent-Pool-Slot und Bugfix-Patch-Slot sowie die nicht mehr genutzte `ShopDefinition`-/`ShopEntryDefinition`-Schicht.
+- `CardView` rendert keine eigenen Progress-Controls mehr; aktive Bearbeitung bleibt ein Stack-Element in `BoardView`.
 
 ## Aktuelle Playtest-Fragen
 

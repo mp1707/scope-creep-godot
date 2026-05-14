@@ -4,7 +4,6 @@ extends RefCounted
 const CARD_DIR: String = "res://data/cards"
 const RECIPE_DIR: String = "res://data/recipes"
 const BOOSTER_DIR: String = "res://data/boosters"
-const SHOP_DIR: String = "res://data/shops"
 const BALANCE_DIR: String = "res://data/balance"
 const POC2_REQUIRED_CARD_TAGS: Dictionary = {
 	"card.employee.product_owner": ["employee", "product_owner"],
@@ -77,23 +76,17 @@ const POC3_ACTIVE_BOOSTER_SLOT_TARGETS: Dictionary = {
 	"card.shop.booster_slot.customer_chaos": "booster.customer_chaos",
 }
 const POC3_REQUIRED_RECIPE_IDS: Array[String] = [
-	"recipe.booster_pack_from_money.slot",
-	"recipe.bugfix_patch_from_money.slot",
 	"recipe.launch_software.developer",
 	"recipe.demo_customer.developer",
 	"recipe.feedback_from_customer.product_owner",
 ]
 const POC4_TALENT_POOL_ID: String = "booster.talent_pool"
-const POC4_TALENT_POOL_SLOT_ID: String = "card.shop.booster_slot.talent_pool"
 const POC4_TALENT_POOL_ALLOWED_CARDS: Array[String] = [
 	"card.candidate.developer",
 	"card.candidate.product_owner",
 	"card.candidate.tester",
 	"card.candidate.recruiter",
 	"card.temp_worker.work_student",
-]
-const POC4_REQUIRED_RECIPE_IDS: Array[String] = [
-	"recipe.booster_pack_from_two_money.talent_pool_slot",
 ]
 const POC4_HIRING_RECIPE_IDS: Array[String] = [
 	"recipe.interview_candidate.regular_employee",
@@ -166,7 +159,6 @@ func validate_content() -> PackedStringArray:
 	var cards: Array = _load_resources(CARD_DIR, CardDefinition)
 	var recipes: Array = _load_resources(RECIPE_DIR, RecipeDefinition)
 	var boosters: Array = _load_resources(BOOSTER_DIR, BoosterDefinition)
-	var shops: Array = _load_resources(SHOP_DIR, ShopDefinition)
 	var balances: Array = _load_resources(BALANCE_DIR, BalanceDefinition)
 
 	for card_resource: Resource in cards:
@@ -189,9 +181,6 @@ func validate_content() -> PackedStringArray:
 	for booster_resource: Resource in boosters:
 		_validate_booster(booster_resource as BoosterDefinition)
 	_validate_poc4_booster_rules()
-
-	for shop_resource: Resource in shops:
-		_validate_shop(shop_resource as ShopDefinition)
 
 	for balance_resource: Resource in balances:
 		_validate_balance(balance_resource as BalanceDefinition)
@@ -499,16 +488,6 @@ func _validate_poc4_recipe_patterns(recipes: Array) -> void:
 		if recipe != null:
 			recipes_by_id[recipe.id] = recipe
 
-	for recipe_id: String in POC4_REQUIRED_RECIPE_IDS:
-		if not recipes_by_id.has(recipe_id):
-			_errors.append("PoC4 requires recipe '%s'." % recipe_id)
-			continue
-		var recipe: RecipeDefinition = recipes_by_id[recipe_id] as RecipeDefinition
-		if not _recipe_has_input_count(recipe, "card.resource.money", 2):
-			_errors.append("%s: PoC4 recipe '%s' needs 2 money inputs." % [recipe.resource_path, recipe.id])
-		if not _recipe_has_card_input(recipe, POC4_TALENT_POOL_SLOT_ID):
-			_errors.append("%s: PoC4 recipe '%s' needs the Talent-Pool slot input." % [recipe.resource_path, recipe.id])
-
 	for recipe_id: String in POC4_HIRING_RECIPE_IDS:
 		if not recipes_by_id.has(recipe_id):
 			_errors.append("PoC4 requires recipe '%s'." % recipe_id)
@@ -554,12 +533,6 @@ func _validate_poc4_recipe_patterns(recipes: Array) -> void:
 			_errors.append("%s: PoC4 onboarding recipe needs regular_employee and onboarding inputs." % onboarding_recipe.resource_path)
 		if not _recipe_removes_card(onboarding_recipe, "card.blocker.onboarding"):
 			_errors.append("%s: PoC4 onboarding recipe must remove only the onboarding card." % onboarding_recipe.resource_path)
-
-func _recipe_has_input_count(recipe: RecipeDefinition, card_definition_id: String, count: int) -> bool:
-	for input: RecipeInputMatcher in recipe.inputs:
-		if input != null and input.card_definition_id == card_definition_id and input.count == count:
-			return true
-	return false
 
 func _recipe_has_required_input(recipe: RecipeDefinition, required_input: String) -> bool:
 	if required_input.begins_with("tag:"):
@@ -697,27 +670,6 @@ func _validate_poc4_booster_rules() -> void:
 	for required_card_id: String in POC4_TALENT_POOL_ALLOWED_CARDS:
 		if not seen_allowed_cards.has(required_card_id):
 			_errors.append("%s: PoC4 Talent-Pool needs pool card '%s'." % [booster.resource_path, required_card_id])
-
-func _validate_shop(shop: ShopDefinition) -> void:
-	var path: String = shop.resource_path
-	if shop.entries.is_empty():
-		_errors.append("%s: Shop '%s' needs at least one entry." % [path, shop.id])
-
-	for entry: ShopEntryDefinition in shop.entries:
-		if entry == null:
-			_errors.append("%s: Shop '%s' has an empty entry." % [path, shop.id])
-			continue
-		if entry.display_name.strip_edges().is_empty():
-			_errors.append("%s: Shop entry '%s' needs display_name." % [path, entry.id])
-		if entry.cost_money_cards < 0:
-			_errors.append("%s: Shop entry '%s' has negative cost." % [path, entry.id])
-		if not entry.card_definition_id.is_empty() and not _card_ids.has(entry.card_definition_id):
-			_errors.append("%s: Shop entry '%s' references missing card '%s'." % [path, entry.id, entry.card_definition_id])
-		if not entry.booster_definition_id.is_empty() and not _booster_ids.has(entry.booster_definition_id):
-			_errors.append("%s: Shop entry '%s' references missing booster '%s'." % [path, entry.id, entry.booster_definition_id])
-		if entry.card_definition_id.is_empty() and entry.booster_definition_id.is_empty() and entry.effects_on_buy.is_empty():
-			_errors.append("%s: Shop entry '%s' needs a card, booster, or buy effect." % [path, entry.id])
-		_validate_effects(path, entry.id, entry.effects_on_buy)
 
 func _validate_balance(balance: BalanceDefinition) -> void:
 	var path: String = balance.resource_path

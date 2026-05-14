@@ -32,8 +32,6 @@ const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/
 @export var icon_texture_rect_path: NodePath
 @export var short_text_label_path: NodePath
 @export var marker_label_path: NodePath
-@export var progress_bar_path: NodePath
-@export var action_label_path: NodePath
 
 var card_id: String = ""
 var stack_id: String = ""
@@ -45,8 +43,6 @@ var _title_label: Label = null
 var _icon_texture_rect: TextureRect = null
 var _short_text_label: Label = null
 var _marker_label: Label = null
-var _progress_bar: ProgressBar = null
-var _action_label: Label = null
 var _default_marker_text: String = ""
 var _card_font: FontFile = null
 var _icon_mask_material: ShaderMaterial = null
@@ -68,10 +64,9 @@ func setup(card: CardInstance, definition: CardDefinition, stack: StackState) ->
 	_apply_definition(definition)
 	update_runtime(card, stack, definition)
 
-func update_runtime(card: CardInstance, stack: StackState, definition: CardDefinition = null) -> void:
+func update_runtime(card: CardInstance, _stack: StackState, definition: CardDefinition = null) -> void:
 	card_id = card.instance_id
 	stack_id = card.stack_id
-	_update_progress(stack)
 	_update_runtime_marker(card, definition)
 	_update_runtime_short_text(card, definition)
 	_update_runtime_tint(card)
@@ -125,10 +120,6 @@ func _resolve_or_create_nodes() -> void:
 		_short_text_label = get_node_or_null(short_text_label_path) as Label
 	if _marker_label == null:
 		_marker_label = get_node_or_null(marker_label_path) as Label
-	if _progress_bar == null:
-		_progress_bar = get_node_or_null(progress_bar_path) as ProgressBar
-	if _action_label == null:
-		_action_label = get_node_or_null(action_label_path) as Label
 
 	if _shadow == null:
 		_shadow = get_node_or_null("DragShadow") as Control
@@ -171,16 +162,6 @@ func _resolve_or_create_nodes() -> void:
 	if _short_text_label == null:
 		_short_text_label = _create_label("ShortTextLabel", Vector2(12.0, 74.0), Vector2(120.0, 62.0), HORIZONTAL_ALIGNMENT_LEFT)
 		_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	if _progress_bar == null:
-		_progress_bar = ProgressBar.new()
-		_progress_bar.name = "ProgressBar"
-		_progress_bar.position = Vector2(12.0, 148.0)
-		_progress_bar.size = Vector2(120.0, 12.0)
-		_progress_bar.show_percentage = false
-		_progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(_progress_bar)
-	if _action_label == null:
-		_action_label = _create_label("ActionLabel", Vector2(12.0, 164.0), Vector2(120.0, 20.0), HORIZONTAL_ALIGNMENT_CENTER)
 	move_child(_shadow, 0)
 	move_child(_background, 1)
 	move_child(_header_band, 2)
@@ -188,8 +169,6 @@ func _resolve_or_create_nodes() -> void:
 	move_child(_title_label, 4)
 	move_child(_marker_label, 5)
 	move_child(_short_text_label, 6)
-	move_child(_progress_bar, 7)
-	move_child(_action_label, 8)
 	if not _layout_initialized:
 		_apply_default_layout()
 		_layout_initialized = true
@@ -259,14 +238,6 @@ func _apply_default_layout() -> void:
 	if _card_font != null:
 		_short_text_label.add_theme_font_override("font", _card_font)
 	_short_text_label.add_theme_font_size_override("font_size", 22)
-	_set_top_left_layout(_progress_bar)
-	_progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_progress_bar.position = Vector2(12.0, 148.0)
-	_progress_bar.size = Vector2(120.0, 12.0)
-	_set_top_left_layout(_action_label)
-	_action_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_action_label.position = Vector2(12.0, 164.0)
-	_action_label.size = Vector2(120.0, 20.0)
 
 func _make_custom_tooltip(for_text: String) -> Object:
 	var panel: PanelContainer = PanelContainer.new()
@@ -338,7 +309,7 @@ func _apply_definition(definition: CardDefinition) -> void:
 	_default_marker_text = visual.marker_text
 	_apply_icon_style(visual)
 	_short_text_label.visible = false
-	for label: Label in [_title_label, _short_text_label, _marker_label, _action_label]:
+	for label: Label in [_title_label, _short_text_label, _marker_label]:
 		label.add_theme_color_override("font_color", visual.text_color)
 	_marker_label.add_theme_color_override("font_color", STATUS_BADGE_TEXT_COLOR)
 
@@ -446,12 +417,6 @@ func _reset_spawn_transform() -> void:
 	_spawn_tween = null
 	pivot_offset = Vector2.ZERO
 	scale = Vector2.ONE
-
-func _update_progress(_stack: StackState) -> void:
-	_progress_bar.visible = false
-	_progress_bar.value = 0.0
-	_action_label.visible = false
-	_action_label.text = ""
 
 func _update_runtime_marker(card: CardInstance, definition: CardDefinition) -> void:
 	if card.state == null:

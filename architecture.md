@@ -84,6 +84,15 @@ Zustaendig fuer:
 - Anwendung von Simulation-Events auf Presentation
 - globale Pause und Run-Lifecycle
 
+### Aktuelle Simulation-Services
+
+`RunController` bleibt die Fassade fuer Application-Commands. Fachliche Teilbereiche werden in kleine Services ausgelagert:
+
+- `ShopInteractionService`: Instant-Shop-Kaeufe, Freelance-Dump, Recycling und gemeinsame Drop-Regeln fuer Board und Shop-Dock.
+- `HiringLifecycleService`: Angebot bezahlen, Ziel-Mitarbeiter bestimmen, Onboarding-Attachment und erste Gehaltsfaelligkeit anwenden.
+- `SprintStartPipelineService`: GDD-kritische Sprintstart-Reihenfolge zentral ausfuehren.
+- `SpawnPlacementService`: freie Spawn-Positionen und `auto_stack_on_spawn` deterministisch berechnen.
+
 ## 3. Zielstruktur
 
 Die Zielstruktur ist eine Empfehlung fuer die langfristige Organisation. Sie muss nicht vollstaendig existieren, bevor der erste Slice gebaut wird.
@@ -93,7 +102,6 @@ res://data/cards/
 res://data/recipes/
 res://data/effects/
 res://data/boosters/
-res://data/shops/
 res://data/balance/
 
 res://scenes/application/
@@ -259,20 +267,22 @@ Fachliche Grenzen:
 - Onboarding ist eine angeheftete Blocker-Karte mit eigenem Slot `onboarding`; es blockiert Arbeit, aber nicht Gehalt.
 - Interview-Erfolg nutzt deterministische Run-RNG-Effects und darf nicht in UI-Code entschieden werden.
 
-PoC5 setzt die Content-Version auf `poc5`. Alte `poc4`-Saves werden ohne explizite Migration nicht geladen, weil die Kundenwunsch-Pipeline und entfernte Content-IDs sonst still fehlen wuerden.
+Der Cleanup-Build setzt die Content-Version auf `poc_cleanup1`. Alte `poc5`-Saves werden ohne explizite Migration nicht geladen, weil die alten Shop-Kauf-Recipe-IDs entfernt wurden und sonst aktive Processing-Referenzen still fehlen koennten.
 
 Pool-Eintraege referenzieren `CardDefinition`-IDs und Gewichte. Booster-Ziehungen laufen ueber den Run-RNG, damit Tests und Save/Load deterministisch bleiben.
 
-### ShopDefinition
+### Shop-Slots
 
-Shops sind ebenfalls datengetrieben. Einzelkarten-Shop und Booster-Slot sind Varianten desselben Kaufmodells.
+Der aktuelle Shop ist ueber permanente Shop-Slot-Karten modelliert, nicht ueber separate `ShopDefinition`-Resources. Ein Shop-Slot ist eine normale `CardDefinition` mit `shop`-Tag und optionalen `base_values` wie `booster_definition_id` oder `shop_dock_order`.
 
-Mindestfelder:
+Fachliche Regeln:
 
-- `id: String`
-- `entries: Array[ShopEntryDefinition]`
+- Geld auf Booster-Slot erzeugt sofort ein Boosterpack mit der referenzierten BoosterDefinition.
+- Geld auf Patch-Slot erzeugt sofort einen Bugfix-Patch.
+- Feature-Karten auf Freelance-Slot werden sofort in einzelne Geldkarten umgewandelt und nutzen denselben Bug-Roll wie ungepruefte Releases.
+- Resteverwertung verbraucht die obersten 3 `recyclable`-Karten und erzeugt 1 Geldkarte.
 
-Ein `ShopEntryDefinition` enthaelt Kosten in 1-Geld-Karten, Zielkarte oder Booster, Verfuegbarkeitsbedingungen und optionale Kauf-Effects.
+Diese Interaktionen sind Simulation-Commands, keine Processing-Recipes. `ShopInteractionService` kapselt Kauf-, Recycling- und Drop-Regeln; Presentation darf nur fragen, ob ein Drop visuell erlaubt ist.
 
 ### BalanceDefinition
 

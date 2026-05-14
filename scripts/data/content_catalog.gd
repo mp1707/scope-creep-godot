@@ -4,24 +4,20 @@ extends RefCounted
 const CARD_DIR: String = "res://data/cards"
 const RECIPE_DIR: String = "res://data/recipes"
 const BOOSTER_DIR: String = "res://data/boosters"
-const SHOP_DIR: String = "res://data/shops"
 const BALANCE_PATH: String = "res://data/balance/poc_default.tres"
 
 var cards: Dictionary = {}
 var recipes: Dictionary = {}
 var boosters: Dictionary = {}
-var shops: Dictionary = {}
 var balance: BalanceDefinition = null
 
 func load_default_content() -> bool:
 	cards.clear()
 	recipes.clear()
 	boosters.clear()
-	shops.clear()
 	_load_cards(CARD_DIR)
 	_load_recipes(RECIPE_DIR)
 	_load_boosters(BOOSTER_DIR)
-	_load_shops(SHOP_DIR)
 	balance = ResourceLoader.load(BALANCE_PATH) as BalanceDefinition
 	apply_balance_overrides()
 	return not cards.is_empty() and not recipes.is_empty() and not boosters.is_empty() and balance != null
@@ -46,9 +42,6 @@ func get_booster_definition(booster_id: String) -> BoosterDefinition:
 
 func has_booster_definition(booster_id: String) -> bool:
 	return boosters.has(booster_id)
-
-func get_shop_definition(shop_id: String) -> ShopDefinition:
-	return shops.get(shop_id, null) as ShopDefinition
 
 func apply_balance_overrides() -> void:
 	if balance == null:
@@ -131,24 +124,5 @@ func _load_boosters(directory_path: String) -> void:
 				var booster: BoosterDefinition = ResourceLoader.load(path) as BoosterDefinition
 				if booster != null:
 					boosters[booster.id] = booster
-		file_name = directory.get_next()
-	directory.list_dir_end()
-
-func _load_shops(directory_path: String) -> void:
-	var directory: DirAccess = DirAccess.open(directory_path)
-	if directory == null:
-		return
-
-	directory.list_dir_begin()
-	var file_name: String = directory.get_next()
-	while not file_name.is_empty():
-		if not file_name.begins_with("."):
-			var path: String = "%s/%s" % [directory_path, file_name]
-			if directory.current_is_dir():
-				_load_shops(path)
-			elif file_name.ends_with(".tres") or file_name.ends_with(".res"):
-				var shop: ShopDefinition = ResourceLoader.load(path) as ShopDefinition
-				if shop != null:
-					shops[shop.id] = shop
 		file_name = directory.get_next()
 	directory.list_dir_end()

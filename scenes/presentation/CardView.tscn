@@ -11,8 +11,6 @@ title_label_path = NodePath("TitleLabel")
 icon_texture_rect_path = NodePath("IconTextureRect")
 short_text_label_path = NodePath("ShortTextLabel")
 marker_label_path = NodePath("MarkerLabel")
-progress_bar_path = NodePath("ProgressBar")
-action_label_path = NodePath("ActionLabel")
 metadata/_custom_type_script = "uid://btde6a6hcp0h4"
 
 [node name="Background" type="Panel" parent="." unique_id=435676595]
@@ -44,16 +42,6 @@ offset_right = 40.0
 offset_bottom = 23.0
 
 [node name="ShortTextLabel" type="Label" parent="." unique_id=658137327]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-
-[node name="ProgressBar" type="ProgressBar" parent="." unique_id=526595308]
-layout_mode = 0
-offset_right = 4.0
-offset_bottom = 27.0
-
-[node name="ActionLabel" type="Label" parent="." unique_id=1241109862]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0

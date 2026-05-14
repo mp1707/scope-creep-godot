@@ -4,11 +4,8 @@ extends Control
 const SHOP_DOCK_Z: int = 100
 const SHOP_HOVER_Z_OFFSET: int = 100
 const SHOP_ORDER_VALUE: String = "shop_dock_order"
-const RECYCLING_BIN_DEFINITION_ID: String = "card.shop.recycling_bin"
-const FREELANCE_SLOT_DEFINITION_ID: String = "card.shop.freelance_order"
-const RECYCLABLE_TAG: String = "recyclable"
-const RECYCLING_CARD_COUNT: int = 3
 const ShopDockSlotScript: Script = preload("res://scripts/presentation/shop_dock_slot.gd")
+const ShopInteractionServiceScript: Script = preload("res://scripts/simulation/shop_interaction_service.gd")
 
 @export var card_view_scene: PackedScene
 @export var card_size: Vector2 = Vector2(144.0, 196.0)
@@ -26,6 +23,7 @@ var content: ContentCatalog = null
 var _card_views: Dictionary = {}
 var _base_positions: Dictionary = {}
 var _hovered_stack_id: String = ""
+var _shop_interactions: RefCounted = ShopInteractionServiceScript.new()
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -38,6 +36,7 @@ func _ready() -> void:
 func bind_run(run_state: RunState, content_catalog: ContentCatalog) -> void:
 	state = run_state
 	content = content_catalog
+	_shop_interactions.setup(state, content)
 	refresh()
 
 func apply_events(_events: Array[SimulationEvent]) -> void:
@@ -64,7 +63,7 @@ func find_drop_stack_id(card_id: String, viewport_position: Vector2, moving_card
 		var shop_card: CardInstance = state.get_card(shop_card_id)
 		if view == null or shop_card == null:
 			continue
-		if _get_drop_rect(view).has_point(viewport_position) and _can_drop_card_on_shop(card_id, moving_card_count, shop_card):
+		if _get_drop_rect(view).has_point(viewport_position) and _shop_interactions.can_drop_card_on_shop(card_id, moving_card_count, shop_card):
 			stack_id = shop_card.stack_id
 			break
 
@@ -226,90 +225,6 @@ func _get_shop_order(card_id: String) -> int:
 	if definition == null:
 		return 100000
 	return definition.display_name.hash()
-
-func _can_drop_card_on_shop(card_id: String, moving_card_count: int, shop_card: CardInstance) -> bool:
-	if state == null or content == null:
-		return false
-	if moving_card_count < 1:
-		return false
-	if state.phase != ScopeEnums.RunPhase.SPRINT and state.phase != ScopeEnums.RunPhase.PAYMENT:
-		return false
-
-	var card: CardInstance = state.get_card(card_id)
-	if card == null:
-		return false
-
-	var moving_card_ids: PackedStringArray = _get_moving_card_ids(card_id)
-	if moving_card_ids.size() != moving_card_count:
-		return false
-	if _is_recycling_bin_card(shop_card):
-		return moving_card_ids.size() >= RECYCLING_CARD_COUNT and _are_all_cards_tagged(moving_card_ids, RECYCLABLE_TAG)
-	if _is_freelance_slot_card(shop_card):
-		return _are_all_freelance_feature_cards(moving_card_ids)
-
-	return _are_all_cards_tagged(moving_card_ids, "money") and moving_card_ids.size() >= _get_shop_purchase_cost(shop_card)
-
-func _get_moving_card_ids(card_id: String) -> PackedStringArray:
-	var result: PackedStringArray = PackedStringArray()
-	var card: CardInstance = state.get_card(card_id)
-	if card == null:
-		return result
-	var stack: StackState = state.get_stack(card.stack_id)
-	if stack == null:
-		return result
-	var start_index: int = stack.card_ids.find(card_id)
-	if start_index < 0:
-		return result
-	for index: int in range(start_index, stack.card_ids.size()):
-		result.append(stack.card_ids[index])
-	return result
-
-func _are_all_cards_tagged(card_ids: PackedStringArray, tag: String) -> bool:
-	if card_ids.is_empty():
-		return false
-	for card_id: String in card_ids:
-		var card: CardInstance = state.get_card(card_id)
-		if card == null:
-			return false
-		var definition: CardDefinition = content.get_card_definition(card.definition_id)
-		if definition == null or not definition.tags.has(tag):
-			return false
-	return true
-
-func _is_recycling_bin_card(card: CardInstance) -> bool:
-	return card != null and card.definition_id == RECYCLING_BIN_DEFINITION_ID
-
-func _is_freelance_slot_card(card: CardInstance) -> bool:
-	return card != null and card.definition_id == FREELANCE_SLOT_DEFINITION_ID
-
-func _are_all_freelance_feature_cards(card_ids: PackedStringArray) -> bool:
-	if card_ids.is_empty():
-		return false
-	for card_id: String in card_ids:
-		var card: CardInstance = state.get_card(card_id)
-		if card == null:
-			return false
-		if card.definition_id != "card.output.feature" and card.definition_id != "card.output.checked_feature":
-			return false
-	return true
-
-func _get_shop_purchase_cost(shop_card: CardInstance) -> int:
-	var definition: CardDefinition = content.get_card_definition(shop_card.definition_id)
-	if definition == null:
-		return 100000
-
-	var booster_id: String = shop_card.values.get("booster_definition_id", "") as String
-	if booster_id.is_empty():
-		booster_id = definition.base_values.get("booster_definition_id", "") as String
-	if not booster_id.is_empty():
-		var booster: BoosterDefinition = content.get_booster_definition(booster_id)
-		if booster != null:
-			return maxi(1, booster.cost_money_cards)
-
-	if definition.tags.has("bugfix_patch_slot"):
-		return 1
-
-	return 100000
 
 func _get_drop_rect(view: CardView) -> Rect2:
 	if _is_view_in_editor_slot(view):
