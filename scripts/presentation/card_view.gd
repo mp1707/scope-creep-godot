@@ -17,8 +17,10 @@ const TOOLTIP_SHOW_DELAY_SECONDS: float = 0.35
 const TOOLTIP_CURSOR_OFFSET: Vector2 = Vector2(22.0, 24.0)
 const TOOLTIP_VIEWPORT_MARGIN: float = 12.0
 const TOOLTIP_LAYER: int = 1200
-const DRAG_SHADOW_COLOR: Color = Color(0.18, 0.15, 0.11, 0.26)
-const DRAG_SHADOW_OFFSET: Vector2 = Vector2(7.0, 9.0)
+const CARD_HOVER_Z_INDEX: int = 1000
+const CARD_DRAG_Z_INDEX: int = 2000
+const SHADOW_COLOR: Color = Color(0.18, 0.15, 0.11, 1.0)
+const DROP_TARGET_FILL_COLOR: Color = Color(0.055, 0.052, 0.047, 0.08)
 const STATUS_BADGE_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
 const STATUS_BADGE_COLOR: Color = Color(0.98, 0.91, 0.65, 0.96)
 const STATUS_BADGE_ALERT_COLOR: Color = Color(0.98, 0.64, 0.58, 0.96)
@@ -29,6 +31,7 @@ const TITLE_MIN_FONT_SIZE: int = 8
 const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 108.0)
 const ICON_MASK_SHADER_CODE: String = "shader_type canvas_item;\nuniform vec4 icon_color : source_color = vec4(0.06, 0.055, 0.05, 1.0);\nvoid fragment() {\n\tvec4 texture_color = texture(TEXTURE, UV);\n\tCOLOR = vec4(icon_color.rgb, texture_color.a * icon_color.a);\n}\n"
 const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")
+const CardJuiceControllerScript: Script = preload("res://scripts/presentation/card_juice_controller.gd")
 
 static var _active_tooltip_owner: Control = null
 static var _shared_tooltip_layer: CanvasLayer = null
@@ -49,6 +52,7 @@ static var _shared_processing_duration_value_label: Label = null
 var card_id: String = ""
 var stack_id: String = ""
 
+var _visual_root: Control = null
 var _shadow: Control = null
 var _background: Control = null
 var _header_band: Control = null
@@ -57,12 +61,13 @@ var _title_label: Label = null
 var _icon_texture_rect: TextureRect = null
 var _short_text_label: Label = null
 var _marker_label: Label = null
+var _drop_target_feedback: Panel = null
+var _juice = null
 var _default_marker_text: String = ""
 var _card_font: FontFile = null
 var _icon_mask_material: ShaderMaterial = null
 var _product_lifecycle: RefCounted = ProductLifecycleServiceScript.new()
 var _layout_initialized: bool = false
-var _spawn_tween: Tween = null
 var _custom_tooltip_text: String = ""
 var _processing_tooltip_title: String = ""
 var _processing_tooltip_remaining_seconds: float = 0.0
@@ -70,6 +75,9 @@ var _uses_processing_tooltip: bool = false
 var _hover_seconds: float = 0.0
 var _is_hovering: bool = false
 var _is_tooltip_shown: bool = false
+var _pointer_hover_enabled: bool = true
+var _visual_hover_active: bool = false
+var _z_index_before_hover: int = 0
 
 func _ready() -> void:
 	_set_top_left_layout(self)
@@ -131,6 +139,7 @@ func setup(card: CardInstance, definition: CardDefinition, stack: StackState) ->
 	card_id = card.instance_id
 	stack_id = card.stack_id
 	_resolve_or_create_nodes()
+	_juice.set_idle_rotation(_get_idle_rotation_for_card_id(card_id))
 	_apply_definition(definition)
 	update_runtime(card, stack, definition)
 
@@ -144,86 +153,141 @@ func update_runtime(card: CardInstance, _stack: StackState, definition: CardDefi
 		_update_tooltip(card, definition)
 
 func set_drag_preview_position(board_position: Vector2) -> void:
-	position = board_position
+	_resolve_or_create_nodes()
+	_juice.set_drag_target_position(board_position)
 
 func get_drag_lift_offset() -> Vector2:
-	return -DRAG_SHADOW_OFFSET
+	return Vector2.ZERO
 
 func get_drag_lift_offset_for_canvas_scale(canvas_scale: Vector2) -> Vector2:
-	return -_get_scaled_drag_shadow_offset(canvas_scale)
+	_juice.set_shadow_canvas_scale(canvas_scale)
+	return Vector2.ZERO
+
+func begin_drag_preview(target_position: Vector2, canvas_scale: Vector2) -> void:
+	_resolve_or_create_nodes()
+	set_visual_hovered(false)
+	_stop_tooltip_hover()
+	_z_index_before_hover = z_index
+	z_index = CARD_DRAG_Z_INDEX
+	_juice.set_shadow_canvas_scale(canvas_scale)
+	_juice.play_drag_start(target_position)
 
 func set_drag_elevation_canvas_scale(canvas_scale: Vector2) -> void:
 	_resolve_or_create_nodes()
-	_cancel_spawn_tween()
-	pivot_offset = Vector2.ZERO
-	_shadow.position = _get_scaled_drag_shadow_offset(canvas_scale)
+	_juice.set_shadow_canvas_scale(canvas_scale)
 
 func clear_drag_preview() -> void:
-	set_drag_elevation_canvas_scale(Vector2.ONE)
-	set_elevated(false)
+	_resolve_or_create_nodes()
+	_visual_hover_active = false
+	z_index = _z_index_before_hover
+	_juice.set_shadow_canvas_scale(Vector2.ONE)
+	_juice.play_idle()
 
 func set_elevated(elevated: bool) -> void:
 	_resolve_or_create_nodes()
-	_shadow.visible = elevated
+	if elevated:
+		_shadow.visible = true
+
+func play_snap_to(target_position: Vector2) -> void:
+	_resolve_or_create_nodes()
+	_visual_hover_active = false
+	z_index = _z_index_before_hover
+	_juice.set_shadow_canvas_scale(Vector2.ONE)
+	_juice.play_snap(target_position, _get_idle_rotation_for_card_id(card_id))
 
 func play_spawn_pop() -> void:
-	_cancel_spawn_tween()
-	pivot_offset = DEFAULT_CARD_SIZE * 0.5
-	scale = Vector2(0.84, 0.84)
-	_spawn_tween = create_tween()
-	_spawn_tween.tween_property(self, "scale", Vector2(1.06, 1.06), 0.08)
-	_spawn_tween.tween_property(self, "scale", Vector2.ONE, 0.07)
-	_spawn_tween.tween_callback(_reset_spawn_transform)
+	_resolve_or_create_nodes()
+	_juice.play_spawn_pop()
+
+func set_drop_target_feedback(active: bool) -> void:
+	_resolve_or_create_nodes()
+	_juice.set_drop_target_feedback(active)
+
+func play_drop_target_pulse() -> void:
+	_resolve_or_create_nodes()
+	_juice.play_drop_target_pulse()
+
+func set_pointer_hover_enabled(enabled: bool) -> void:
+	if _pointer_hover_enabled == enabled:
+		return
+	_pointer_hover_enabled = enabled
+	if not _pointer_hover_enabled:
+		set_visual_hovered(false)
+	mouse_filter = Control.MOUSE_FILTER_PASS if _pointer_hover_enabled else Control.MOUSE_FILTER_IGNORE
+
+func set_visual_hovered(hovered: bool, hover_z_index: int = CARD_HOVER_Z_INDEX, tooltip_active: bool = false) -> void:
+	_resolve_or_create_nodes()
+	if hovered:
+		if not _visual_hover_active:
+			_z_index_before_hover = z_index
+			_visual_hover_active = true
+		z_index = hover_z_index
+		_juice.play_hover()
+		if tooltip_active and _has_custom_tooltip():
+			_is_hovering = true
+			_hover_seconds = 0.0
+			set_process(true)
+		else:
+			_stop_tooltip_hover()
+		return
+
+	if _visual_hover_active:
+		z_index = _z_index_before_hover
+		_visual_hover_active = false
+	if bool(_juice.call("is_hovered")):
+		_juice.play_idle()
+	_stop_tooltip_hover()
 
 func _resolve_or_create_nodes() -> void:
+	_ensure_visual_root()
 	if _background == null:
-		_background = get_node_or_null(background_path) as Control
+		_background = _resolve_control(background_path, "Background")
 	if _header_band == null:
-		_header_band = get_node_or_null("HeaderBand") as Control
+		_header_band = _resolve_control(NodePath("HeaderBand"), "HeaderBand")
 	if _header_hairline == null:
-		_header_hairline = get_node_or_null("HeaderHairline") as Control
+		_header_hairline = _resolve_control(NodePath("HeaderHairline"), "HeaderHairline")
 	if _header_hairline == null:
-		_header_hairline = get_node_or_null("HairlineFrame") as Control
+		_header_hairline = _resolve_control(NodePath("HairlineFrame"), "HairlineFrame")
 	if _title_label == null:
-		_title_label = get_node_or_null(title_label_path) as Label
+		_title_label = _resolve_control(title_label_path, "TitleLabel") as Label
 	if _icon_texture_rect == null:
-		_icon_texture_rect = get_node_or_null(icon_texture_rect_path) as TextureRect
+		_icon_texture_rect = _resolve_control(icon_texture_rect_path, "IconTextureRect") as TextureRect
 	if _icon_texture_rect == null:
-		_icon_texture_rect = get_node_or_null("IconTextureRect") as TextureRect
+		_icon_texture_rect = _resolve_control(NodePath("IconTextureRect"), "IconTextureRect") as TextureRect
 	if _short_text_label == null:
-		_short_text_label = get_node_or_null(short_text_label_path) as Label
+		_short_text_label = _resolve_control(short_text_label_path, "ShortTextLabel") as Label
 	if _marker_label == null:
-		_marker_label = get_node_or_null(marker_label_path) as Label
+		_marker_label = _resolve_control(marker_label_path, "MarkerLabel") as Label
 
 	if _shadow == null:
-		_shadow = get_node_or_null("DragShadow") as Control
+		_shadow = _resolve_control(NodePath("CardShadow"), "CardShadow")
+	if _shadow == null:
+		_shadow = _resolve_control(NodePath("DragShadow"), "DragShadow")
 	if _shadow == null:
 		_shadow = Panel.new()
-		_shadow.name = "DragShadow"
+		_shadow.name = "CardShadow"
 		_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_shadow.visible = false
-		add_child(_shadow)
-		move_child(_shadow, 0)
+		_visual_root.add_child(_shadow)
 
 	if _background == null:
 		_background = Panel.new()
 		_background.name = "Background"
 		_background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(_background)
-		move_child(_background, 0)
+		_visual_root.add_child(_background)
 
 	if _header_band == null:
 		_header_band = Panel.new()
 		_header_band.name = "HeaderBand"
 		_header_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(_header_band)
+		_visual_root.add_child(_header_band)
 
 	if _header_hairline == null:
 		_header_hairline = Panel.new()
 		_header_hairline.name = "HeaderHairline"
 		_header_hairline.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(_header_hairline)
+		_visual_root.add_child(_header_hairline)
 
 	if _card_font == null:
 		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
@@ -238,21 +302,97 @@ func _resolve_or_create_nodes() -> void:
 		_icon_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		_icon_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		_icon_texture_rect.clip_contents = true
-		add_child(_icon_texture_rect)
+		_visual_root.add_child(_icon_texture_rect)
 	if _short_text_label == null:
 		_short_text_label = _create_label("ShortTextLabel", Vector2(12.0, 74.0), Vector2(120.0, 62.0), HORIZONTAL_ALIGNMENT_LEFT)
 		_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	move_child(_shadow, 0)
-	move_child(_background, 1)
-	move_child(_header_band, 2)
-	move_child(_icon_texture_rect, 3)
-	move_child(_title_label, 4)
-	move_child(_marker_label, 5)
-	move_child(_short_text_label, 6)
-	move_child(_header_hairline, 7)
+	_move_visual_child_to_root(_shadow)
+	_move_visual_child_to_root(_background)
+	_move_visual_child_to_root(_header_band)
+	_move_visual_child_to_root(_icon_texture_rect)
+	_move_visual_child_to_root(_title_label)
+	_move_visual_child_to_root(_marker_label)
+	_move_visual_child_to_root(_short_text_label)
+	_move_visual_child_to_root(_header_hairline)
+	_ensure_drop_target_feedback()
+	_visual_root.move_child(_shadow, 0)
+	_visual_root.move_child(_background, 1)
+	_visual_root.move_child(_header_band, 2)
+	_visual_root.move_child(_icon_texture_rect, 3)
+	_visual_root.move_child(_title_label, 4)
+	_visual_root.move_child(_marker_label, 5)
+	_visual_root.move_child(_short_text_label, 6)
+	_visual_root.move_child(_header_hairline, 7)
+	_visual_root.move_child(_drop_target_feedback, 8)
 	if not _layout_initialized:
 		_apply_default_layout()
 		_layout_initialized = true
+	_ensure_juice_controller()
+
+func _ensure_visual_root() -> void:
+	if _visual_root != null and is_instance_valid(_visual_root):
+		return
+	_visual_root = get_node_or_null("VisualRoot") as Control
+	if _visual_root == null:
+		_visual_root = Control.new()
+		_visual_root.name = "VisualRoot"
+		_visual_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_visual_root)
+		move_child(_visual_root, 0)
+	_set_top_left_layout(_visual_root)
+	_visual_root.position = Vector2.ZERO
+	_visual_root.size = DEFAULT_CARD_SIZE
+	_visual_root.custom_minimum_size = DEFAULT_CARD_SIZE
+	_visual_root.pivot_offset = DEFAULT_CARD_SIZE * 0.5
+	_visual_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+func _resolve_control(path: NodePath, fallback_name: String) -> Control:
+	var path_text: String = String(path)
+	if not path_text.is_empty():
+		var node: Control = get_node_or_null(path) as Control
+		if node != null:
+			return node
+		if _visual_root != null:
+			node = _visual_root.get_node_or_null(path) as Control
+			if node != null:
+				return node
+	var direct: Control = get_node_or_null(fallback_name) as Control
+	if direct != null:
+		return direct
+	if _visual_root != null:
+		return _visual_root.get_node_or_null(fallback_name) as Control
+	return null
+
+func _move_visual_child_to_root(child: Control) -> void:
+	if child == null or child == _visual_root or child.get_parent() == _visual_root:
+		return
+	child.reparent(_visual_root, false)
+
+func _ensure_drop_target_feedback() -> void:
+	if _drop_target_feedback == null:
+		_drop_target_feedback = _resolve_control(NodePath("DropTargetFeedback"), "DropTargetFeedback") as Panel
+	if _drop_target_feedback == null:
+		_drop_target_feedback = Panel.new()
+		_drop_target_feedback.name = "DropTargetFeedback"
+		_drop_target_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_drop_target_feedback.visible = false
+		_visual_root.add_child(_drop_target_feedback)
+	_set_top_left_layout(_drop_target_feedback)
+	_drop_target_feedback.position = Vector2.ZERO
+	_drop_target_feedback.size = DEFAULT_CARD_SIZE
+	_drop_target_feedback.pivot_offset = DEFAULT_CARD_SIZE * 0.5
+	_drop_target_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_drop_target_feedback_style()
+
+func _ensure_juice_controller() -> void:
+	if _juice == null:
+		_juice = get_node_or_null("CardJuiceController")
+	if _juice == null:
+		_juice = CardJuiceControllerScript.new() as Node
+		_juice.name = "CardJuiceController"
+		add_child(_juice)
+	_juice.setup(self, _visual_root, _shadow, _drop_target_feedback)
+	_juice.set_idle_rotation(_get_idle_rotation_for_card_id(card_id))
 
 func _create_label(node_name: String, label_position: Vector2, label_size: Vector2, alignment: HorizontalAlignment) -> Label:
 	var label: Label = Label.new()
@@ -263,7 +403,7 @@ func _create_label(node_name: String, label_position: Vector2, label_size: Vecto
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.clip_text = true
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(label)
+	_visual_root.add_child(label)
 	return label
 
 func _apply_default_layout() -> void:
@@ -271,10 +411,15 @@ func _apply_default_layout() -> void:
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	custom_minimum_size = DEFAULT_CARD_SIZE
 	size = DEFAULT_CARD_SIZE
+	_set_top_left_layout(_visual_root)
+	_visual_root.position = Vector2.ZERO
+	_visual_root.size = DEFAULT_CARD_SIZE
+	_visual_root.pivot_offset = DEFAULT_CARD_SIZE * 0.5
 	_set_top_left_layout(_shadow)
 	_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_shadow.position = DRAG_SHADOW_OFFSET
+	_shadow.position = Vector2(3.0, 4.0)
 	_shadow.size = DEFAULT_CARD_SIZE
+	_shadow.pivot_offset = Vector2.ZERO
 	_apply_shadow_style()
 	_set_top_left_layout(_background)
 	_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -518,25 +663,24 @@ func _apply_shadow_style() -> void:
 	if _shadow == null:
 		return
 	if _shadow is ColorRect:
-		(_shadow as ColorRect).color = DRAG_SHADOW_COLOR
+		(_shadow as ColorRect).color = SHADOW_COLOR
 		return
 	var shadow_style: StyleBoxFlat = StyleBoxFlat.new()
-	shadow_style.bg_color = DRAG_SHADOW_COLOR
+	shadow_style.bg_color = SHADOW_COLOR
 	_shadow.add_theme_stylebox_override("panel", shadow_style)
 
-func _get_scaled_drag_shadow_offset(canvas_scale: Vector2) -> Vector2:
-	var safe_scale: Vector2 = Vector2(maxf(0.001, canvas_scale.x), maxf(0.001, canvas_scale.y))
-	return Vector2(DRAG_SHADOW_OFFSET.x / safe_scale.x, DRAG_SHADOW_OFFSET.y / safe_scale.y)
+func _apply_drop_target_feedback_style() -> void:
+	if _drop_target_feedback == null:
+		return
+	var style_box: StyleBoxFlat = StyleBoxFlat.new()
+	style_box.bg_color = DROP_TARGET_FILL_COLOR
+	_drop_target_feedback.add_theme_stylebox_override("panel", style_box)
 
-func _cancel_spawn_tween() -> void:
-	if _spawn_tween != null and _spawn_tween.is_valid():
-		_spawn_tween.kill()
-	_spawn_tween = null
-
-func _reset_spawn_transform() -> void:
-	_spawn_tween = null
-	pivot_offset = Vector2.ZERO
-	scale = Vector2.ONE
+func _get_idle_rotation_for_card_id(value: String) -> float:
+	if value.is_empty():
+		return 0.0
+	var normalized: float = float(abs(value.hash()) % 1000) / 999.0
+	return deg_to_rad(lerpf(-2.0, 2.0, normalized))
 
 func _update_runtime_marker(card: CardInstance, definition: CardDefinition) -> void:
 	if card.state == null:
@@ -656,17 +800,17 @@ func _set_card_tooltip_text(text: String) -> void:
 		_show_custom_tooltip()
 
 func _on_card_mouse_entered() -> void:
-	if not _has_custom_tooltip():
+	if not _pointer_hover_enabled:
 		return
-	_is_hovering = true
-	_hover_seconds = 0.0
-	set_process(true)
+	set_visual_hovered(true, CARD_HOVER_Z_INDEX, true)
 
 func _has_custom_tooltip() -> bool:
 	return _uses_processing_tooltip or not _custom_tooltip_text.is_empty()
 
 func _on_card_mouse_exited() -> void:
-	_stop_tooltip_hover()
+	if not _pointer_hover_enabled:
+		return
+	set_visual_hovered(false)
 
 func _stop_tooltip_hover() -> void:
 	_is_hovering = false

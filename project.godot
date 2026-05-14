@@ -42,4 +42,5 @@ theme/custom="res://assets/themes/game_theme.tres"
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+anti_aliasing/quality/msaa_2d=2
 environment/defaults/default_clear_color=Color(0.88, 0.91, 0.86, 1)

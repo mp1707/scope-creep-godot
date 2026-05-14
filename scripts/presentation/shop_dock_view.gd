@@ -22,6 +22,7 @@ var content: ContentCatalog = null
 
 var _card_views: Dictionary = {}
 var _base_positions: Dictionary = {}
+var _move_tweens: Dictionary = {}
 var _hovered_stack_id: String = ""
 var _shop_interactions: RefCounted = ShopInteractionServiceScript.new()
 
@@ -73,8 +74,24 @@ func find_drop_stack_id(card_id: String, viewport_position: Vector2, moving_card
 func set_hovered_stack_id(stack_id: String) -> void:
 	if _hovered_stack_id == stack_id:
 		return
+	if not _hovered_stack_id.is_empty():
+		_set_drop_feedback_for_stack(_hovered_stack_id, false)
 	_hovered_stack_id = stack_id
+	if not _hovered_stack_id.is_empty():
+		_set_drop_feedback_for_stack(_hovered_stack_id, true)
 	_layout_shop_cards()
+
+func play_drop_pulse(stack_id: String) -> void:
+	if stack_id.is_empty():
+		return
+	var slot: Control = _get_editor_slot_for_stack_id(stack_id)
+	if slot != null and slot.has_method("play_drop_pulse"):
+		slot.call("play_drop_pulse")
+		return
+	var card_id: String = _get_card_id_for_stack_id(stack_id)
+	var view: CardView = get_card_view(card_id)
+	if view != null:
+		view.play_drop_target_pulse()
 
 func get_card_view(card_id: String) -> CardView:
 	return _card_views.get(card_id, null) as CardView
@@ -98,8 +115,12 @@ func _remove_card_view(card_id: String) -> void:
 	var view: CardView = get_card_view(card_id)
 	if view != null:
 		view.queue_free()
+	var tween: Tween = _move_tweens.get(card_id, null) as Tween
+	if tween != null and tween.is_valid():
+		tween.kill()
 	_card_views.erase(card_id)
 	_base_positions.erase(card_id)
+	_move_tweens.erase(card_id)
 
 func _update_card_view(card_id: String) -> void:
 	var card: CardInstance = state.get_card(card_id)
@@ -175,8 +196,16 @@ func _move_view(view: CardView, target_position: Vector2) -> void:
 		view.position = target_position
 		return
 
+	var card_id: String = view.card_id
+	var previous_tween: Tween = _move_tweens.get(card_id, null) as Tween
+	if previous_tween != null and previous_tween.is_valid():
+		previous_tween.kill()
 	var tween: Tween = view.create_tween()
+	_move_tweens[card_id] = tween
 	tween.tween_property(view, "position", target_position, hover_tween_seconds)
+	tween.finished.connect(func() -> void:
+		_move_tweens.erase(card_id)
+	)
 
 func _get_shop_card_ids() -> PackedStringArray:
 	var shop_card_ids: Array[String] = []
@@ -204,6 +233,31 @@ func _get_editor_slot_for_card_id(card_id: String) -> Control:
 		if slot.get("card_definition_id") as String == card.definition_id:
 			return slot
 	return null
+
+func _get_editor_slot_for_stack_id(stack_id: String) -> Control:
+	var card_id: String = _get_card_id_for_stack_id(stack_id)
+	if card_id.is_empty():
+		return null
+	return _get_editor_slot_for_card_id(card_id)
+
+func _get_card_id_for_stack_id(stack_id: String) -> String:
+	if state == null or not state.stacks.has(stack_id):
+		return ""
+	var stack: StackState = state.get_stack(stack_id)
+	for card_id: String in stack.card_ids:
+		if _card_views.has(card_id):
+			return card_id
+	return ""
+
+func _set_drop_feedback_for_stack(stack_id: String, active: bool) -> void:
+	var slot: Control = _get_editor_slot_for_stack_id(stack_id)
+	if slot != null and slot.has_method("set_drop_feedback"):
+		slot.call("set_drop_feedback", active)
+		return
+	var card_id: String = _get_card_id_for_stack_id(stack_id)
+	var view: CardView = get_card_view(card_id)
+	if view != null:
+		view.set_drop_target_feedback(active)
 
 func _get_editor_slots() -> Array[Control]:
 	var slots: Array[Control] = []

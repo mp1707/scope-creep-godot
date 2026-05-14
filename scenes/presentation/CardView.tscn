@@ -6,29 +6,35 @@
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_1fu8s")
-background_path = NodePath("Background")
-title_label_path = NodePath("TitleLabel")
-icon_texture_rect_path = NodePath("IconTextureRect")
-short_text_label_path = NodePath("ShortTextLabel")
-marker_label_path = NodePath("MarkerLabel")
+background_path = NodePath("VisualRoot/Background")
+title_label_path = NodePath("VisualRoot/TitleLabel")
+icon_texture_rect_path = NodePath("VisualRoot/IconTextureRect")
+short_text_label_path = NodePath("VisualRoot/ShortTextLabel")
+marker_label_path = NodePath("VisualRoot/MarkerLabel")
 metadata/_custom_type_script = "uid://btde6a6hcp0h4"
 
-[node name="Background" type="Panel" parent="." unique_id=435676595]
+[node name="VisualRoot" type="Control" parent="." unique_id=2043987601]
+layout_mode = 0
+offset_right = 144.0
+offset_bottom = 196.0
+mouse_filter = 2
+
+[node name="Background" type="Panel" parent="VisualRoot" unique_id=435676595]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="HeaderBand" type="Panel" parent="." unique_id=725238716]
+[node name="HeaderBand" type="Panel" parent="VisualRoot" unique_id=725238716]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="TitleLabel" type="Label" parent="." unique_id=621040763]
+[node name="TitleLabel" type="Label" parent="VisualRoot" unique_id=621040763]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
-[node name="IconTextureRect" type="TextureRect" parent="." unique_id=1847566360]
+[node name="IconTextureRect" type="TextureRect" parent="VisualRoot" unique_id=1847566360]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
@@ -36,12 +42,12 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="MarkerLabel" type="Label" parent="." unique_id=390759773]
+[node name="MarkerLabel" type="Label" parent="VisualRoot" unique_id=390759773]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
-[node name="ShortTextLabel" type="Label" parent="." unique_id=658137327]
+[node name="ShortTextLabel" type="Label" parent="VisualRoot" unique_id=658137327]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0

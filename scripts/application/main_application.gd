@@ -245,8 +245,10 @@ func _resolve_screen_drop_target_stack(card_id: String, viewport_position: Vecto
 		return ""
 	return _shop_dock.call("find_drop_stack_id", card_id, viewport_position, moving_card_count) as String
 
-func _clear_screen_drop_hover() -> void:
+func _clear_screen_drop_hover(dropped_stack_id: String = "") -> void:
 	if _shop_dock != null:
+		if not dropped_stack_id.is_empty():
+			_shop_dock.call("play_drop_pulse", dropped_stack_id)
 		_shop_dock.call("set_hovered_stack_id", "")
 
 func _update_hud() -> void:

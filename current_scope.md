@@ -12,6 +12,8 @@ Man startet mit einer MVP-Software, baut Features, finanziert sich dauerhaft ueb
 
 Das Spiel ist damit mehr als ein reiner Recipe-Test. Es hat inzwischen einen Anfang, einen Launch-Wendepunkt, Post-Launch-Druck, Sieg- und Niederlagebedingungen sowie kontrolliertes Teamwachstum. Balance, Lesbarkeit, UI-Polish, Content-Breite, Konflikte, Workshops, finale Card-Art, Tutorial und Meta-Progression fehlen aber noch oder sind bewusst nicht final.
 
+Die Karten-Presentation hat inzwischen ein einheitliches Juice-System: Hover, Drag-Lift, verzoegertes Drag-Follow, subtile Drag-Rotation, Snap-Bounce, Schattenzustaende und Drop-Ziel-Feedback laufen zentral ueber die CardView-Presentation und nicht ueber verstreute Einzel-Tweens. SFX bleiben davon getrennt.
+
 ## Wie eine Runde aktuell startet
 
 Der Run startet als Pre-Launch-MVP. Auf dem Board liegen im aktuellen Startsetup:
