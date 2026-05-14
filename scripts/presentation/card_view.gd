@@ -955,7 +955,7 @@ func _update_runtime_tint(card: CardInstance) -> void:
 	if card.state.is_locked and card.parent_card_id.is_empty():
 		modulate = Color(0.68, 0.68, 0.68, 1.0)
 	elif card.state.is_paid:
-		modulate = Color(0.68, 0.86, 0.68, 0.88)
+		modulate = Color(0.68, 0.86, 0.68, 1.0)
 	elif card.state.is_payment_target:
 		modulate = Color(1.0, 0.96, 0.72, 1.0)
 	else:
