@@ -14,6 +14,10 @@ const TOOLTIP_BORDER_WIDTH: int = 5
 const TOOLTIP_CORNER_RADIUS: int = 7
 const TOOLTIP_FONT_SIZE: int = 21
 const TOOLTIP_CONTENT_MARGIN: int = 12
+const TOOLTIP_SHOW_DELAY_SECONDS: float = 0.35
+const TOOLTIP_CURSOR_OFFSET: Vector2 = Vector2(22.0, 24.0)
+const TOOLTIP_VIEWPORT_MARGIN: float = 12.0
+const TOOLTIP_LAYER: int = 1200
 const DRAG_SHADOW_COLOR: Color = Color(0.18, 0.17, 0.15, 1.0)
 const DRAG_SHADOW_OFFSET: Vector2 = Vector2(8.0, 10.0)
 const STATUS_BADGE_TEXT_COLOR: Color = Color(0.98, 0.955, 0.88, 1.0)
@@ -26,6 +30,11 @@ const TITLE_MIN_FONT_SIZE: int = 8
 const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 108.0)
 const ICON_MASK_SHADER_CODE: String = "shader_type canvas_item;\nuniform vec4 icon_color : source_color = vec4(0.06, 0.055, 0.05, 1.0);\nvoid fragment() {\n\tvec4 texture_color = texture(TEXTURE, UV);\n\tCOLOR = vec4(icon_color.rgb, texture_color.a * icon_color.a);\n}\n"
 const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")
+
+static var _active_tooltip_owner: Control = null
+static var _shared_tooltip_layer: CanvasLayer = null
+static var _shared_tooltip_panel: PanelContainer = null
+static var _shared_tooltip_label: Label = null
 
 @export var background_path: NodePath
 @export var title_label_path: NodePath
@@ -49,6 +58,10 @@ var _icon_mask_material: ShaderMaterial = null
 var _product_lifecycle: RefCounted = ProductLifecycleServiceScript.new()
 var _layout_initialized: bool = false
 var _spawn_tween: Tween = null
+var _custom_tooltip_text: String = ""
+var _hover_seconds: float = 0.0
+var _is_hovering: bool = false
+var _is_tooltip_shown: bool = false
 
 func _ready() -> void:
 	_set_top_left_layout(self)
@@ -56,6 +69,36 @@ func _ready() -> void:
 	size = DEFAULT_CARD_SIZE
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	_resolve_or_create_nodes()
+	if not mouse_entered.is_connected(_on_card_mouse_entered):
+		mouse_entered.connect(_on_card_mouse_entered)
+	if not mouse_exited.is_connected(_on_card_mouse_exited):
+		mouse_exited.connect(_on_card_mouse_exited)
+	set_process(false)
+
+func _process(delta: float) -> void:
+	if _custom_tooltip_text.is_empty():
+		_stop_tooltip_hover()
+		return
+	if not _is_hovering:
+		if not _is_tooltip_shown:
+			set_process(false)
+		return
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		_hover_seconds = 0.0
+		_hide_custom_tooltip()
+		return
+
+	_hover_seconds += delta
+	if not _is_tooltip_shown and _hover_seconds >= TOOLTIP_SHOW_DELAY_SECONDS:
+		_show_custom_tooltip()
+	if _is_tooltip_shown:
+		_position_shared_tooltip()
+
+func _exit_tree() -> void:
+	_stop_tooltip_hover()
+
+func _get_tooltip(_at_position: Vector2) -> String:
+	return ""
 
 func setup(card: CardInstance, definition: CardDefinition, stack: StackState) -> void:
 	card_id = card.instance_id
@@ -240,8 +283,17 @@ func _apply_default_layout() -> void:
 	_short_text_label.add_theme_font_size_override("font_size", 22)
 
 func _make_custom_tooltip(for_text: String) -> Object:
+	if for_text.strip_edges().is_empty():
+		return null
 	var panel: PanelContainer = PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_tooltip_panel_style(panel)
+
+	var label: Label = _create_tooltip_label(for_text)
+	panel.add_child(label)
+	return panel
+
+func _apply_tooltip_panel_style(panel: PanelContainer) -> void:
 	var style_box: StyleBoxFlat = StyleBoxFlat.new()
 	style_box.bg_color = TOOLTIP_BACKGROUND_COLOR
 	style_box.border_color = CARD_BORDER_COLOR
@@ -262,6 +314,7 @@ func _make_custom_tooltip(for_text: String) -> Object:
 	style_box.content_margin_top = TOOLTIP_CONTENT_MARGIN
 	panel.add_theme_stylebox_override("panel", style_box)
 
+func _create_tooltip_label(for_text: String) -> Label:
 	var label: Label = Label.new()
 	label.text = for_text
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -274,8 +327,7 @@ func _make_custom_tooltip(for_text: String) -> Object:
 		label.add_theme_font_override("font", _card_font)
 	label.add_theme_font_size_override("font_size", TOOLTIP_FONT_SIZE)
 	label.custom_minimum_size.x = _get_tooltip_text_width(for_text, label.get_theme_font("font"))
-	panel.add_child(label)
-	return panel
+	return label
 
 func _get_tooltip_text_width(text: String, font: Font) -> float:
 	if font == null:
@@ -299,7 +351,7 @@ func _apply_definition(definition: CardDefinition) -> void:
 	_title_label.text = definition.display_name
 	_fit_title_to_single_line()
 	_short_text_label.text = ""
-	tooltip_text = definition.tooltip_text if not definition.tooltip_text.is_empty() else definition.short_text
+	_set_card_tooltip_text(definition.tooltip_text if not definition.tooltip_text.is_empty() else definition.short_text)
 
 	var visual: CardVisualDefinition = definition.visual
 	if visual == null:
@@ -524,11 +576,112 @@ func _update_tooltip(card: CardInstance, definition: CardDefinition) -> void:
 		details.append("Gehalt offen: 1 Geldkarte.")
 
 	if details.is_empty():
-		tooltip_text = base_text
+		_set_card_tooltip_text(base_text)
 	elif base_text.is_empty():
-		tooltip_text = "\n".join(details)
+		_set_card_tooltip_text("\n".join(details))
 	else:
-		tooltip_text = "%s\n%s" % [base_text, "\n".join(details)]
+		_set_card_tooltip_text("%s\n%s" % [base_text, "\n".join(details)])
+
+func _set_card_tooltip_text(text: String) -> void:
+	_custom_tooltip_text = text.strip_edges()
+	tooltip_text = ""
+	if _custom_tooltip_text.is_empty():
+		_stop_tooltip_hover()
+		return
+	if _active_tooltip_owner == self and _is_tooltip_shown:
+		_show_custom_tooltip()
+
+func _on_card_mouse_entered() -> void:
+	if _custom_tooltip_text.is_empty():
+		return
+	_is_hovering = true
+	_hover_seconds = 0.0
+	set_process(true)
+
+func _on_card_mouse_exited() -> void:
+	_stop_tooltip_hover()
+
+func _stop_tooltip_hover() -> void:
+	_is_hovering = false
+	_hover_seconds = 0.0
+	_hide_custom_tooltip()
+	if not _is_tooltip_shown:
+		set_process(false)
+
+func _show_custom_tooltip() -> void:
+	_ensure_shared_tooltip()
+	if _shared_tooltip_panel == null or _shared_tooltip_label == null:
+		return
+	if _active_tooltip_owner != null and _active_tooltip_owner != self and is_instance_valid(_active_tooltip_owner):
+		_active_tooltip_owner.call("_mark_custom_tooltip_hidden")
+	_active_tooltip_owner = self
+	_is_tooltip_shown = true
+	_shared_tooltip_label.text = _custom_tooltip_text
+	_shared_tooltip_label.custom_minimum_size.x = _get_tooltip_text_width(
+		_custom_tooltip_text,
+		_shared_tooltip_label.get_theme_font("font")
+	)
+	_shared_tooltip_panel.visible = true
+	_shared_tooltip_panel.reset_size()
+	_position_shared_tooltip()
+
+func _hide_custom_tooltip() -> void:
+	if _active_tooltip_owner != self:
+		_is_tooltip_shown = false
+		return
+	_is_tooltip_shown = false
+	_active_tooltip_owner = null
+	if _shared_tooltip_panel != null and is_instance_valid(_shared_tooltip_panel):
+		_shared_tooltip_panel.visible = false
+
+func _mark_custom_tooltip_hidden() -> void:
+	_is_tooltip_shown = false
+
+func _ensure_shared_tooltip() -> void:
+	if _shared_tooltip_layer == null or not is_instance_valid(_shared_tooltip_layer):
+		_shared_tooltip_layer = CanvasLayer.new()
+		_shared_tooltip_layer.name = "CardTooltipLayer"
+		_shared_tooltip_layer.layer = TOOLTIP_LAYER
+		get_tree().root.add_child(_shared_tooltip_layer)
+	if _shared_tooltip_panel != null and is_instance_valid(_shared_tooltip_panel):
+		return
+
+	_shared_tooltip_panel = PanelContainer.new()
+	_shared_tooltip_panel.name = "CardTooltip"
+	_shared_tooltip_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shared_tooltip_panel.visible = false
+	_apply_tooltip_panel_style(_shared_tooltip_panel)
+	_shared_tooltip_label = _create_tooltip_label("")
+	_shared_tooltip_panel.add_child(_shared_tooltip_label)
+	_shared_tooltip_layer.add_child(_shared_tooltip_panel)
+
+func _position_shared_tooltip() -> void:
+	if _shared_tooltip_panel == null or not is_instance_valid(_shared_tooltip_panel):
+		return
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return
+	var viewport_size: Vector2 = viewport.get_visible_rect().size
+	var mouse_position: Vector2 = viewport.get_mouse_position()
+	var tooltip_size: Vector2 = _shared_tooltip_panel.get_combined_minimum_size()
+	var target_position: Vector2 = mouse_position + TOOLTIP_CURSOR_OFFSET
+
+	if target_position.x + tooltip_size.x > viewport_size.x - TOOLTIP_VIEWPORT_MARGIN:
+		target_position.x = mouse_position.x - TOOLTIP_CURSOR_OFFSET.x - tooltip_size.x
+	if target_position.y + tooltip_size.y > viewport_size.y - TOOLTIP_VIEWPORT_MARGIN:
+		target_position.y = mouse_position.y - TOOLTIP_CURSOR_OFFSET.y - tooltip_size.y
+
+	target_position.x = clampf(
+		target_position.x,
+		TOOLTIP_VIEWPORT_MARGIN,
+		maxf(TOOLTIP_VIEWPORT_MARGIN, viewport_size.x - tooltip_size.x - TOOLTIP_VIEWPORT_MARGIN)
+	)
+	target_position.y = clampf(
+		target_position.y,
+		TOOLTIP_VIEWPORT_MARGIN,
+		maxf(TOOLTIP_VIEWPORT_MARGIN, viewport_size.y - tooltip_size.y - TOOLTIP_VIEWPORT_MARGIN)
+	)
+	_shared_tooltip_panel.position = target_position
 
 func _update_runtime_tint(card: CardInstance) -> void:
 	if card.state == null:
