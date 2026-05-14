@@ -28,5 +28,5 @@ poc4_recruiter_onboarding_duration_seconds = 10.0
 poc4_work_student_duration_multiplier = 2.0
 poc4_work_student_completed_task_lifetime = 1
 board_snap_distance = 50.0
-stack_offset = Vector2(0, 33)
+stack_offset = Vector2(0, 26)
 auto_stack_spawn_radius = 800.0

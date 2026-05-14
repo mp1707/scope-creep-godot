@@ -16,9 +16,9 @@ const PROGRESS_CONTAINER_SIZE: Vector2 = Vector2(144.0, 12.0)
 const PROGRESS_BAR_POSITION: Vector2 = Vector2.ZERO
 const PROGRESS_BAR_SIZE: Vector2 = Vector2(144.0, 12.0)
 const PROGRESS_DARK_COLOR: Color = Color(0.18, 0.18, 0.17, 1.0)
-const PROGRESS_BORDER_WIDTH: int = 1
+const PROGRESS_BORDER_WIDTH: int = 0
 const PROGRESS_CORNER_RADIUS: int = 0
-const PROGRESS_BACKGROUND_COLOR: Color = Color(0.99, 0.985, 0.955, 1.0)
+const PROGRESS_BACKGROUND_COLOR: Color = Color(0.76, 0.76, 0.72, 1.0)
 const CLICK_DRAG_THRESHOLD: float = 8.0
 const VISUAL_EVENT_STEP_SECONDS: float = 0.12
 
@@ -30,7 +30,7 @@ signal board_pan_requested(relative: Vector2)
 
 @export var card_view_scene: PackedScene
 @export var card_size: Vector2 = Vector2(144.0, 196.0)
-@export var stack_offset: Vector2 = Vector2(0.0, 40.0)
+@export var stack_offset: Vector2 = Vector2(0.0, 26.0)
 @export var snap_distance: float = 96.0
 
 var state: RunState = null

@@ -5,13 +5,13 @@ const DEFAULT_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
 const CARD_EDGE_INSET: float = 0.0
 const CARD_HAIRLINE_WIDTH: int = 1
 const CARD_HAIRLINE_COLOR: Color = Color(0.055, 0.052, 0.047, 0.22)
-const HEADER_HEIGHT: float = 34.0
+const HEADER_HEIGHT: float = 24.0
 const CARD_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
 const TOOLTIP_BACKGROUND_COLOR: Color = Color(0.76, 0.76, 0.72, 1.0)
 const TOOLTIP_MAX_WIDTH: float = 286.0
 const TOOLTIP_MIN_WIDTH: float = 150.0
-const TOOLTIP_FONT_SIZE: int = 21
-const TOOLTIP_TIME_FONT_SIZE: int = 15
+const TOOLTIP_FONT_SIZE: int = 18
+const TOOLTIP_TIME_FONT_SIZE: int = 18
 const TOOLTIP_CONTENT_MARGIN: int = 12
 const TOOLTIP_SHOW_DELAY_SECONDS: float = 0.35
 const TOOLTIP_CURSOR_OFFSET: Vector2 = Vector2(22.0, 24.0)
@@ -24,7 +24,7 @@ const STATUS_BADGE_COLOR: Color = Color(0.98, 0.91, 0.65, 0.96)
 const STATUS_BADGE_ALERT_COLOR: Color = Color(0.98, 0.64, 0.58, 0.96)
 const STATUS_BADGE_PAID_COLOR: Color = Color(0.64, 0.86, 0.64, 0.96)
 const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
-const TITLE_MAX_FONT_SIZE: int = 22
+const TITLE_MAX_FONT_SIZE: int = 18
 const TITLE_MIN_FONT_SIZE: int = 8
 const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 108.0)
 const ICON_MASK_SHADER_CODE: String = "shader_type canvas_item;\nuniform vec4 icon_color : source_color = vec4(0.06, 0.055, 0.05, 1.0);\nvoid fragment() {\n\tvec4 texture_color = texture(TEXTURE, UV);\n\tCOLOR = vec4(icon_color.rgb, texture_color.a * icon_color.a);\n}\n"
@@ -52,7 +52,7 @@ var stack_id: String = ""
 var _shadow: Control = null
 var _background: Control = null
 var _header_band: Control = null
-var _hairline_frame: Control = null
+var _header_hairline: Control = null
 var _title_label: Label = null
 var _icon_texture_rect: TextureRect = null
 var _short_text_label: Label = null
@@ -180,8 +180,10 @@ func _resolve_or_create_nodes() -> void:
 		_background = get_node_or_null(background_path) as Control
 	if _header_band == null:
 		_header_band = get_node_or_null("HeaderBand") as Control
-	if _hairline_frame == null:
-		_hairline_frame = get_node_or_null("HairlineFrame") as Control
+	if _header_hairline == null:
+		_header_hairline = get_node_or_null("HeaderHairline") as Control
+	if _header_hairline == null:
+		_header_hairline = get_node_or_null("HairlineFrame") as Control
 	if _title_label == null:
 		_title_label = get_node_or_null(title_label_path) as Label
 	if _icon_texture_rect == null:
@@ -217,11 +219,11 @@ func _resolve_or_create_nodes() -> void:
 		_header_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(_header_band)
 
-	if _hairline_frame == null:
-		_hairline_frame = Panel.new()
-		_hairline_frame.name = "HairlineFrame"
-		_hairline_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(_hairline_frame)
+	if _header_hairline == null:
+		_header_hairline = Panel.new()
+		_header_hairline.name = "HeaderHairline"
+		_header_hairline.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_header_hairline)
 
 	if _card_font == null:
 		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
@@ -247,7 +249,7 @@ func _resolve_or_create_nodes() -> void:
 	move_child(_title_label, 4)
 	move_child(_marker_label, 5)
 	move_child(_short_text_label, 6)
-	move_child(_hairline_frame, 7)
+	move_child(_header_hairline, 7)
 	if not _layout_initialized:
 		_apply_default_layout()
 		_layout_initialized = true
@@ -282,11 +284,11 @@ func _apply_default_layout() -> void:
 	_header_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_header_band.position = Vector2(CARD_EDGE_INSET, CARD_EDGE_INSET)
 	_header_band.size = Vector2(DEFAULT_CARD_SIZE.x - CARD_EDGE_INSET * 2.0, HEADER_HEIGHT)
-	_set_top_left_layout(_hairline_frame)
-	_hairline_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_hairline_frame.position = Vector2.ZERO
-	_hairline_frame.size = DEFAULT_CARD_SIZE
-	_apply_hairline_frame_style()
+	_set_top_left_layout(_header_hairline)
+	_header_hairline.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_header_hairline.position = Vector2(0.0, HEADER_HEIGHT)
+	_header_hairline.size = Vector2(DEFAULT_CARD_SIZE.x, float(CARD_HAIRLINE_WIDTH))
+	_apply_header_hairline_style()
 	_set_top_left_layout(_title_label)
 	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_title_label.position = Vector2(10.0, CARD_EDGE_INSET)
@@ -311,7 +313,7 @@ func _apply_default_layout() -> void:
 	_marker_label.position = Vector2(98.0, 42.0)
 	_marker_label.size = Vector2(34.0, 24.0)
 	_marker_label.visible = false
-	_marker_label.add_theme_font_size_override("font_size", 17)
+	_marker_label.add_theme_font_size_override("font_size", 18)
 	_marker_label.add_theme_color_override("font_color", STATUS_BADGE_TEXT_COLOR)
 	_set_top_left_layout(_short_text_label)
 	_short_text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -321,7 +323,7 @@ func _apply_default_layout() -> void:
 	_short_text_label.visible = false
 	if _card_font != null:
 		_short_text_label.add_theme_font_override("font", _card_font)
-	_short_text_label.add_theme_font_size_override("font_size", 22)
+	_short_text_label.add_theme_font_size_override("font_size", 18)
 
 func _make_custom_tooltip(for_text: String) -> Object:
 	if for_text.strip_edges().is_empty():
@@ -337,11 +339,6 @@ func _make_custom_tooltip(for_text: String) -> Object:
 func _apply_tooltip_panel_style(panel: PanelContainer) -> void:
 	var style_box: StyleBoxFlat = StyleBoxFlat.new()
 	style_box.bg_color = TOOLTIP_BACKGROUND_COLOR
-	style_box.border_color = CARD_HAIRLINE_COLOR
-	style_box.border_width_bottom = CARD_HAIRLINE_WIDTH
-	style_box.border_width_left = CARD_HAIRLINE_WIDTH
-	style_box.border_width_right = CARD_HAIRLINE_WIDTH
-	style_box.border_width_top = CARD_HAIRLINE_WIDTH
 	style_box.shadow_color = Color.TRANSPARENT
 	style_box.shadow_offset = Vector2.ZERO
 	style_box.shadow_size = 0
@@ -507,20 +504,15 @@ func _apply_header_style(visual: CardVisualDefinition) -> void:
 	header_style.bg_color = visual.accent_color.lightened(0.35)
 	_header_band.add_theme_stylebox_override("panel", header_style)
 
-func _apply_hairline_frame_style() -> void:
-	if _hairline_frame == null:
+func _apply_header_hairline_style() -> void:
+	if _header_hairline == null:
 		return
-	if _hairline_frame is ColorRect:
-		(_hairline_frame as ColorRect).color = Color.TRANSPARENT
+	if _header_hairline is ColorRect:
+		(_header_hairline as ColorRect).color = CARD_HAIRLINE_COLOR
 		return
-	var frame_style: StyleBoxFlat = StyleBoxFlat.new()
-	frame_style.bg_color = Color.TRANSPARENT
-	frame_style.border_color = CARD_HAIRLINE_COLOR
-	frame_style.border_width_bottom = CARD_HAIRLINE_WIDTH
-	frame_style.border_width_left = CARD_HAIRLINE_WIDTH
-	frame_style.border_width_right = CARD_HAIRLINE_WIDTH
-	frame_style.border_width_top = CARD_HAIRLINE_WIDTH
-	_hairline_frame.add_theme_stylebox_override("panel", frame_style)
+	var hairline_style: StyleBoxFlat = StyleBoxFlat.new()
+	hairline_style.bg_color = CARD_HAIRLINE_COLOR
+	_header_hairline.add_theme_stylebox_override("panel", hairline_style)
 
 func _apply_shadow_style() -> void:
 	if _shadow == null:
@@ -571,14 +563,14 @@ func _update_runtime_short_text(card: CardInstance, definition: CardDefinition) 
 		_short_text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_short_text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		_short_text_label.add_theme_font_size_override("font_size", 22)
+		_short_text_label.add_theme_font_size_override("font_size", 18)
 		return
 	if not definition.tags.has("software"):
 		return
 	var status_text: String = _product_lifecycle.get_status_text(card)
 	if status_text.is_empty():
 		return
-	_set_runtime_short_text(status_text, 22)
+	_set_runtime_short_text(status_text, 18)
 
 func _set_runtime_short_text(text: String, font_size: int) -> void:
 	_short_text_label.text = text

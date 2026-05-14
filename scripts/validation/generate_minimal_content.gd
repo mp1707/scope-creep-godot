@@ -251,7 +251,7 @@ func _save_balance() -> int:
 	balance.poc3_features_per_customer = 5
 	balance.tech_debt_duration_seconds_per_card = 5.0
 	balance.board_snap_distance = 96.0
-	balance.stack_offset = Vector2(0.0, 40.0)
+	balance.stack_offset = Vector2(0.0, 26.0)
 	balance.spawn_placement_radius = 160.0
 	balance.auto_stack_spawn_radius = 180.0
 	return _save_resource(balance, "res://data/balance/poc_default.tres")

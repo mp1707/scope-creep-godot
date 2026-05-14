@@ -200,7 +200,7 @@ func _get_stack_rect(stack: StackState) -> Rect2:
 	if stack.card_ids.is_empty():
 		return Rect2(stack.base_position, CARD_SIZE)
 
-	var stack_offset: Vector2 = Vector2(0.0, 40.0)
+	var stack_offset: Vector2 = Vector2(0.0, 26.0)
 	if content.balance != null:
 		stack_offset = content.balance.stack_offset
 	var bottom_position: Vector2 = stack.base_position + stack_offset * float(stack.card_ids.size() - 1)

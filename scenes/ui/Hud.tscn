@@ -31,7 +31,7 @@ offset_right = -160.0
 offset_bottom = 139.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0.055, 0.052, 0.047, 1)
-theme_override_font_sizes/font_size = 19
+theme_override_font_sizes/font_size = 18
 text = "Sprint 1 · Sprint · 0.0s"
 clip_text = true
 
@@ -52,7 +52,7 @@ metadata/_edit_group_ = true
 custom_minimum_size = Vector2(70, 32)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.055, 0.052, 0.047, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 text = "Audio"
 vertical_alignment = 1
 
@@ -66,7 +66,7 @@ value = 30.0
 custom_minimum_size = Vector2(48, 32)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.055, 0.052, 0.047, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 text = "30%"
 horizontal_alignment = 2
 vertical_alignment = 1
@@ -88,26 +88,26 @@ metadata/_edit_group_ = true
 custom_minimum_size = Vector2(120, 32)
 layout_mode = 2
 focus_mode = 0
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 text = "Auto-Pay"
 
 [node name="NextSprintButton" type="Button" parent="ButtonRow" unique_id=1385815046]
 custom_minimum_size = Vector2(190, 32)
 layout_mode = 2
 focus_mode = 0
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 text = "Sprint 2 starten"
 
 [node name="SaveButton" type="Button" parent="ButtonRow" unique_id=967650294]
 custom_minimum_size = Vector2(104, 32)
 layout_mode = 2
 focus_mode = 0
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 text = "Speichern"
 
 [node name="LoadButton" type="Button" parent="ButtonRow" unique_id=1170909697]
 custom_minimum_size = Vector2(86, 32)
 layout_mode = 2
 focus_mode = 0
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 text = "Laden"
