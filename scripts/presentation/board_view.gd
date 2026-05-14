@@ -53,6 +53,7 @@ var _drag_start_card_index: int = -1
 var _drag_pointer_offset: Vector2 = Vector2.ZERO
 var _snapping_card_ids: PackedStringArray = PackedStringArray()
 var _hovered_board_snap_stack_id: String = ""
+var _hovered_board_snap_card_id: String = ""
 var _hovered_stack_card_ids: PackedStringArray = PackedStringArray()
 var _hovered_stack_tooltip_card_id: String = ""
 var _pending_click_card_id: String = ""
@@ -232,23 +233,28 @@ func _update_board_snap_feedback(board_position: Vector2, screen_target_stack_id
 func _set_hovered_board_snap_stack(stack_id: String) -> void:
 	if _hovered_board_snap_stack_id == stack_id:
 		return
-	if not _hovered_board_snap_stack_id.is_empty():
-		_set_stack_drop_target_feedback(_hovered_board_snap_stack_id, false)
+	if not _hovered_board_snap_card_id.is_empty():
+		_set_card_drop_target_feedback(_hovered_board_snap_card_id, false)
 	_hovered_board_snap_stack_id = stack_id
+	_hovered_board_snap_card_id = _get_stack_top_card_id(stack_id)
 	if not _hovered_board_snap_stack_id.is_empty():
-		_set_stack_drop_target_feedback(_hovered_board_snap_stack_id, true)
+		_set_card_drop_target_feedback(_hovered_board_snap_card_id, true)
 
 func _clear_board_snap_feedback() -> void:
 	_set_hovered_board_snap_stack("")
 
-func _set_stack_drop_target_feedback(stack_id: String, active: bool) -> void:
+func _get_stack_top_card_id(stack_id: String) -> String:
 	if state == null or not state.stacks.has(stack_id):
-		return
+		return ""
 	var stack: StackState = state.get_stack(stack_id)
 	if stack.card_ids.is_empty():
+		return ""
+	return stack.card_ids[stack.card_ids.size() - 1]
+
+func _set_card_drop_target_feedback(card_id: String, active: bool) -> void:
+	if card_id.is_empty():
 		return
-	var top_card_id: String = stack.card_ids[stack.card_ids.size() - 1]
-	var view: CardView = get_card_view(top_card_id)
+	var view: CardView = get_card_view(card_id)
 	if view != null:
 		view.set_drop_target_feedback(active)
 
