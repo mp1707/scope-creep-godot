@@ -3,10 +3,10 @@ class_name ShopDockSlot
 extends Control
 
 const PREVIEW_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
-const PREVIEW_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 0.72)
-const PREVIEW_FILL_COLOR: Color = Color(0.96, 0.93, 0.84, 0.34)
-const PREVIEW_HEADER_COLOR: Color = Color(0.055, 0.052, 0.047, 0.10)
-const PREVIEW_HOVER_COLOR: Color = Color(0.28, 0.56, 0.78, 0.36)
+const PREVIEW_FILL_COLOR: Color = Color(0.98, 0.88, 0.58, 0.42)
+const PREVIEW_HEADER_COLOR: Color = Color(0.76, 0.60, 0.32, 0.42)
+const PREVIEW_HAIRLINE_COLOR: Color = Color(0.055, 0.052, 0.047, 0.22)
+const PREVIEW_HOVER_COLOR: Color = Color(0.28, 0.56, 0.78, 0.18)
 const PREVIEW_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 0.78)
 const PREVIEW_FONT_SIZE: int = 15
 const PREVIEW_HEADER_HEIGHT: float = 34.0
@@ -50,11 +50,11 @@ func _draw() -> void:
 	var card_rect: Rect2 = Rect2(card_offset, PREVIEW_CARD_SIZE)
 	draw_rect(card_rect, PREVIEW_FILL_COLOR, true)
 	draw_rect(Rect2(card_rect.position, Vector2(card_rect.size.x, PREVIEW_HEADER_HEIGHT)), PREVIEW_HEADER_COLOR, true)
-	draw_rect(card_rect, PREVIEW_BORDER_COLOR, false, 2.0)
+	draw_rect(card_rect, PREVIEW_HAIRLINE_COLOR, false, 1.0)
 
 	var hover_rect: Rect2 = Rect2(card_offset + hover_offset, PREVIEW_CARD_SIZE)
-	draw_rect(hover_rect, PREVIEW_HOVER_COLOR, false, 2.0)
-	draw_line(card_rect.get_center(), hover_rect.get_center(), PREVIEW_HOVER_COLOR, 2.0)
+	draw_rect(hover_rect, PREVIEW_HOVER_COLOR, true)
+	draw_line(card_rect.get_center(), hover_rect.get_center(), Color(PREVIEW_HOVER_COLOR, 0.55), 2.0)
 
 	var font: Font = get_theme_default_font()
 	if font == null:

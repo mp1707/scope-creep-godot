@@ -11,21 +11,14 @@ const BOARD_BACKGROUND_COLOR: Color = Color(0.955, 0.948, 0.918, 1.0)
 const BOARD_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
 const BOARD_GRID_COLOR: Color = Color(0.58, 0.64, 0.62, 0.12)
 const BOARD_NOTE_COLOR: Color = Color(0.38, 0.52, 0.58, 0.16)
-const PROGRESS_LABEL_EXTRA_WIDTH: float = 28.0
-const PROGRESS_OFFSET: Vector2 = Vector2(-PROGRESS_LABEL_EXTRA_WIDTH * 0.5, -82.0)
-const PROGRESS_CONTAINER_SIZE: Vector2 = Vector2(172.0, 72.0)
-const PROGRESS_LABEL_SIZE: Vector2 = Vector2(172.0, 42.0)
-const PROGRESS_LABEL_BASE_FONT_SIZE: int = 16
-const PROGRESS_LABEL_MIN_FONT_SIZE: int = 11
-const PROGRESS_LABEL_HORIZONTAL_PADDING: float = 8.0
-const PROGRESS_BAR_POSITION: Vector2 = Vector2(PROGRESS_LABEL_EXTRA_WIDTH * 0.5, 46.0)
-const PROGRESS_BAR_SIZE: Vector2 = Vector2(144.0, 24.0)
-const PROGRESS_BORDER_WIDTH: int = 5
-const PROGRESS_CORNER_RADIUS: int = 7
+const PROGRESS_OFFSET: Vector2 = Vector2(0.0, -24.0)
+const PROGRESS_CONTAINER_SIZE: Vector2 = Vector2(144.0, 12.0)
+const PROGRESS_BAR_POSITION: Vector2 = Vector2.ZERO
+const PROGRESS_BAR_SIZE: Vector2 = Vector2(144.0, 12.0)
+const PROGRESS_DARK_COLOR: Color = Color(0.18, 0.18, 0.17, 1.0)
+const PROGRESS_BORDER_WIDTH: int = 1
+const PROGRESS_CORNER_RADIUS: int = 0
 const PROGRESS_BACKGROUND_COLOR: Color = Color(0.99, 0.985, 0.955, 1.0)
-const PROGRESS_FILL_COLOR: Color = Color(0.56, 0.78, 0.90, 1.0)
-const PROGRESS_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
-const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
 const CLICK_DRAG_THRESHOLD: float = 8.0
 const VISUAL_EVENT_STEP_SECONDS: float = 0.12
 
@@ -64,7 +57,6 @@ var _last_board_pan_viewport_position: Vector2 = Vector2.ZERO
 var _queued_visual_events: Array[SimulationEvent] = []
 var _is_processing_visual_events: bool = false
 var _audio: BoardAudioPlayer = null
-var _progress_font: FontFile = null
 
 func _ready() -> void:
 	set_process_unhandled_input(true)
@@ -176,14 +168,20 @@ func apply_events(events: Array[SimulationEvent]) -> void:
 					spawned_view.visible = false
 					_update_stack(event.stack_id)
 					_queue_visual_event(event)
-			ScopeEnums.SimulationEventType.STACK_CHANGED, \
-			ScopeEnums.SimulationEventType.RECIPE_STARTED, \
-			ScopeEnums.SimulationEventType.RECIPE_CANCELLED, \
+			ScopeEnums.SimulationEventType.STACK_CHANGED:
+				_update_stack(event.stack_id)
+			ScopeEnums.SimulationEventType.RECIPE_STARTED:
+				_update_stack(event.stack_id)
+			ScopeEnums.SimulationEventType.RECIPE_CANCELLED:
+				_update_stack(event.stack_id)
 			ScopeEnums.SimulationEventType.RECIPE_COMPLETED:
 				_update_stack(event.stack_id)
-			ScopeEnums.SimulationEventType.PHASE_CHANGED, \
+			ScopeEnums.SimulationEventType.PHASE_CHANGED:
+				refresh()
 			ScopeEnums.SimulationEventType.PAUSE_CHANGED:
 				refresh()
+			ScopeEnums.SimulationEventType.TIMER_UPDATED:
+				_update_active_processing_stacks()
 			_:
 				pass
 
@@ -300,6 +298,35 @@ func _update_card_view(card_id: String) -> void:
 
 	var view: CardView = _ensure_card_view(card_id)
 	view.setup(card, definition, stack)
+	_apply_processing_tooltip(view, stack)
+
+func _apply_processing_tooltip(view: CardView, stack: StackState) -> void:
+	if view == null or stack == null:
+		return
+	var processing: ProcessingState = stack.processing_state
+	if processing.status == ScopeEnums.ProcessingStatus.ACTIVE and processing.duration > 0.0:
+		view.set_processing_tooltip(
+			_get_stack_action_text(stack),
+			maxf(0.0, processing.duration - processing.elapsed)
+		)
+	else:
+		view.clear_processing_tooltip()
+
+func _update_processing_tooltips_for_stack(stack: StackState) -> void:
+	if stack == null:
+		return
+	for card_id: String in stack.card_ids:
+		var view: CardView = get_card_view(card_id)
+		if view != null:
+			_apply_processing_tooltip(view, stack)
+
+func _update_active_processing_stacks() -> void:
+	if state == null:
+		return
+	for stack: StackState in state.stacks.values():
+		if stack.processing_state.is_active():
+			_update_stack_progress_view(stack)
+			_update_processing_tooltips_for_stack(stack)
 
 func _begin_drag(card_id: String, board_position: Vector2, viewport_position: Vector2) -> void:
 	var card: CardInstance = state.get_card(card_id)
@@ -625,10 +652,7 @@ func _update_stack_progress_view(stack: StackState) -> void:
 		container.position = stack.base_position + PROGRESS_OFFSET
 		container.z_index = _get_stack_base_z(stack.stack_id) + STACK_PROGRESS_Z_OFFSET
 
-	var label: Label = container.get_node("ActionLabel") as Label
 	var progress_bar: FramedProgressBar = container.get_node("ProgressBar") as FramedProgressBar
-	label.text = _get_stack_action_text(stack)
-	_fit_progress_label(label)
 	progress_bar.max_value = processing.duration
 	progress_bar.value = processing.elapsed
 
@@ -657,30 +681,14 @@ func _ensure_stack_progress_view(stack_id: String) -> Control:
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	container.z_index = 2000
 
-	var label: Label = Label.new()
-	label.name = "ActionLabel"
-	label.position = Vector2(0.0, 0.0)
-	label.size = PROGRESS_LABEL_SIZE
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	label.clip_text = true
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.add_theme_color_override("font_color", PROGRESS_TEXT_COLOR)
-	var progress_font: FontFile = _get_progress_font()
-	if progress_font != null:
-		label.add_theme_font_override("font", progress_font)
-	label.add_theme_font_size_override("font_size", PROGRESS_LABEL_BASE_FONT_SIZE)
-	container.add_child(label)
-
 	var progress_bar: FramedProgressBar = FramedProgressBar.new()
 	progress_bar.name = "ProgressBar"
 	progress_bar.position = PROGRESS_BAR_POSITION
 	progress_bar.size = PROGRESS_BAR_SIZE
 	progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	progress_bar.background_color = PROGRESS_BACKGROUND_COLOR
-	progress_bar.fill_color = PROGRESS_FILL_COLOR
-	progress_bar.border_color = BOARD_BORDER_COLOR
+	progress_bar.fill_color = PROGRESS_DARK_COLOR
+	progress_bar.border_color = PROGRESS_DARK_COLOR
 	progress_bar.border_width = PROGRESS_BORDER_WIDTH
 	progress_bar.corner_radius = PROGRESS_CORNER_RADIUS
 	container.add_child(progress_bar)
@@ -697,25 +705,6 @@ func _remove_stack_progress_view(stack_id: String) -> void:
 
 func _should_drag_stack_progress_view() -> bool:
 	return _drag_start_card_index == 0
-
-func _fit_progress_label(label: Label) -> void:
-	var font: Font = label.get_theme_font("font")
-	if font == null:
-		label.add_theme_font_size_override("font_size", PROGRESS_LABEL_BASE_FONT_SIZE)
-		return
-	var available_width: float = maxf(1.0, label.size.x - PROGRESS_LABEL_HORIZONTAL_PADDING)
-	var font_size: int = PROGRESS_LABEL_BASE_FONT_SIZE
-	while font_size > PROGRESS_LABEL_MIN_FONT_SIZE:
-		var text_size: Vector2 = font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size)
-		if text_size.x <= available_width:
-			break
-		font_size -= 1
-	label.add_theme_font_size_override("font_size", font_size)
-
-func _get_progress_font() -> FontFile:
-	if _progress_font == null:
-		_progress_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
-	return _progress_font
 
 func _ensure_stack_layer(stack_id: String) -> void:
 	if _stack_layers.has(stack_id):

@@ -5,23 +5,22 @@ extends Control
 	set(new_value):
 		background_color = new_value
 		queue_redraw()
-@export var fill_color: Color = Color(0.56, 0.78, 0.90, 1.0):
+@export var fill_color: Color = Color(0.18, 0.18, 0.17, 1.0):
 	set(new_value):
 		fill_color = new_value
 		queue_redraw()
-@export var border_color: Color = Color(0.055, 0.052, 0.047, 1.0):
+@export var border_color: Color = Color(0.18, 0.18, 0.17, 1.0):
 	set(new_value):
 		border_color = new_value
 		queue_redraw()
-@export_range(0, 16, 1, "or_greater") var border_width: int = 4:
+@export_range(0, 16, 1, "or_greater") var border_width: int = 1:
 	set(new_value):
 		border_width = maxi(new_value, 0)
 		queue_redraw()
-@export_range(0, 32, 1, "or_greater") var corner_radius: int = 7:
+@export_range(0, 32, 1, "or_greater") var corner_radius: int = 0:
 	set(new_value):
 		corner_radius = maxi(new_value, 0)
 		queue_redraw()
-
 var max_value: float = 100.0:
 	set(new_value):
 		max_value = maxf(new_value, 0.001)

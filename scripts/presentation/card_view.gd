@@ -2,28 +2,27 @@ class_name CardView
 extends Control
 
 const DEFAULT_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
-const CARD_CORNER_RADIUS: int = 8
-const CARD_BORDER_WIDTH: int = 5
+const CARD_EDGE_INSET: float = 0.0
+const CARD_HAIRLINE_WIDTH: int = 1
+const CARD_HAIRLINE_COLOR: Color = Color(0.055, 0.052, 0.047, 0.22)
 const HEADER_HEIGHT: float = 34.0
-const CARD_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
 const CARD_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
-const TOOLTIP_BACKGROUND_COLOR: Color = Color(0.74, 0.73, 0.69, 1.0)
+const TOOLTIP_BACKGROUND_COLOR: Color = Color(0.76, 0.76, 0.72, 1.0)
 const TOOLTIP_MAX_WIDTH: float = 286.0
 const TOOLTIP_MIN_WIDTH: float = 150.0
-const TOOLTIP_BORDER_WIDTH: int = 5
-const TOOLTIP_CORNER_RADIUS: int = 7
 const TOOLTIP_FONT_SIZE: int = 21
+const TOOLTIP_TIME_FONT_SIZE: int = 15
 const TOOLTIP_CONTENT_MARGIN: int = 12
 const TOOLTIP_SHOW_DELAY_SECONDS: float = 0.35
 const TOOLTIP_CURSOR_OFFSET: Vector2 = Vector2(22.0, 24.0)
 const TOOLTIP_VIEWPORT_MARGIN: float = 12.0
 const TOOLTIP_LAYER: int = 1200
-const DRAG_SHADOW_COLOR: Color = Color(0.18, 0.17, 0.15, 1.0)
-const DRAG_SHADOW_OFFSET: Vector2 = Vector2(8.0, 10.0)
-const STATUS_BADGE_TEXT_COLOR: Color = Color(0.98, 0.955, 0.88, 1.0)
-const STATUS_BADGE_COLOR: Color = Color(0.055, 0.052, 0.047, 0.92)
-const STATUS_BADGE_ALERT_COLOR: Color = Color(0.42, 0.07, 0.10, 0.95)
-const STATUS_BADGE_PAID_COLOR: Color = Color(0.13, 0.36, 0.20, 0.95)
+const DRAG_SHADOW_COLOR: Color = Color(0.18, 0.15, 0.11, 0.26)
+const DRAG_SHADOW_OFFSET: Vector2 = Vector2(7.0, 9.0)
+const STATUS_BADGE_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
+const STATUS_BADGE_COLOR: Color = Color(0.98, 0.91, 0.65, 0.96)
+const STATUS_BADGE_ALERT_COLOR: Color = Color(0.98, 0.64, 0.58, 0.96)
+const STATUS_BADGE_PAID_COLOR: Color = Color(0.64, 0.86, 0.64, 0.96)
 const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
 const TITLE_MAX_FONT_SIZE: int = 22
 const TITLE_MIN_FONT_SIZE: int = 8
@@ -35,6 +34,11 @@ static var _active_tooltip_owner: Control = null
 static var _shared_tooltip_layer: CanvasLayer = null
 static var _shared_tooltip_panel: PanelContainer = null
 static var _shared_tooltip_label: Label = null
+static var _shared_processing_tooltip_container: VBoxContainer = null
+static var _shared_processing_title_label: Label = null
+static var _shared_processing_duration_row: HBoxContainer = null
+static var _shared_processing_duration_label: Label = null
+static var _shared_processing_duration_value_label: Label = null
 
 @export var background_path: NodePath
 @export var title_label_path: NodePath
@@ -48,6 +52,7 @@ var stack_id: String = ""
 var _shadow: Control = null
 var _background: Control = null
 var _header_band: Control = null
+var _hairline_frame: Control = null
 var _title_label: Label = null
 var _icon_texture_rect: TextureRect = null
 var _short_text_label: Label = null
@@ -59,6 +64,9 @@ var _product_lifecycle: RefCounted = ProductLifecycleServiceScript.new()
 var _layout_initialized: bool = false
 var _spawn_tween: Tween = null
 var _custom_tooltip_text: String = ""
+var _processing_tooltip_title: String = ""
+var _processing_tooltip_remaining_seconds: float = 0.0
+var _uses_processing_tooltip: bool = false
 var _hover_seconds: float = 0.0
 var _is_hovering: bool = false
 var _is_tooltip_shown: bool = false
@@ -76,7 +84,7 @@ func _ready() -> void:
 	set_process(false)
 
 func _process(delta: float) -> void:
-	if _custom_tooltip_text.is_empty():
+	if not _has_custom_tooltip():
 		_stop_tooltip_hover()
 		return
 	if not _is_hovering:
@@ -99,6 +107,25 @@ func _exit_tree() -> void:
 
 func _get_tooltip(_at_position: Vector2) -> String:
 	return ""
+
+func set_processing_tooltip(action_title: String, remaining_seconds: float) -> void:
+	_processing_tooltip_title = action_title.strip_edges()
+	_processing_tooltip_remaining_seconds = maxf(remaining_seconds, 0.0)
+	_uses_processing_tooltip = not _processing_tooltip_title.is_empty()
+	if _active_tooltip_owner == self and _is_tooltip_shown:
+		_show_custom_tooltip()
+
+func clear_processing_tooltip() -> void:
+	if not _uses_processing_tooltip:
+		return
+	_uses_processing_tooltip = false
+	_processing_tooltip_title = ""
+	_processing_tooltip_remaining_seconds = 0.0
+	if _active_tooltip_owner == self and _is_tooltip_shown:
+		if _custom_tooltip_text.is_empty():
+			_stop_tooltip_hover()
+		else:
+			_show_custom_tooltip()
 
 func setup(card: CardInstance, definition: CardDefinition, stack: StackState) -> void:
 	card_id = card.instance_id
@@ -153,6 +180,8 @@ func _resolve_or_create_nodes() -> void:
 		_background = get_node_or_null(background_path) as Control
 	if _header_band == null:
 		_header_band = get_node_or_null("HeaderBand") as Control
+	if _hairline_frame == null:
+		_hairline_frame = get_node_or_null("HairlineFrame") as Control
 	if _title_label == null:
 		_title_label = get_node_or_null(title_label_path) as Label
 	if _icon_texture_rect == null:
@@ -188,6 +217,12 @@ func _resolve_or_create_nodes() -> void:
 		_header_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(_header_band)
 
+	if _hairline_frame == null:
+		_hairline_frame = Panel.new()
+		_hairline_frame.name = "HairlineFrame"
+		_hairline_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(_hairline_frame)
+
 	if _card_font == null:
 		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
 	if _title_label == null:
@@ -212,6 +247,7 @@ func _resolve_or_create_nodes() -> void:
 	move_child(_title_label, 4)
 	move_child(_marker_label, 5)
 	move_child(_short_text_label, 6)
+	move_child(_hairline_frame, 7)
 	if not _layout_initialized:
 		_apply_default_layout()
 		_layout_initialized = true
@@ -244,13 +280,18 @@ func _apply_default_layout() -> void:
 	_background.size = DEFAULT_CARD_SIZE
 	_set_top_left_layout(_header_band)
 	_header_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_header_band.position = Vector2(CARD_BORDER_WIDTH, CARD_BORDER_WIDTH)
-	_header_band.size = Vector2(DEFAULT_CARD_SIZE.x - float(CARD_BORDER_WIDTH * 2), HEADER_HEIGHT)
+	_header_band.position = Vector2(CARD_EDGE_INSET, CARD_EDGE_INSET)
+	_header_band.size = Vector2(DEFAULT_CARD_SIZE.x - CARD_EDGE_INSET * 2.0, HEADER_HEIGHT)
+	_set_top_left_layout(_hairline_frame)
+	_hairline_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hairline_frame.position = Vector2.ZERO
+	_hairline_frame.size = DEFAULT_CARD_SIZE
+	_apply_hairline_frame_style()
 	_set_top_left_layout(_title_label)
 	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_title_label.position = Vector2(9.0, float(CARD_BORDER_WIDTH))
-	_title_label.size = Vector2(126.0, HEADER_HEIGHT - float(CARD_BORDER_WIDTH))
-	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title_label.position = Vector2(10.0, CARD_EDGE_INSET)
+	_title_label.size = Vector2(124.0, HEADER_HEIGHT)
+	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_title_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_title_label.clip_text = true
@@ -296,18 +337,14 @@ func _make_custom_tooltip(for_text: String) -> Object:
 func _apply_tooltip_panel_style(panel: PanelContainer) -> void:
 	var style_box: StyleBoxFlat = StyleBoxFlat.new()
 	style_box.bg_color = TOOLTIP_BACKGROUND_COLOR
-	style_box.border_color = CARD_BORDER_COLOR
+	style_box.border_color = CARD_HAIRLINE_COLOR
+	style_box.border_width_bottom = CARD_HAIRLINE_WIDTH
+	style_box.border_width_left = CARD_HAIRLINE_WIDTH
+	style_box.border_width_right = CARD_HAIRLINE_WIDTH
+	style_box.border_width_top = CARD_HAIRLINE_WIDTH
 	style_box.shadow_color = Color.TRANSPARENT
 	style_box.shadow_offset = Vector2.ZERO
 	style_box.shadow_size = 0
-	style_box.border_width_bottom = TOOLTIP_BORDER_WIDTH
-	style_box.border_width_left = TOOLTIP_BORDER_WIDTH
-	style_box.border_width_right = TOOLTIP_BORDER_WIDTH
-	style_box.border_width_top = TOOLTIP_BORDER_WIDTH
-	style_box.corner_radius_bottom_left = TOOLTIP_CORNER_RADIUS
-	style_box.corner_radius_bottom_right = TOOLTIP_CORNER_RADIUS
-	style_box.corner_radius_top_left = TOOLTIP_CORNER_RADIUS
-	style_box.corner_radius_top_right = TOOLTIP_CORNER_RADIUS
 	style_box.content_margin_bottom = TOOLTIP_CONTENT_MARGIN
 	style_box.content_margin_left = TOOLTIP_CONTENT_MARGIN
 	style_box.content_margin_right = TOOLTIP_CONTENT_MARGIN
@@ -327,6 +364,47 @@ func _create_tooltip_label(for_text: String) -> Label:
 		label.add_theme_font_override("font", _card_font)
 	label.add_theme_font_size_override("font_size", TOOLTIP_FONT_SIZE)
 	label.custom_minimum_size.x = _get_tooltip_text_width(for_text, label.get_theme_font("font"))
+	return label
+
+func _create_processing_tooltip_container() -> VBoxContainer:
+	var container: VBoxContainer = VBoxContainer.new()
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_theme_constant_override("separation", 4)
+
+	_shared_processing_title_label = _create_tooltip_label("")
+	container.add_child(_shared_processing_title_label)
+
+	_shared_processing_duration_row = HBoxContainer.new()
+	_shared_processing_duration_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shared_processing_duration_row.add_theme_constant_override("separation", 12)
+
+	_shared_processing_duration_label = _create_processing_tooltip_label("Restdauer:")
+	_shared_processing_duration_row.add_child(_shared_processing_duration_label)
+
+	var spacer: Control = Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shared_processing_duration_row.add_child(spacer)
+
+	_shared_processing_duration_value_label = _create_processing_tooltip_label("")
+	_shared_processing_duration_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_shared_processing_duration_row.add_child(_shared_processing_duration_value_label)
+
+	container.add_child(_shared_processing_duration_row)
+	return container
+
+func _create_processing_tooltip_label(for_text: String) -> Label:
+	var label: Label = Label.new()
+	label.text = for_text
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.clip_text = false
+	label.add_theme_color_override("font_color", CARD_TEXT_COLOR)
+	if _card_font == null:
+		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
+	if _card_font != null:
+		label.add_theme_font_override("font", _card_font)
+	label.add_theme_font_size_override("font_size", TOOLTIP_TIME_FONT_SIZE)
 	return label
 
 func _get_tooltip_text_width(text: String, font: Font) -> float:
@@ -370,15 +448,6 @@ func _apply_definition(definition: CardDefinition) -> void:
 	else:
 		var style_box: StyleBoxFlat = StyleBoxFlat.new()
 		style_box.bg_color = visual.background_color
-		style_box.border_color = CARD_BORDER_COLOR
-		style_box.border_width_bottom = CARD_BORDER_WIDTH
-		style_box.border_width_left = CARD_BORDER_WIDTH
-		style_box.border_width_right = CARD_BORDER_WIDTH
-		style_box.border_width_top = CARD_BORDER_WIDTH
-		style_box.corner_radius_bottom_left = CARD_CORNER_RADIUS
-		style_box.corner_radius_bottom_right = CARD_CORNER_RADIUS
-		style_box.corner_radius_top_left = CARD_CORNER_RADIUS
-		style_box.corner_radius_top_right = CARD_CORNER_RADIUS
 		_background.add_theme_stylebox_override("panel", style_box)
 	_apply_header_style(visual)
 
@@ -436,11 +505,22 @@ func _apply_header_style(visual: CardVisualDefinition) -> void:
 		return
 	var header_style: StyleBoxFlat = StyleBoxFlat.new()
 	header_style.bg_color = visual.accent_color.lightened(0.35)
-	header_style.border_color = CARD_BORDER_COLOR
-	header_style.border_width_bottom = CARD_BORDER_WIDTH
-	header_style.corner_radius_top_left = maxi(CARD_CORNER_RADIUS - 3, 0)
-	header_style.corner_radius_top_right = maxi(CARD_CORNER_RADIUS - 3, 0)
 	_header_band.add_theme_stylebox_override("panel", header_style)
+
+func _apply_hairline_frame_style() -> void:
+	if _hairline_frame == null:
+		return
+	if _hairline_frame is ColorRect:
+		(_hairline_frame as ColorRect).color = Color.TRANSPARENT
+		return
+	var frame_style: StyleBoxFlat = StyleBoxFlat.new()
+	frame_style.bg_color = Color.TRANSPARENT
+	frame_style.border_color = CARD_HAIRLINE_COLOR
+	frame_style.border_width_bottom = CARD_HAIRLINE_WIDTH
+	frame_style.border_width_left = CARD_HAIRLINE_WIDTH
+	frame_style.border_width_right = CARD_HAIRLINE_WIDTH
+	frame_style.border_width_top = CARD_HAIRLINE_WIDTH
+	_hairline_frame.add_theme_stylebox_override("panel", frame_style)
 
 func _apply_shadow_style() -> void:
 	if _shadow == null:
@@ -450,10 +530,6 @@ func _apply_shadow_style() -> void:
 		return
 	var shadow_style: StyleBoxFlat = StyleBoxFlat.new()
 	shadow_style.bg_color = DRAG_SHADOW_COLOR
-	shadow_style.corner_radius_bottom_left = CARD_CORNER_RADIUS
-	shadow_style.corner_radius_bottom_right = CARD_CORNER_RADIUS
-	shadow_style.corner_radius_top_left = CARD_CORNER_RADIUS
-	shadow_style.corner_radius_top_right = CARD_CORNER_RADIUS
 	_shadow.add_theme_stylebox_override("panel", shadow_style)
 
 func _get_scaled_drag_shadow_offset(canvas_scale: Vector2) -> Vector2:
@@ -542,10 +618,6 @@ func _apply_marker_style(card: CardInstance, marker_text: String) -> void:
 		style_box.bg_color = STATUS_BADGE_ALERT_COLOR
 	else:
 		style_box.bg_color = STATUS_BADGE_COLOR
-	style_box.corner_radius_bottom_left = 6
-	style_box.corner_radius_bottom_right = 6
-	style_box.corner_radius_top_left = 6
-	style_box.corner_radius_top_right = 6
 	_marker_label.add_theme_stylebox_override("normal", style_box)
 
 func _update_tooltip(card: CardInstance, definition: CardDefinition) -> void:
@@ -585,18 +657,21 @@ func _update_tooltip(card: CardInstance, definition: CardDefinition) -> void:
 func _set_card_tooltip_text(text: String) -> void:
 	_custom_tooltip_text = text.strip_edges()
 	tooltip_text = ""
-	if _custom_tooltip_text.is_empty():
+	if not _has_custom_tooltip():
 		_stop_tooltip_hover()
 		return
 	if _active_tooltip_owner == self and _is_tooltip_shown:
 		_show_custom_tooltip()
 
 func _on_card_mouse_entered() -> void:
-	if _custom_tooltip_text.is_empty():
+	if not _has_custom_tooltip():
 		return
 	_is_hovering = true
 	_hover_seconds = 0.0
 	set_process(true)
+
+func _has_custom_tooltip() -> bool:
+	return _uses_processing_tooltip or not _custom_tooltip_text.is_empty()
 
 func _on_card_mouse_exited() -> void:
 	_stop_tooltip_hover()
@@ -616,14 +691,65 @@ func _show_custom_tooltip() -> void:
 		_active_tooltip_owner.call("_mark_custom_tooltip_hidden")
 	_active_tooltip_owner = self
 	_is_tooltip_shown = true
+	if _uses_processing_tooltip:
+		_apply_processing_tooltip_content()
+	else:
+		_apply_plain_tooltip_content()
+	_shared_tooltip_panel.visible = true
+	_shared_tooltip_panel.reset_size()
+	_position_shared_tooltip()
+
+func _apply_plain_tooltip_content() -> void:
+	if _shared_tooltip_label == null:
+		return
+	_shared_tooltip_label.visible = true
+	if _shared_processing_tooltip_container != null:
+		_shared_processing_tooltip_container.visible = false
 	_shared_tooltip_label.text = _custom_tooltip_text
 	_shared_tooltip_label.custom_minimum_size.x = _get_tooltip_text_width(
 		_custom_tooltip_text,
 		_shared_tooltip_label.get_theme_font("font")
 	)
-	_shared_tooltip_panel.visible = true
-	_shared_tooltip_panel.reset_size()
-	_position_shared_tooltip()
+
+func _apply_processing_tooltip_content() -> void:
+	if _shared_processing_tooltip_container == null:
+		return
+	if _shared_tooltip_label != null:
+		_shared_tooltip_label.visible = false
+	_shared_processing_tooltip_container.visible = true
+	var tooltip_title: String = _get_processing_tooltip_title_text()
+	var remaining_text: String = "%d Sek" % ceili(_processing_tooltip_remaining_seconds)
+	var content_width: float = _get_processing_tooltip_width(tooltip_title, remaining_text)
+
+	_shared_processing_title_label.text = tooltip_title
+	_shared_processing_title_label.custom_minimum_size.x = content_width
+	_shared_processing_duration_row.custom_minimum_size.x = content_width
+	_shared_processing_duration_label.text = "Restdauer:"
+	_shared_processing_duration_value_label.text = remaining_text
+
+func _get_processing_tooltip_title_text() -> String:
+	if _processing_tooltip_title.ends_with("..."):
+		return _processing_tooltip_title
+	return "%s..." % _processing_tooltip_title
+
+func _get_processing_tooltip_width(title_text: String, remaining_text: String) -> float:
+	var title_width: float = TOOLTIP_MIN_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2)
+	var title_font: Font = _shared_processing_title_label.get_theme_font("font") if _shared_processing_title_label != null else null
+	if title_font != null:
+		title_width = title_font.get_string_size(title_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, TOOLTIP_FONT_SIZE).x
+
+	var duration_width: float = TOOLTIP_MIN_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2)
+	var time_font: Font = _shared_processing_duration_label.get_theme_font("font") if _shared_processing_duration_label != null else null
+	if time_font != null:
+		duration_width = time_font.get_string_size("Restdauer:", HORIZONTAL_ALIGNMENT_LEFT, -1.0, TOOLTIP_TIME_FONT_SIZE).x
+		duration_width += 32.0
+		duration_width += time_font.get_string_size(remaining_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, TOOLTIP_TIME_FONT_SIZE).x
+
+	return clampf(
+		maxf(title_width, duration_width),
+		TOOLTIP_MIN_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2),
+		TOOLTIP_MAX_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2)
+	)
 
 func _hide_custom_tooltip() -> void:
 	if _active_tooltip_owner != self:
@@ -653,6 +779,9 @@ func _ensure_shared_tooltip() -> void:
 	_apply_tooltip_panel_style(_shared_tooltip_panel)
 	_shared_tooltip_label = _create_tooltip_label("")
 	_shared_tooltip_panel.add_child(_shared_tooltip_label)
+	_shared_processing_tooltip_container = _create_processing_tooltip_container()
+	_shared_processing_tooltip_container.visible = false
+	_shared_tooltip_panel.add_child(_shared_processing_tooltip_container)
 	_shared_tooltip_layer.add_child(_shared_tooltip_panel)
 
 func _position_shared_tooltip() -> void:
