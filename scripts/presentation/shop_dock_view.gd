@@ -19,6 +19,7 @@ const ShopInteractionServiceScript: Script = preload("res://scripts/simulation/s
 
 var state: RunState = null
 var content: ContentCatalog = null
+var visual_theme: Resource = null
 
 var _card_views: Dictionary = {}
 var _base_positions: Dictionary = {}
@@ -37,7 +38,11 @@ func _ready() -> void:
 func bind_run(run_state: RunState, content_catalog: ContentCatalog) -> void:
 	state = run_state
 	content = content_catalog
+	visual_theme = content.visual_theme if content != null else null
 	_shop_interactions.setup(state, content)
+	_apply_visual_theme_to_editor_slots()
+	for view: CardView in _card_views.values():
+		view.set_visual_theme(visual_theme)
 	refresh()
 
 func apply_events(_events: Array[SimulationEvent]) -> void:
@@ -107,6 +112,7 @@ func _ensure_card_view(card_id: String) -> CardView:
 		view = CardView.new()
 
 	view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	view.set_visual_theme(visual_theme)
 	add_child(view)
 	_card_views[card_id] = view
 	return view
@@ -267,6 +273,11 @@ func _get_editor_slots() -> Array[Control]:
 			if not (slot.get("card_definition_id") as String).is_empty():
 				slots.append(slot)
 	return slots
+
+func _apply_visual_theme_to_editor_slots() -> void:
+	for slot: Control in _get_editor_slots():
+		if slot.has_method("set_visual_theme"):
+			slot.call("set_visual_theme", visual_theme)
 
 func _get_shop_order(card_id: String) -> int:
 	var card: CardInstance = state.get_card(card_id)

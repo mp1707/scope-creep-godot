@@ -1,0 +1,83 @@
+[gd_resource type="Resource" script_class="GameVisualThemeDefinition" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/game_visual_theme_definition.gd" id="1_theme"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_role_definition.gd" id="2_role"]
+[ext_resource type="Texture2D" path="res://assets/card/paperTexture.png" id="3_paper"]
+
+[sub_resource type="Resource" id="Role_default"]
+script = ExtResource("2_role")
+id = "visual_role.default"
+background_color = Color(0.84, 0.8, 0.6, 1)
+accent_color = Color(0.44, 0.36, 0.12, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+icon_color = Color(0.06, 0.055, 0.05, 1)
+
+[sub_resource type="Resource" id="Role_employee"]
+script = ExtResource("2_role")
+id = "visual_role.employee"
+background_color = Color(0.64, 0.82, 0.58, 1)
+accent_color = Color(0.25, 0.48, 0.25, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+icon_color = Color(0.06, 0.055, 0.05, 1)
+
+[sub_resource type="Resource" id="Role_problem"]
+script = ExtResource("2_role")
+id = "visual_role.problem"
+background_color = Color(0.94, 0.52, 0.55, 1)
+accent_color = Color(0.55, 0.12, 0.17, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+icon_color = Color(0.06, 0.055, 0.05, 1)
+
+[sub_resource type="Resource" id="Role_resource"]
+script = ExtResource("2_role")
+id = "visual_role.resource"
+background_color = Color(0.62, 0.88, 0.66, 1)
+accent_color = Color(0.17, 0.48, 0.24, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+icon_color = Color(0.06, 0.055, 0.05, 1)
+
+[sub_resource type="Resource" id="Role_output"]
+script = ExtResource("2_role")
+id = "visual_role.output"
+background_color = Color(0.7, 0.78, 0.96, 1)
+accent_color = Color(0.22, 0.36, 0.68, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+icon_color = Color(0.06, 0.055, 0.05, 1)
+
+[sub_resource type="Resource" id="Role_product"]
+script = ExtResource("2_role")
+id = "visual_role.product"
+background_color = Color(0.62, 0.82, 0.92, 1)
+accent_color = Color(0.16, 0.42, 0.58, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+icon_color = Color(0.06, 0.055, 0.05, 1)
+
+[sub_resource type="Resource" id="Role_shop"]
+script = ExtResource("2_role")
+id = "visual_role.shop"
+background_color = Color(0.64, 0.76, 0.88, 1)
+accent_color = Color(0.18, 0.33, 0.48, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+icon_color = Color(0.06, 0.055, 0.05, 1)
+
+[sub_resource type="Resource" id="Role_goal"]
+script = ExtResource("2_role")
+id = "visual_role.goal"
+background_color = Color(0.94, 0.86, 0.50, 1)
+accent_color = Color(0.46, 0.34, 0.08, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+icon_color = Color(0.06, 0.055, 0.05, 1)
+
+[sub_resource type="Resource" id="Role_value_source"]
+script = ExtResource("2_role")
+id = "visual_role.value_source"
+background_color = Color(0.88, 0.72, 0.92, 1)
+accent_color = Color(0.42, 0.20, 0.50, 1)
+text_color = Color(0.06, 0.055, 0.05, 1)
+icon_color = Color(0.06, 0.055, 0.05, 1)
+
+[resource]
+script = ExtResource("1_theme")
+id = "visual_theme.poc.default"
+card_paper_texture = ExtResource("3_paper")
+card_roles = Array[ExtResource("2_role")]([SubResource("Role_default"), SubResource("Role_employee"), SubResource("Role_problem"), SubResource("Role_resource"), SubResource("Role_output"), SubResource("Role_product"), SubResource("Role_shop"), SubResource("Role_goal"), SubResource("Role_value_source")])

@@ -54,6 +54,7 @@ static var _paper_texture_load_attempted: bool = false
 
 var card_id: String = ""
 var stack_id: String = ""
+var visual_theme: Resource = null
 
 var _visual_root: Control = null
 var _shadow: Control = null
@@ -118,6 +119,15 @@ func _exit_tree() -> void:
 
 func _get_tooltip(_at_position: Vector2) -> String:
 	return ""
+
+func set_visual_theme(theme: Resource) -> void:
+	visual_theme = theme
+	if _shadow != null:
+		_apply_shadow_style()
+	if _header_hairline != null:
+		_apply_header_hairline_style()
+	if _drop_target_feedback != null:
+		_apply_drop_target_feedback_style()
 
 func set_processing_tooltip(action_title: String, remaining_seconds: float) -> void:
 	_processing_tooltip_title = action_title.strip_edges()
@@ -462,7 +472,7 @@ func _apply_default_layout() -> void:
 	_marker_label.size = Vector2(34.0, 24.0)
 	_marker_label.visible = false
 	_marker_label.add_theme_font_size_override("font_size", 18)
-	_marker_label.add_theme_color_override("font_color", STATUS_BADGE_TEXT_COLOR)
+	_marker_label.add_theme_color_override("font_color", _get_status_badge_text_color())
 	_set_top_left_layout(_short_text_label)
 	_short_text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_short_text_label.position = Vector2(12.0, 74.0)
@@ -486,7 +496,7 @@ func _make_custom_tooltip(for_text: String) -> Object:
 
 func _apply_tooltip_panel_style(panel: PanelContainer) -> void:
 	var style_box: StyleBoxFlat = StyleBoxFlat.new()
-	style_box.bg_color = TOOLTIP_BACKGROUND_COLOR
+	style_box.bg_color = _get_tooltip_background_color()
 	style_box.shadow_color = Color.TRANSPARENT
 	style_box.shadow_offset = Vector2.ZERO
 	style_box.shadow_size = 0
@@ -502,7 +512,7 @@ func _create_tooltip_label(for_text: String) -> Label:
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.clip_text = false
-	label.add_theme_color_override("font_color", CARD_TEXT_COLOR)
+	label.add_theme_color_override("font_color", _get_tooltip_text_color())
 	if _card_font == null:
 		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
 	if _card_font != null:
@@ -544,7 +554,7 @@ func _create_processing_tooltip_label(for_text: String) -> Label:
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	label.clip_text = false
-	label.add_theme_color_override("font_color", CARD_TEXT_COLOR)
+	label.add_theme_color_override("font_color", _get_tooltip_text_color())
 	if _card_font == null:
 		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
 	if _card_font != null:
@@ -585,10 +595,10 @@ func _apply_definition(definition: CardDefinition) -> void:
 	_apply_icon_style(visual)
 	_short_text_label.visible = false
 	for label: Label in [_title_label, _short_text_label, _marker_label]:
-		label.add_theme_color_override("font_color", visual.text_color)
-	_marker_label.add_theme_color_override("font_color", STATUS_BADGE_TEXT_COLOR)
+		label.add_theme_color_override("font_color", _get_card_text_color(visual))
+	_marker_label.add_theme_color_override("font_color", _get_status_badge_text_color())
 
-	_apply_card_surface_style(_background, visual.background_color)
+	_apply_card_surface_style(_background, _get_card_background_color(visual))
 	_apply_header_style(visual)
 
 func _fit_title_to_single_line() -> void:
@@ -623,10 +633,10 @@ func _apply_icon_style(visual: CardVisualDefinition) -> void:
 		return
 	if visual.icon_recolor_alpha_mask:
 		_icon_texture_rect.material = _get_icon_mask_material()
-		_icon_mask_material.set_shader_parameter("icon_color", visual.icon_color)
+		_icon_mask_material.set_shader_parameter("icon_color", _get_card_icon_color(visual))
 	else:
 		_icon_texture_rect.material = null
-		_icon_texture_rect.self_modulate = visual.icon_color
+		_icon_texture_rect.self_modulate = _get_card_icon_color(visual)
 
 func _get_icon_mask_material() -> ShaderMaterial:
 	if _icon_mask_material != null:
@@ -640,7 +650,7 @@ func _get_icon_mask_material() -> ShaderMaterial:
 func _apply_header_style(visual: CardVisualDefinition) -> void:
 	if _header_band == null:
 		return
-	_apply_card_surface_style(_header_band, visual.accent_color.lightened(0.35))
+	_apply_card_surface_style(_header_band, _get_card_accent_color(visual).lightened(0.35))
 
 func _apply_card_surface_style(control: Control, tint_color: Color) -> void:
 	if control == null:
@@ -662,6 +672,8 @@ func _apply_card_surface_style(control: Control, tint_color: Color) -> void:
 	control.add_theme_stylebox_override("panel", texture_style)
 
 func _get_paper_texture() -> Texture2D:
+	if visual_theme != null and visual_theme.get("card_paper_texture") != null:
+		return visual_theme.get("card_paper_texture") as Texture2D
 	if _shared_paper_texture != null:
 		return _shared_paper_texture
 	if _paper_texture_load_attempted:
@@ -674,27 +686,27 @@ func _apply_header_hairline_style() -> void:
 	if _header_hairline == null:
 		return
 	if _header_hairline is ColorRect:
-		(_header_hairline as ColorRect).color = CARD_HAIRLINE_COLOR
+		(_header_hairline as ColorRect).color = _get_card_hairline_color()
 		return
 	var hairline_style: StyleBoxFlat = StyleBoxFlat.new()
-	hairline_style.bg_color = CARD_HAIRLINE_COLOR
+	hairline_style.bg_color = _get_card_hairline_color()
 	_header_hairline.add_theme_stylebox_override("panel", hairline_style)
 
 func _apply_shadow_style() -> void:
 	if _shadow == null:
 		return
 	if _shadow is ColorRect:
-		(_shadow as ColorRect).color = SHADOW_COLOR
+		(_shadow as ColorRect).color = _get_card_shadow_color()
 		return
 	var shadow_style: StyleBoxFlat = StyleBoxFlat.new()
-	shadow_style.bg_color = SHADOW_COLOR
+	shadow_style.bg_color = _get_card_shadow_color()
 	_shadow.add_theme_stylebox_override("panel", shadow_style)
 
 func _apply_drop_target_feedback_style() -> void:
 	if _drop_target_feedback == null:
 		return
 	var style_box: StyleBoxFlat = StyleBoxFlat.new()
-	style_box.bg_color = DROP_TARGET_FILL_COLOR
+	style_box.bg_color = _get_card_drop_target_fill_color()
 	_drop_target_feedback.add_theme_stylebox_override("panel", style_box)
 
 func _get_idle_rotation_for_card_id(value: String) -> float:
@@ -770,11 +782,11 @@ func _apply_marker_style(card: CardInstance, marker_text: String) -> void:
 		return
 	var style_box: StyleBoxFlat = StyleBoxFlat.new()
 	if card.state != null and card.state.is_paid:
-		style_box.bg_color = STATUS_BADGE_PAID_COLOR
+		style_box.bg_color = _get_status_badge_paid_color()
 	elif marker_text == "BO" or marker_text == "!!!" or marker_text == "$":
-		style_box.bg_color = STATUS_BADGE_ALERT_COLOR
+		style_box.bg_color = _get_status_badge_alert_color()
 	else:
-		style_box.bg_color = STATUS_BADGE_COLOR
+		style_box.bg_color = _get_status_badge_color()
 	_marker_label.add_theme_stylebox_override("normal", style_box)
 
 func _update_tooltip(card: CardInstance, definition: CardDefinition) -> void:
@@ -974,10 +986,74 @@ func _update_runtime_tint(card: CardInstance) -> void:
 		modulate = Color.WHITE
 		return
 	if card.state.is_locked and card.parent_card_id.is_empty():
-		modulate = Color(0.68, 0.68, 0.68, 1.0)
+		modulate = _get_card_disabled_modulate()
 	elif card.state.is_paid:
-		modulate = Color(0.68, 0.86, 0.68, 1.0)
+		modulate = _get_card_paid_modulate()
 	elif card.state.is_payment_target:
-		modulate = Color(1.0, 0.96, 0.72, 1.0)
+		modulate = _get_card_payment_target_modulate()
 	else:
 		modulate = Color.WHITE
+
+func _get_card_background_color(visual: CardVisualDefinition) -> Color:
+	if visual_theme != null:
+		return visual_theme.call("get_card_background_color", visual) as Color
+	return visual.background_color if visual != null else Color(0.18, 0.20, 0.24, 1.0)
+
+func _get_card_accent_color(visual: CardVisualDefinition) -> Color:
+	if visual_theme != null:
+		return visual_theme.call("get_card_accent_color", visual) as Color
+	return visual.accent_color if visual != null else Color(0.42, 0.72, 0.95, 1.0)
+
+func _get_card_text_color(visual: CardVisualDefinition) -> Color:
+	if visual_theme != null:
+		return visual_theme.call("get_card_text_color", visual) as Color
+	return visual.text_color if visual != null else CARD_TEXT_COLOR
+
+func _get_card_icon_color(visual: CardVisualDefinition) -> Color:
+	if visual_theme != null:
+		return visual_theme.call("get_card_icon_color", visual) as Color
+	return visual.icon_color if visual != null else CARD_TEXT_COLOR
+
+func _get_card_hairline_color() -> Color:
+	return _get_theme_color("card_hairline_color", CARD_HAIRLINE_COLOR)
+
+func _get_card_shadow_color() -> Color:
+	return _get_theme_color("card_shadow_color", SHADOW_COLOR)
+
+func _get_card_drop_target_fill_color() -> Color:
+	return _get_theme_color("card_drop_target_fill_color", DROP_TARGET_FILL_COLOR)
+
+func _get_tooltip_background_color() -> Color:
+	return _get_theme_color("tooltip_background_color", TOOLTIP_BACKGROUND_COLOR)
+
+func _get_tooltip_text_color() -> Color:
+	return _get_theme_color("tooltip_text_color", CARD_TEXT_COLOR)
+
+func _get_status_badge_text_color() -> Color:
+	return _get_theme_color("status_badge_text_color", STATUS_BADGE_TEXT_COLOR)
+
+func _get_status_badge_color() -> Color:
+	return _get_theme_color("status_badge_color", STATUS_BADGE_COLOR)
+
+func _get_status_badge_alert_color() -> Color:
+	return _get_theme_color("status_badge_alert_color", STATUS_BADGE_ALERT_COLOR)
+
+func _get_status_badge_paid_color() -> Color:
+	return _get_theme_color("status_badge_paid_color", STATUS_BADGE_PAID_COLOR)
+
+func _get_card_disabled_modulate() -> Color:
+	return _get_theme_color("card_disabled_modulate", Color(0.68, 0.68, 0.68, 1.0))
+
+func _get_card_paid_modulate() -> Color:
+	return _get_theme_color("card_paid_modulate", Color(0.68, 0.86, 0.68, 1.0))
+
+func _get_card_payment_target_modulate() -> Color:
+	return _get_theme_color("card_payment_target_modulate", Color(1.0, 0.96, 0.72, 1.0))
+
+func _get_theme_color(property_name: String, fallback: Color) -> Color:
+	if visual_theme == null:
+		return fallback
+	var value: Variant = visual_theme.get(property_name)
+	if value is Color:
+		return value as Color
+	return fallback

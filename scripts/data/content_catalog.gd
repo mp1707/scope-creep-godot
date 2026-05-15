@@ -5,11 +5,13 @@ const CARD_DIR: String = "res://data/cards"
 const RECIPE_DIR: String = "res://data/recipes"
 const BOOSTER_DIR: String = "res://data/boosters"
 const BALANCE_PATH: String = "res://data/balance/poc_default.tres"
+const VISUAL_THEME_PATH: String = "res://data/visual_themes/poc_default_visual_theme.tres"
 
 var cards: Dictionary = {}
 var recipes: Dictionary = {}
 var boosters: Dictionary = {}
 var balance: BalanceDefinition = null
+var visual_theme: Resource = null
 
 func load_default_content() -> bool:
 	cards.clear()
@@ -19,8 +21,9 @@ func load_default_content() -> bool:
 	_load_recipes(RECIPE_DIR)
 	_load_boosters(BOOSTER_DIR)
 	balance = ResourceLoader.load(BALANCE_PATH) as BalanceDefinition
+	visual_theme = ResourceLoader.load(VISUAL_THEME_PATH)
 	apply_balance_overrides()
-	return not cards.is_empty() and not recipes.is_empty() and not boosters.is_empty() and balance != null
+	return not cards.is_empty() and not recipes.is_empty() and not boosters.is_empty() and balance != null and visual_theme != null
 
 func get_card_definition(card_definition_id: String) -> CardDefinition:
 	return cards.get(card_definition_id, null) as CardDefinition

@@ -39,8 +39,13 @@ var pulse_amount: float = 0.0:
 		pulse_amount = value
 		queue_redraw()
 
+var visual_theme: Resource = null
 var _drop_feedback_active: bool = false
 var _pulse_tween: Tween = null
+
+func set_visual_theme(theme: Resource) -> void:
+	visual_theme = theme
+	queue_redraw()
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -88,31 +93,31 @@ func _draw_drop_feedback() -> void:
 	var center: Vector2 = feedback_rect.get_center()
 	feedback_rect.size *= pulse_scale
 	feedback_rect.position = center - feedback_rect.size * 0.5
-	var fill: Color = DROP_FEEDBACK_FILL_COLOR
+	var fill: Color = _get_drop_feedback_fill_color()
 	fill.a *= 1.0 if _drop_feedback_active else pulse_amount
 	draw_rect(feedback_rect, fill, true)
 
 func _draw_editor_preview() -> void:
 	var card_rect: Rect2 = Rect2(card_offset, PREVIEW_CARD_SIZE)
-	draw_rect(card_rect, PREVIEW_FILL_COLOR, true)
-	draw_rect(Rect2(card_rect.position, Vector2(card_rect.size.x, PREVIEW_HEADER_HEIGHT)), PREVIEW_HEADER_COLOR, true)
+	draw_rect(card_rect, _get_preview_fill_color(), true)
+	draw_rect(Rect2(card_rect.position, Vector2(card_rect.size.x, PREVIEW_HEADER_HEIGHT)), _get_preview_header_color(), true)
 	draw_line(
 		card_rect.position + Vector2(0.0, PREVIEW_HEADER_HEIGHT),
 		card_rect.position + Vector2(card_rect.size.x, PREVIEW_HEADER_HEIGHT),
-		PREVIEW_HAIRLINE_COLOR,
+		_get_preview_hairline_color(),
 		1.0
 	)
 
 	var hover_rect: Rect2 = Rect2(card_offset + hover_offset, PREVIEW_CARD_SIZE)
-	draw_rect(hover_rect, PREVIEW_HOVER_COLOR, true)
-	draw_line(card_rect.get_center(), hover_rect.get_center(), Color(PREVIEW_HOVER_COLOR, 0.55), 2.0)
+	draw_rect(hover_rect, _get_preview_hover_color(), true)
+	draw_line(card_rect.get_center(), hover_rect.get_center(), Color(_get_preview_hover_color(), 0.55), 2.0)
 
 	var font: Font = get_theme_default_font()
 	if font == null:
 		return
 	var label: String = _get_preview_label()
-	draw_string(font, card_rect.position + Vector2(10.0, 18.0), label, HORIZONTAL_ALIGNMENT_LEFT, card_rect.size.x - 20.0, PREVIEW_FONT_SIZE, PREVIEW_TEXT_COLOR)
-	draw_string(font, card_rect.position + Vector2(10.0, 62.0), "ShopDockSlot", HORIZONTAL_ALIGNMENT_LEFT, card_rect.size.x - 20.0, PREVIEW_FONT_SIZE, Color(PREVIEW_TEXT_COLOR, 0.52))
+	draw_string(font, card_rect.position + Vector2(10.0, 18.0), label, HORIZONTAL_ALIGNMENT_LEFT, card_rect.size.x - 20.0, PREVIEW_FONT_SIZE, _get_preview_text_color())
+	draw_string(font, card_rect.position + Vector2(10.0, 62.0), "ShopDockSlot", HORIZONTAL_ALIGNMENT_LEFT, card_rect.size.x - 20.0, PREVIEW_FONT_SIZE, Color(_get_preview_text_color(), 0.52))
 
 func _get_preview_label() -> String:
 	if not preview_label.is_empty():
@@ -120,3 +125,29 @@ func _get_preview_label() -> String:
 	if not card_definition_id.is_empty():
 		return card_definition_id.get_slice(".", card_definition_id.get_slice_count(".") - 1).capitalize()
 	return name
+
+func _get_preview_fill_color() -> Color:
+	return _get_theme_color("shop_preview_fill_color", PREVIEW_FILL_COLOR)
+
+func _get_preview_header_color() -> Color:
+	return _get_theme_color("shop_preview_header_color", PREVIEW_HEADER_COLOR)
+
+func _get_preview_hairline_color() -> Color:
+	return _get_theme_color("shop_preview_hairline_color", PREVIEW_HAIRLINE_COLOR)
+
+func _get_preview_hover_color() -> Color:
+	return _get_theme_color("shop_preview_hover_color", PREVIEW_HOVER_COLOR)
+
+func _get_drop_feedback_fill_color() -> Color:
+	return _get_theme_color("shop_drop_feedback_fill_color", DROP_FEEDBACK_FILL_COLOR)
+
+func _get_preview_text_color() -> Color:
+	return _get_theme_color("shop_preview_text_color", PREVIEW_TEXT_COLOR)
+
+func _get_theme_color(property_name: String, fallback: Color) -> Color:
+	if visual_theme == null:
+		return fallback
+	var value: Variant = visual_theme.get(property_name)
+	if value is Color:
+		return value as Color
+	return fallback

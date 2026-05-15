@@ -36,6 +36,7 @@ signal board_pan_requested(relative: Vector2)
 
 var state: RunState = null
 var content: ContentCatalog = null
+var visual_theme: Resource = null
 var screen_drop_target_resolver: Callable = Callable()
 var screen_drag_finished_callback: Callable = Callable()
 var screen_drag_layer: Control = null
@@ -81,19 +82,19 @@ func _process(_delta: float) -> void:
 
 func _draw() -> void:
 	var board_rect: Rect2 = _get_board_rect()
-	draw_rect(board_rect, BOARD_BACKGROUND_COLOR, true)
+	draw_rect(board_rect, _get_board_background_color(), true)
 
 	for x_index: int in range(int(board_rect.position.x) + 96, int(board_rect.end.x), 160):
 		var x: float = float(x_index)
-		draw_line(Vector2(x, board_rect.position.y + 16.0), Vector2(x, board_rect.end.y - 16.0), BOARD_GRID_COLOR, 1.0)
+		draw_line(Vector2(x, board_rect.position.y + 16.0), Vector2(x, board_rect.end.y - 16.0), _get_board_grid_color(), 1.0)
 	for y_index: int in range(int(board_rect.position.y) + 96, int(board_rect.end.y), 160):
 		var y: float = float(y_index)
-		draw_line(Vector2(board_rect.position.x + 16.0, y), Vector2(board_rect.end.x - 16.0, y), BOARD_GRID_COLOR, 1.0)
+		draw_line(Vector2(board_rect.position.x + 16.0, y), Vector2(board_rect.end.x - 16.0, y), _get_board_grid_color(), 1.0)
 
-	draw_arc(Vector2(350.0, 845.0), 34.0, 0.15, 2.8, 16, BOARD_NOTE_COLOR, 2.0)
-	draw_arc(board_rect.end - Vector2(338.0, 193.0), 42.0, 3.5, 5.9, 16, BOARD_NOTE_COLOR, 2.0)
-	draw_line(board_rect.position + Vector2(board_rect.size.x - 408.0, 94.0), board_rect.position + Vector2(board_rect.size.x - 346.0, 94.0), BOARD_NOTE_COLOR, 2.0)
-	draw_line(board_rect.position + Vector2(board_rect.size.x - 408.0, 118.0), board_rect.position + Vector2(board_rect.size.x - 312.0, 118.0), BOARD_NOTE_COLOR, 2.0)
+	draw_arc(Vector2(350.0, 845.0), 34.0, 0.15, 2.8, 16, _get_board_note_color(), 2.0)
+	draw_arc(board_rect.end - Vector2(338.0, 193.0), 42.0, 3.5, 5.9, 16, _get_board_note_color(), 2.0)
+	draw_line(board_rect.position + Vector2(board_rect.size.x - 408.0, 94.0), board_rect.position + Vector2(board_rect.size.x - 346.0, 94.0), _get_board_note_color(), 2.0)
+	draw_line(board_rect.position + Vector2(board_rect.size.x - 408.0, 118.0), board_rect.position + Vector2(board_rect.size.x - 312.0, 118.0), _get_board_note_color(), 2.0)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -151,6 +152,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func bind_run(run_state: RunState, content_catalog: ContentCatalog) -> void:
 	state = run_state
 	content = content_catalog
+	visual_theme = content.visual_theme if content != null else null
 	if content != null and content.balance != null:
 		stack_offset = content.balance.stack_offset
 		snap_distance = content.balance.board_snap_distance
@@ -348,6 +350,7 @@ func _ensure_card_view(card_id: String) -> CardView:
 		view = CardView.new()
 
 	add_child(view)
+	view.set_visual_theme(visual_theme)
 	view.set_pointer_hover_enabled(false)
 	_card_views[card_id] = view
 	_update_card_view(card_id)
@@ -905,9 +908,9 @@ func _ensure_stack_progress_view(stack_id: String) -> Control:
 	progress_bar.position = PROGRESS_BAR_POSITION
 	progress_bar.size = PROGRESS_BAR_SIZE
 	progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	progress_bar.background_color = PROGRESS_BACKGROUND_COLOR
-	progress_bar.fill_color = PROGRESS_DARK_COLOR
-	progress_bar.border_color = PROGRESS_DARK_COLOR
+	progress_bar.background_color = _get_progress_background_color()
+	progress_bar.fill_color = _get_progress_fill_color()
+	progress_bar.border_color = _get_progress_border_color()
 	progress_bar.border_width = PROGRESS_BORDER_WIDTH
 	progress_bar.corner_radius = PROGRESS_CORNER_RADIUS
 	container.add_child(progress_bar)
@@ -994,6 +997,32 @@ func _get_board_size() -> Vector2:
 	if state != null and state.board != null:
 		return state.board.size
 	return BoardState.DEFAULT_SIZE
+
+func _get_board_background_color() -> Color:
+	return _get_theme_color("board_background_color", BOARD_BACKGROUND_COLOR)
+
+func _get_board_grid_color() -> Color:
+	return _get_theme_color("board_grid_color", BOARD_GRID_COLOR)
+
+func _get_board_note_color() -> Color:
+	return _get_theme_color("board_note_color", BOARD_NOTE_COLOR)
+
+func _get_progress_background_color() -> Color:
+	return _get_theme_color("progress_background_color", PROGRESS_BACKGROUND_COLOR)
+
+func _get_progress_fill_color() -> Color:
+	return _get_theme_color("progress_fill_color", PROGRESS_DARK_COLOR)
+
+func _get_progress_border_color() -> Color:
+	return _get_theme_color("progress_border_color", PROGRESS_DARK_COLOR)
+
+func _get_theme_color(property_name: String, fallback: Color) -> Color:
+	if visual_theme == null:
+		return fallback
+	var value: Variant = visual_theme.get(property_name)
+	if value is Color:
+		return value as Color
+	return fallback
 
 func _should_render_card_on_board(card_id: String) -> bool:
 	if state == null or content == null:

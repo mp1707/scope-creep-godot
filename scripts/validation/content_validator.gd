@@ -5,6 +5,7 @@ const CARD_DIR: String = "res://data/cards"
 const RECIPE_DIR: String = "res://data/recipes"
 const BOOSTER_DIR: String = "res://data/boosters"
 const BALANCE_DIR: String = "res://data/balance"
+const VISUAL_THEME_DIR: String = "res://data/visual_themes"
 const POC2_REQUIRED_CARD_TAGS: Dictionary = {
 	"card.employee.product_owner": ["employee", "product_owner"],
 	"card.employee.tester": ["employee", "tester"],
@@ -149,18 +150,25 @@ var _errors: PackedStringArray = PackedStringArray()
 var _seen_ids: Dictionary = {}
 var _card_ids: Dictionary = {}
 var _booster_ids: Dictionary = {}
+var _visual_role_ids: Dictionary = {}
+var _active_visual_theme: Resource = null
 
 func validate_content() -> PackedStringArray:
 	_errors.clear()
 	_seen_ids.clear()
 	_card_ids.clear()
 	_booster_ids.clear()
+	_visual_role_ids.clear()
+	_active_visual_theme = null
 
+	var visual_themes: Array = _load_resources(VISUAL_THEME_DIR, Resource)
 	var cards: Array = _load_resources(CARD_DIR, CardDefinition)
 	var recipes: Array = _load_resources(RECIPE_DIR, RecipeDefinition)
 	var boosters: Array = _load_resources(BOOSTER_DIR, BoosterDefinition)
 	var balances: Array = _load_resources(BALANCE_DIR, BalanceDefinition)
 
+	for visual_theme_resource: Resource in visual_themes:
+		_validate_visual_theme(visual_theme_resource)
 	for card_resource: Resource in cards:
 		_validate_card(card_resource as CardDefinition)
 	_validate_poc2_cross_card_rules(cards)
@@ -247,6 +255,7 @@ func _validate_card(card: CardDefinition) -> void:
 	if card.visual == null:
 		_errors.append("%s: Card '%s' needs a visual definition." % [path, card.id])
 	else:
+		_validate_card_visual(card)
 		_validate_poc2_visual_minimum(card)
 	var audio: CardAudioDefinition = card.audio
 	if audio != null and not _card_audio_has_any_override(audio):
@@ -306,6 +315,57 @@ func _validate_poc2_visual_minimum(card: CardDefinition) -> void:
 		return
 	if card.visual.marker_text.strip_edges().is_empty():
 		_errors.append("%s: PoC2 card '%s' needs visual.marker_text." % [card.resource_path, card.id])
+
+func _validate_visual_theme(visual_theme: Resource) -> void:
+	if visual_theme == null:
+		return
+	var visual_theme_id: String = visual_theme.get("id") as String
+	if visual_theme_id == "visual_theme.poc.default":
+		_active_visual_theme = visual_theme
+	if _active_visual_theme == null:
+		_active_visual_theme = visual_theme
+	if visual_theme.get("card_paper_texture") == null:
+		_errors.append("%s: Visual theme '%s' needs card_paper_texture." % [visual_theme.resource_path, visual_theme_id])
+	var card_roles: Array = visual_theme.get("card_roles") as Array
+	if card_roles.is_empty():
+		_errors.append("%s: Visual theme '%s' needs at least one card role." % [visual_theme.resource_path, visual_theme_id])
+
+	var seen_roles: Dictionary = {}
+	for role_resource: Resource in card_roles:
+		var role: Resource = role_resource
+		if role == null:
+			_errors.append("%s: Visual theme '%s' has an empty card role." % [visual_theme.resource_path, visual_theme_id])
+			continue
+		var role_id: String = role.get("id") as String
+		if not IdValidator.is_valid_domain_id(role_id):
+			_errors.append("%s: %s" % [visual_theme.resource_path, IdValidator.get_domain_id_error(role_id)])
+			continue
+		if seen_roles.has(role_id):
+			_errors.append("%s: Visual theme '%s' has duplicate card role '%s'." % [visual_theme.resource_path, visual_theme_id, role_id])
+			continue
+		seen_roles[role_id] = true
+		_visual_role_ids[role_id] = visual_theme.resource_path
+
+func _validate_card_visual(card: CardDefinition) -> void:
+	var visual: CardVisualDefinition = card.visual
+	if visual == null:
+		return
+	if visual.visual_role_id.strip_edges().is_empty():
+		return
+	if not visual.use_visual_role:
+		_errors.append("%s: Card '%s' sets visual_role_id but use_visual_role is false." % [card.resource_path, card.id])
+		return
+	if not _visual_role_ids.has(visual.visual_role_id):
+		_errors.append("%s: Card '%s' references missing visual role '%s'." % [card.resource_path, card.id, visual.visual_role_id])
+		return
+	if _active_visual_theme == null:
+		return
+	var text_color: Color = _active_visual_theme.call("get_card_text_color", visual) as Color
+	var background_color: Color = _active_visual_theme.call("get_card_background_color", visual) as Color
+	if text_color.a <= 0.0:
+		_errors.append("%s: Card '%s' resolves to transparent visual text color." % [card.resource_path, card.id])
+	if background_color.a <= 0.0:
+		_errors.append("%s: Card '%s' resolves to transparent visual background color." % [card.resource_path, card.id])
 
 func _validate_poc2_cross_card_rules(cards: Array) -> void:
 	for card_resource: Resource in cards:

@@ -12,7 +12,7 @@ Man startet mit einer MVP-Software, baut Features, finanziert sich dauerhaft ueb
 
 Das Spiel ist damit mehr als ein reiner Recipe-Test. Es hat inzwischen einen Anfang, einen Launch-Wendepunkt, Post-Launch-Druck, Sieg- und Niederlagebedingungen sowie kontrolliertes Teamwachstum. Balance, Lesbarkeit, UI-Polish, Content-Breite, Konflikte, Workshops, finale Card-Art, Tutorial und Meta-Progression fehlen aber noch oder sind bewusst nicht final.
 
-Die Karten-Presentation hat inzwischen ein einheitliches Juice-System: Hover, Drag-Lift, verzoegertes Drag-Follow, subtile Drag-Rotation, Snap-Bounce, Schattenzustaende und Drop-Ziel-Feedback laufen zentral ueber die CardView-Presentation und nicht ueber verstreute Einzel-Tweens. Alle Karten nutzen eine gemeinsame Papiertextur als Surface und faerben sie ueber die jeweilige `CardVisualDefinition` ein. SFX bleiben davon getrennt.
+Die Karten-Presentation hat inzwischen ein einheitliches Juice-System: Hover, Drag-Lift, verzoegertes Drag-Follow, subtile Drag-Rotation, Snap-Bounce, Schattenzustaende und Drop-Ziel-Feedback laufen zentral ueber die CardView-Presentation und nicht ueber verstreute Einzel-Tweens. Das Visual-Theming ist als `GameVisualThemeDefinition` zentral geladen: Board, HUD, Tooltips, Status-Badges, Shop-Dock-Preview und Card-Surface-Werte kommen aus dem aktiven Visual-Theme. Bestehende Karten behalten ihre direkten `CardVisualDefinition`-Farben als Overrides; neue Karten koennen ueber semantische `visual_role_id`s aus dem Theme starten. SFX bleiben davon getrennt.
 
 ## Wie eine Runde aktuell startet
 

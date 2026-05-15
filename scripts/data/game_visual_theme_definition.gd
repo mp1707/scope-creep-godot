@@ -1,0 +1,84 @@
+class_name GameVisualThemeDefinition
+extends Resource
+
+@export var id: String = ""
+
+@export var card_paper_texture: Texture2D
+@export var card_hairline_color: Color = Color(0.055, 0.052, 0.047, 0.22)
+@export var card_text_color: Color = Color(0.055, 0.052, 0.047, 1.0)
+@export var card_shadow_color: Color = Color(0.18, 0.15, 0.11, 1.0)
+@export var card_drop_target_fill_color: Color = Color(0.055, 0.052, 0.047, 0.08)
+@export var card_disabled_modulate: Color = Color(0.68, 0.68, 0.68, 1.0)
+@export var card_paid_modulate: Color = Color(0.68, 0.86, 0.68, 1.0)
+@export var card_payment_target_modulate: Color = Color(1.0, 0.96, 0.72, 1.0)
+
+@export var tooltip_background_color: Color = Color(0.76, 0.76, 0.72, 1.0)
+@export var tooltip_text_color: Color = Color(0.055, 0.052, 0.047, 1.0)
+
+@export var status_badge_text_color: Color = Color(0.055, 0.052, 0.047, 1.0)
+@export var status_badge_color: Color = Color(0.98, 0.91, 0.65, 0.96)
+@export var status_badge_alert_color: Color = Color(0.98, 0.64, 0.58, 0.96)
+@export var status_badge_paid_color: Color = Color(0.64, 0.86, 0.64, 0.96)
+
+@export var board_background_color: Color = Color(0.955, 0.948, 0.918, 1.0)
+@export var board_grid_color: Color = Color(0.58, 0.64, 0.62, 0.12)
+@export var board_note_color: Color = Color(0.38, 0.52, 0.58, 0.16)
+@export var progress_background_color: Color = Color(0.76, 0.76, 0.72, 1.0)
+@export var progress_fill_color: Color = Color(0.18, 0.18, 0.17, 1.0)
+@export var progress_border_color: Color = Color(0.18, 0.18, 0.17, 1.0)
+
+@export var hud_text_color: Color = Color(0.055, 0.052, 0.047, 1.0)
+
+@export var shop_preview_fill_color: Color = Color(0.98, 0.88, 0.58, 0.42)
+@export var shop_preview_header_color: Color = Color(0.76, 0.60, 0.32, 0.42)
+@export var shop_preview_hairline_color: Color = Color(0.055, 0.052, 0.047, 0.22)
+@export var shop_preview_hover_color: Color = Color(0.28, 0.56, 0.78, 0.18)
+@export var shop_drop_feedback_fill_color: Color = Color(0.055, 0.052, 0.047, 0.08)
+@export var shop_preview_text_color: Color = Color(0.055, 0.052, 0.047, 0.78)
+
+@export var card_roles: Array[Resource] = []
+
+func get_card_role(role_id: String) -> Resource:
+	if role_id.strip_edges().is_empty():
+		return null
+	for role: Resource in card_roles:
+		if role != null and role.get("id") as String == role_id:
+			return role
+	return null
+
+func get_card_background_color(visual: CardVisualDefinition) -> Color:
+	var role: Resource = _get_visual_role(visual)
+	if role != null and not visual.override_background_color:
+		return role.get("background_color") as Color
+	if visual != null:
+		return visual.background_color
+	return Color(0.18, 0.20, 0.24, 1.0)
+
+func get_card_accent_color(visual: CardVisualDefinition) -> Color:
+	var role: Resource = _get_visual_role(visual)
+	if role != null and not visual.override_accent_color:
+		return role.get("accent_color") as Color
+	if visual != null:
+		return visual.accent_color
+	return Color(0.42, 0.72, 0.95, 1.0)
+
+func get_card_text_color(visual: CardVisualDefinition) -> Color:
+	var role: Resource = _get_visual_role(visual)
+	if role != null and not visual.override_text_color:
+		return role.get("text_color") as Color
+	if visual != null:
+		return visual.text_color
+	return card_text_color
+
+func get_card_icon_color(visual: CardVisualDefinition) -> Color:
+	var role: Resource = _get_visual_role(visual)
+	if role != null and not visual.override_icon_color:
+		return role.get("icon_color") as Color
+	if visual != null:
+		return visual.icon_color
+	return card_text_color
+
+func _get_visual_role(visual: CardVisualDefinition) -> Resource:
+	if visual == null or not visual.use_visual_role:
+		return null
+	return get_card_role(visual.visual_role_id)

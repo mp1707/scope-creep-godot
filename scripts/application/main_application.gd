@@ -42,6 +42,7 @@ func _ready() -> void:
 		push_error("Default content could not be loaded.")
 		return
 
+	_apply_visual_theme()
 	controller = RunController.new(content)
 	run_state = controller.start_new_run(1)
 
@@ -155,6 +156,10 @@ func _apply_board_defaults() -> void:
 	if content.balance != null:
 		_board_view.stack_offset = content.balance.stack_offset
 		_board_view.snap_distance = content.balance.board_snap_distance
+
+func _apply_visual_theme() -> void:
+	if _hud != null and _hud.has_method("set_visual_theme"):
+		_hud.call("set_visual_theme", content.visual_theme)
 
 func _ensure_shop_dock() -> void:
 	_shop_dock = get_node_or_null(shop_dock_path) as Control

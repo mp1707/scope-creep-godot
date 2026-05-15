@@ -37,6 +37,7 @@ Zustaendig fuer:
 - Effect-Definitionen und Effect-Parameter
 - Booster- und Shop-Definitionen
 - Balancing-Resources
+- Visual-Theme-Resources fuer Kartenrollen, Board, HUD, Tooltips und Feedback-Farben
 - Content-Validierung
 
 ### Simulation
@@ -65,6 +66,7 @@ Zustaendig fuer:
 - Board-Kamera, Edge-Pan und Zoom
 - Tooltips, Marker, Fortschrittsbalken
 - visuelle Sperrung in der Bezahlphase
+- Anwendung des geladenen Visual-Themes auf Board, Karten, HUD und Shop-Dock
 - Animationen und Sounds
 
 Presentation sendet Spielerabsichten als Commands an Application/Simulation, z. B. `move_card_to_stack`, `split_stack`, `start_next_sprint`, `pay_employee`.
@@ -80,6 +82,7 @@ Zustaendig fuer:
 - Bootstrapping und Laden aller Content-Resources
 - Slot-Auswahl und Savegame-Verwaltung
 - Scene-Orchestrierung
+- Laden und Verteilen des aktiven Visual-Themes an Presentation-Views
 - Weiterleitung von UI-Commands an die Simulation
 - Anwendung von Simulation-Events auf Presentation
 - globale Pause und Run-Lifecycle
@@ -103,6 +106,7 @@ res://data/recipes/
 res://data/effects/
 res://data/boosters/
 res://data/balance/
+res://data/visual_themes/
 
 res://scenes/application/
 res://scenes/presentation/
@@ -177,6 +181,30 @@ Beispiele fuer `type`:
 - `GOAL`
 
 Tags ermoeglichen generisches Matching, z. B. `employee`, `developer`, `problem`, `bug`, `money`, `conflict`, `burnout`, `feature`.
+
+### Visual Theming
+
+Das Spiel nutzt zwei getrennte Theme-Ebenen:
+
+- Godot `Theme` in `assets/themes/` fuer normale Control-Defaults, z. B. Button- und Tooltip-Skins.
+- `GameVisualThemeDefinition` in `data/visual_themes/` fuer spielinhaltliche Visuals: Kartenrollen, Board, HUD, Tooltips, Status-Badges, Shop-Dock-Preview und Drop-Feedback.
+
+Kartenfarben tragen Gameplay-Semantik und gehoeren deshalb nicht ausschliesslich in ein Godot `Theme`. Das aktive `GameVisualThemeDefinition` wird beim Start durch `ContentCatalog` geladen und von `Application` an Presentation-Views verteilt. Simulation, Save/Load und Rules kennen dieses Theme nicht.
+
+`GameVisualThemeDefinition` enthaelt:
+
+- globale Card-Surface-Werte wie Papiertextur, Hairline, Schatten, Status-Badges und Drop-Feedback
+- Board- und Progress-Farben
+- HUD-, Tooltip- und Shop-Dock-Farben
+- semantische `CardVisualRoleDefinition`-Eintraege, z. B. `visual_role.employee`, `visual_role.problem`, `visual_role.resource`, `visual_role.output`, `visual_role.product`, `visual_role.shop`, `visual_role.goal`
+
+`CardVisualDefinition` bleibt Teil der `CardDefinition`, beschreibt aber die kartenbezogene Visual-Konfiguration:
+
+- `visual_role_id` und `use_visual_role` koennen eine semantische Rolle aus dem aktiven Theme nutzen.
+- Karten duerfen einzelne Farben weiterhin explizit ueberschreiben, wenn sie bewusst von der Rolle abweichen, z. B. `Prod-Crash` oder `Investorenpanik`.
+- Icon-Textur, Icon-Groesse, Icon-Offset und Marker-Text bleiben kartenbezogen.
+
+Migration: Bestehende Karten duerfen ihre direkten Farben behalten. Neue oder ueberarbeitete Karten sollen bevorzugt ueber `visual_role_id` starten und nur begruendete Overrides setzen. Dadurch kann eine Farbueberarbeitung zentral passieren, ohne Karten-Content und Presentation-Code gleichzeitig anfassen zu muessen.
 
 ### RecipeDefinition
 
@@ -688,6 +716,7 @@ Der Validator prueft mindestens:
 - Shop-Eintraege mit ungueltigen Kosten oder Targets
 - Effects mit fehlenden Pflichtparametern
 - CardDefinitions ohne Typ, Text oder Visual-Minimum
+- Visual-Themes mit fehlender Papiertextur, doppelten Rollen oder Kartenreferenzen auf nicht definierte `visual_role_id`s
 - Save-relevante ID-Umbenennungen ohne Migration/Alias
 
 Der Validator soll headless laufen koennen und klare Fehlertexte mit Resource-Pfad und ID ausgeben.

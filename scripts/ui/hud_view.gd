@@ -28,6 +28,7 @@ var _master_volume_row: Control = null
 var _master_volume_slider: HSlider = null
 var _master_volume_value_label: Label = null
 var _master_bus_index: int = -1
+var _visual_theme: Resource = null
 
 func _ready() -> void:
 	_status_label = get_node_or_null(status_label_path) as Label
@@ -49,6 +50,11 @@ func _ready() -> void:
 	if _load_button != null and not _load_button.pressed.is_connected(_on_load_pressed):
 		_load_button.pressed.connect(_on_load_pressed)
 	_initialize_master_volume_control()
+	_apply_visual_theme()
+
+func set_visual_theme(theme: Resource) -> void:
+	_visual_theme = theme
+	_apply_visual_theme()
 
 func update_from_run(run_state: RunState, sprint_remaining: float, can_auto_pay: bool, can_save: bool, can_load: bool) -> void:
 	if run_state == null:
@@ -128,3 +134,18 @@ func _apply_master_volume(value: float) -> void:
 func _update_master_volume_label(value: float) -> void:
 	if _master_volume_value_label != null:
 		_master_volume_value_label.text = "%d%%" % roundi(value)
+
+func _apply_visual_theme() -> void:
+	if _visual_theme == null:
+		return
+	var color: Variant = _visual_theme.get("hud_text_color")
+	if color is Color:
+		_apply_text_color_recursive(self, color as Color)
+
+func _apply_text_color_recursive(node: Node, color: Color) -> void:
+	if node is Label:
+		(node as Label).add_theme_color_override("font_color", color)
+	elif node is Button:
+		(node as Button).add_theme_color_override("font_color", color)
+	for child: Node in node.get_children():
+		_apply_text_color_recursive(child, color)
