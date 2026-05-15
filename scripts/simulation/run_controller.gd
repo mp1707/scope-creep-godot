@@ -5,6 +5,8 @@ const SPRINT_TIMER_ID: String = "sprint_remaining_seconds"
 const START_LAYOUT_ORIGIN: Vector2 = Vector2(420.0, 322.0)
 const START_LAYOUT_COLUMNS: int = 6
 const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
+const STARTUP_BOOSTER_PACK_DEFINITION_ID: String = "card.resource.startup_booster_pack"
+const STARTUP_BOOSTER_POSITION: Vector2 = Vector2(888.0, 442.0)
 const DEFAULT_BOOSTER_DEFINITION_ID: String = "booster.founder.test_pack"
 const CONTENT_VERSION: String = "poc_cleanup1"
 const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
@@ -31,14 +33,9 @@ const ShopInteractionServiceScript: Script = preload("res://scripts/simulation/s
 const HiringLifecycleServiceScript: Script = preload("res://scripts/simulation/hiring_lifecycle_service.gd")
 const SprintStartPipelineServiceScript: Script = preload("res://scripts/simulation/sprint_start_pipeline_service.gd")
 const SpawnPlacementServiceScript: Script = preload("res://scripts/simulation/spawn_placement_service.gd")
-const START_CARD_IDS: Array[String] = [
-	"card.product.software",
-	"card.employee.developer",
-	"card.input.idea",
-	"card.consumable.coffee",
+const START_SHOP_CARD_IDS: Array[String] = [
 	"card.shop.freelance_order",
 	"card.shop.booster_slot",
-	"card.resource.money",
 	"card.shop.booster_slot.office_invest",
 	"card.shop.bugfix_patch_slot",
 	"card.shop.booster_slot.talent_pool",
@@ -87,19 +84,18 @@ func start_new_run(run_seed: int = 1) -> RunState:
 	_hiring_lifecycle.setup(state, content)
 	_spawn_placement.setup(state, content)
 
-	for index: int in START_CARD_IDS.size():
+	var startup_pack: CardInstance = _spawn_card_as_new_stack(STARTUP_BOOSTER_PACK_DEFINITION_ID, STARTUP_BOOSTER_POSITION)
+	if startup_pack != null:
+		_get_or_create_booster_remaining_card_ids(startup_pack)
+
+	for index: int in START_SHOP_CARD_IDS.size():
 		var column: int = index % START_LAYOUT_COLUMNS
 		var row: int = floori(float(index) / float(START_LAYOUT_COLUMNS))
 		var position: Vector2 = START_LAYOUT_ORIGIN + Vector2(float(column), float(row)) * START_LAYOUT_STEP
-		var card_definition_id: String = START_CARD_IDS[index]
-		if card_definition_id == MONEY_DEFINITION_ID:
-			for money_index: int in _get_start_money_card_count():
-				_spawn_card_as_new_stack(MONEY_DEFINITION_ID, position)
-		else:
-			_spawn_card_as_new_stack(card_definition_id, position)
+		_spawn_card_as_new_stack(START_SHOP_CARD_IDS[index], position)
 
 	for checked_feature_index: int in START_CHECKED_FEATURE_CARD_COUNT:
-		var layout_index: int = START_CARD_IDS.size() + checked_feature_index
+		var layout_index: int = START_SHOP_CARD_IDS.size() + checked_feature_index
 		var column: int = layout_index % START_LAYOUT_COLUMNS
 		var row: int = floori(float(layout_index) / float(START_LAYOUT_COLUMNS))
 		var position: Vector2 = START_LAYOUT_ORIGIN + Vector2(float(column), float(row)) * START_LAYOUT_STEP
@@ -966,11 +962,14 @@ func _get_or_create_booster_remaining_card_ids(booster_pack: CardInstance) -> Pa
 
 	_rng.state = state.rng_state
 	var drawn_card_ids: PackedStringArray = PackedStringArray()
-	for _draw_index: int in booster.draw_count:
-		var card_definition_id: String = _draw_card_from_booster(booster)
-		if not card_definition_id.is_empty():
-			drawn_card_ids.append(card_definition_id)
-	state.rng_state = _rng.state
+	if not booster.fixed_card_definition_ids.is_empty():
+		drawn_card_ids = booster.fixed_card_definition_ids.duplicate()
+	else:
+		for _draw_index: int in booster.draw_count:
+			var card_definition_id: String = _draw_card_from_booster(booster)
+			if not card_definition_id.is_empty():
+				drawn_card_ids.append(card_definition_id)
+		state.rng_state = _rng.state
 
 	booster_pack.values[BOOSTER_DEFINITION_ID_VALUE] = booster_id
 	booster_pack.values[BOOSTER_REMAINING_CARD_IDS_VALUE] = drawn_card_ids

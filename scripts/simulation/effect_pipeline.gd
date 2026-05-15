@@ -159,8 +159,15 @@ func _open_booster(effect: EffectDefinition, context: EffectContext) -> void:
 		push_error("Missing booster definition: %s" % booster_id)
 		return
 
-	for draw_index: int in booster.draw_count:
-		var card_definition_id: String = _draw_card_from_booster(booster, context.rng)
+	var card_definition_ids: PackedStringArray = booster.fixed_card_definition_ids.duplicate()
+	if card_definition_ids.is_empty():
+		for draw_index: int in booster.draw_count:
+			var drawn_card_definition_id: String = _draw_card_from_booster(booster, context.rng)
+			if not drawn_card_definition_id.is_empty():
+				card_definition_ids.append(drawn_card_definition_id)
+
+	for draw_index: int in card_definition_ids.size():
+		var card_definition_id: String = card_definition_ids[draw_index]
 		if card_definition_id.is_empty():
 			continue
 		context.spawn_card.call(card_definition_id, _get_spawn_position(context, draw_index))

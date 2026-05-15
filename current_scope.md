@@ -16,14 +16,11 @@ Die Karten-Presentation hat inzwischen ein einheitliches Juice-System: Hover, Dr
 
 ## Wie eine Runde aktuell startet
 
-Der Run startet als Pre-Launch-MVP. Auf dem Board liegen im aktuellen Startsetup:
+Der Run startet als Pre-Launch-MVP. Auf dem Board liegt im aktuellen Startsetup nur ein spezielles Boosterpack:
 
-- Software mit MVP-Fortschritt `0 / 5 Features`
-- Entwickler
-- Idee
-- Kaffee
-- vier einzelne Geldkarten
-- Shop-/Booster-Zugaenge fuer Gruenderpanik, Wohlbefinden, Talent-Pool, externen Bugfix, Freelance-Auftrag und Resteverwertung
+- `Dein Startup` mit Sternsymbol und 8 Oeffnungen.
+- Beim Oeffnen erscheinen in fixer Reihenfolge: Software mit MVP-Fortschritt `0 / 5 Features`, Entwickler, Idee, Kaffee, vier einzelne Geldkarten.
+- Shop-/Booster-Zugaenge fuer Gruenderpanik, Wohlbefinden, Talent-Pool, Kundenchaos, externen Bugfix, Freelance-Auftrag und Resteverwertung bleiben als Dock-Interaktionen live.
 
 Geld ist wie im GDD vorgesehen keine Zahl im UI. Eine Geldkarte entspricht immer genau 1 Geld.
 

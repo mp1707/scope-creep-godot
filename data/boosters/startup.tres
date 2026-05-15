@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="BoosterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/booster_definition.gd" id="1_booster"]
+
+[resource]
+script = ExtResource("1_booster")
+id = "booster.startup"
+display_name = "Dein Startup"
+cost_money_cards = 0
+draw_count = 8
+fixed_card_definition_ids = PackedStringArray("card.product.software", "card.employee.developer", "card.input.idea", "card.consumable.coffee", "card.resource.money", "card.resource.money", "card.resource.money", "card.resource.money")

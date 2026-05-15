@@ -107,6 +107,7 @@ Das Spiel soll sich anfühlen wie:
 Der Start ist bewusst simpel:
 
 ```text
+Dein Startup öffnen → Software, Entwickler, Idee, Kaffee, 4× Geld
 Idee + Entwickler → Prototyp / Funktion
 Funktion + Software → MVP-Fortschritt oder Feature-Wert + Bug-Risiko
 Geld + Entwickler am Sprintende → Mitarbeiter bleibt
@@ -1026,12 +1027,12 @@ Nach 1–2 Sprints verschwindet der Externe Dev wieder.
 
 ### 11.1 Phase 1: Solo Chaos
 
-Startkarten:
+Startkarten kommen aus dem festen Start-Boosterpack **Dein Startup**:
 
 - Entwickler
 - Idee
 - Software / Leeres Repository
-- kleines Geld
+- 4× Geld
 - Kaffee
 
 Gameplay:
@@ -1150,6 +1151,8 @@ Klick auf Boosterpack → 1 zufällige Karte aus dem Pack-Pool; nach 3 Klicks ve
 ```
 
 Spieler darf alle 3 Karten aus einem geöffneten Pack behalten. Boosterpacks sind die zentrale Quelle für seltene/situative Karten — vor allem für Consumables wie Stressbewältigungskurs.
+
+Ausnahme: Das Startpack **Dein Startup** ist ein fixes Boosterpack mit Sternsymbol. Es liegt zu Run-Beginn allein auf dem Board und kann 8× geöffnet werden: Software, Entwickler, Idee, Kaffee, Geld, Geld, Geld, Geld.
 
 ### 13.2 Pack-Themen (Prototyp)
 

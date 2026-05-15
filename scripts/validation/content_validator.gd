@@ -54,6 +54,7 @@ const POC3_REQUIRED_CARD_IDS: Array[String] = [
 	"card.input.idea",
 	"card.consumable.coffee",
 	"card.resource.money",
+	"card.resource.startup_booster_pack",
 	"card.shop.freelance_order",
 	"card.value_source.customer",
 	"card.input.customer_request",
@@ -67,6 +68,7 @@ const POC3_REQUIRED_CARD_IDS: Array[String] = [
 	"card.shop.recycling_bin",
 ]
 const POC3_REQUIRED_BOOSTER_IDS: Array[String] = [
+	"booster.startup",
 	"booster.founder.test_pack",
 	"booster.office_invest",
 	"booster.customer_chaos",
@@ -693,8 +695,14 @@ func _validate_booster(booster: BoosterDefinition) -> void:
 		_errors.append("%s: Booster '%s' needs display_name." % [path, booster.id])
 	if booster.draw_count <= 0:
 		_errors.append("%s: Booster '%s' needs draw_count above 0." % [path, booster.id])
-	if booster.pool_entries.is_empty():
-		_errors.append("%s: Booster '%s' needs at least one pool entry." % [path, booster.id])
+	if booster.pool_entries.is_empty() and booster.fixed_card_definition_ids.is_empty():
+		_errors.append("%s: Booster '%s' needs fixed cards or at least one pool entry." % [path, booster.id])
+	if not booster.fixed_card_definition_ids.is_empty() and booster.fixed_card_definition_ids.size() != booster.draw_count:
+		_errors.append("%s: Booster '%s' fixed card count must match draw_count." % [path, booster.id])
+
+	for card_definition_id: String in booster.fixed_card_definition_ids:
+		if not _card_ids.has(card_definition_id):
+			_errors.append("%s: Booster '%s' references missing fixed card '%s'." % [path, booster.id, card_definition_id])
 
 	for entry: BoosterPoolEntry in booster.pool_entries:
 		if entry == null:

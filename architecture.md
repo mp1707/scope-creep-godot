@@ -274,6 +274,7 @@ Mindestfelder:
 - `display_name: String`
 - `cost_money_cards: int`
 - `draw_count: int`
+- `fixed_card_definition_ids: PackedStringArray`
 - `pool_entries: Array[BoosterPoolEntry]`
 - `open_effects: Array[EffectDefinition]`
 
@@ -298,7 +299,7 @@ Fachliche Grenzen:
 
 Der Cleanup-Build setzt die Content-Version auf `poc_cleanup1`. Alte `poc5`-Saves werden ohne explizite Migration nicht geladen, weil die alten Shop-Kauf-Recipe-IDs entfernt wurden und sonst aktive Processing-Referenzen still fehlen koennten.
 
-Pool-Eintraege referenzieren `CardDefinition`-IDs und Gewichte. Booster-Ziehungen laufen ueber den Run-RNG, damit Tests und Save/Load deterministisch bleiben.
+Pool-Eintraege referenzieren `CardDefinition`-IDs und Gewichte. Booster-Ziehungen laufen ueber den Run-RNG, damit Tests und Save/Load deterministisch bleiben. Booster duerfen alternativ `fixed_card_definition_ids` nutzen, wenn das Pack eine feste, nicht zufaellige Reihenfolge braucht, z. B. das Startpack `booster.startup`.
 
 ### Shop-Slots
 

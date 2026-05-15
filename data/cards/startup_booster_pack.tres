@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_card"]
+[ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/star.png" id="3_star"]
+
+[sub_resource type="Resource" id="Visual_startup_pack"]
+script = ExtResource("2_visual")
+background_color = Color(0.78, 0.58, 0.98, 1)
+accent_color = Color(0.48, 0.24, 0.78, 1)
+text_color = Color(0.075, 0.095, 0.12, 1)
+icon_texture = ExtResource("3_star")
+icon_size = Vector2(84, 84)
+icon_offset = Vector2(0, 0)
+icon_recolor_alpha_mask = true
+marker_text = ""
+
+[resource]
+script = ExtResource("1_card")
+id = "card.resource.startup_booster_pack"
+display_name = "Dein Startup"
+type = 5
+tags = PackedStringArray("booster", "pack", "startup")
+short_text = "8 Startkarten"
+tooltip_text = "Oeffnet deine Startkarten in fixer Reihenfolge."
+visual = SubResource("Visual_startup_pack")
+base_values = {
+"booster_definition_id": "booster.startup"
+}

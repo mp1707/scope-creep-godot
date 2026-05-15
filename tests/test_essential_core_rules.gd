@@ -5,6 +5,7 @@ const SAVE_PATH: String = "user://scope_creep_essential_core_rules_test.json"
 var _failed: bool = false
 
 func _init() -> void:
+	_test_start_run_uses_startup_booster_pack()
 	_test_money_exists_as_single_cards()
 	_test_neutral_extra_card_cancels_processing()
 	_test_coffee_accelerates_employee_work_only()
@@ -41,16 +42,42 @@ func _init() -> void:
 	print("Essential core rule tests passed.")
 	quit(0)
 
+func _test_start_run_uses_startup_booster_pack() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = controller.start_new_run(1000)
+	var startup_pack: CardInstance = _find_card_by_definition(state, "card.resource.startup_booster_pack")
+
+	_assert_equal(startup_pack.values.get(RunController.BOOSTER_DEFINITION_ID_VALUE, ""), "booster.startup", "Start run should place the startup booster pack on the board.")
+	_assert_equal(startup_pack.state.markers[0], "8", "Startup booster should expose eight clicks.")
+	_assert_equal(_count_cards_by_definition(state, "card.product.software"), 0, "Software should not start directly on the board.")
+	_assert_equal(_count_cards_by_definition(state, "card.employee.developer"), 0, "Developer should not start directly on the board.")
+	_assert_equal(_count_cards_by_definition(state, "card.input.idea"), 0, "Idea should not start directly on the board.")
+	_assert_equal(_count_cards_by_definition(state, "card.consumable.coffee"), 0, "Coffee should not start directly on the board.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), 0, "Money should not start directly on the board.")
+
+	var opened_definitions: Array[String] = _open_booster_pack_and_collect_definitions(controller, state, startup_pack)
+	_assert_equal(opened_definitions, [
+		"card.product.software",
+		"card.employee.developer",
+		"card.input.idea",
+		"card.consumable.coffee",
+		"card.resource.money",
+		"card.resource.money",
+		"card.resource.money",
+		"card.resource.money",
+	], "Startup booster should open the eight start cards in the requested order.")
+	_assert_equal(state.get_card(startup_pack.instance_id), null, "Startup booster should disappear after the eighth click.")
+
 func _test_money_exists_as_single_cards() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1001)
+	var state: RunState = _start_run_with_opened_startup(controller, 1001)
 	var money_cards: Array[CardInstance] = _find_cards_by_definition(state, "card.resource.money")
 
 	_assert_equal(money_cards.size(), controller.content.balance.poc3_start_money_cards, "Start money should be represented as one card per money.")
 
 func _test_neutral_extra_card_cancels_processing() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1002)
+	var state: RunState = _start_run_with_opened_startup(controller, 1002)
 	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
 	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
 	var money: CardInstance = _find_card_by_definition(state, "card.resource.money")
@@ -66,7 +93,7 @@ func _test_neutral_extra_card_cancels_processing() -> void:
 
 func _test_coffee_accelerates_employee_work_only() -> void:
 	var employee_controller: RunController = _create_controller(60.0)
-	var employee_state: RunState = employee_controller.start_new_run(1003)
+	var employee_state: RunState = _start_run_with_opened_startup(employee_controller, 1003)
 	var developer: CardInstance = _find_card_by_definition(employee_state, "card.employee.developer")
 	var idea: CardInstance = _find_card_by_definition(employee_state, "card.input.idea")
 	var coffee: CardInstance = _find_card_by_definition(employee_state, "card.consumable.coffee")
@@ -81,7 +108,7 @@ func _test_coffee_accelerates_employee_work_only() -> void:
 	_assert_equal(_count_cards_by_definition(employee_state, "card.consumable.coffee"), 0, "Applied coffee should be consumed.")
 
 	var object_controller: RunController = _create_controller(60.0)
-	var object_state: RunState = object_controller.start_new_run(1004)
+	var object_state: RunState = _start_run_with_opened_startup(object_controller, 1004)
 	var object_developer: CardInstance = _find_card_by_definition(object_state, "card.employee.developer")
 	var object_idea: CardInstance = _find_card_by_definition(object_state, "card.input.idea")
 	var object_coffee: CardInstance = _find_card_by_definition(object_state, "card.consumable.coffee")
@@ -101,7 +128,7 @@ func _test_coffee_accelerates_employee_work_only() -> void:
 
 func _test_bug_formation_happens_before_duplication() -> void:
 	var controller: RunController = _create_controller(1.0)
-	var state: RunState = controller.start_new_run(1005)
+	var state: RunState = _start_run_with_opened_startup(controller, 1005)
 	for index: int in 4:
 		_spawn_card(controller, "card.problem.bug", Vector2(1200.0 + float(index) * 24.0, 300.0))
 
@@ -112,7 +139,7 @@ func _test_bug_formation_happens_before_duplication() -> void:
 
 func _test_save_is_only_allowed_when_frozen_and_restores_state() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1006)
+	var state: RunState = _start_run_with_opened_startup(controller, 1006)
 	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
 	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
 
@@ -152,7 +179,7 @@ func _test_booster_draws_are_deterministic() -> void:
 
 func _test_talent_pool_costs_two_money_and_draws_no_regular_employee() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1008)
+	var state: RunState = _start_run_with_opened_startup(controller, 1008)
 	var talent_pool_slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.talent_pool")
 	var first_money: CardInstance = _spawn_card(controller, "card.resource.money", Vector2(5000.0, 5000.0))
 	_spawn_card(controller, "card.resource.money", Vector2(5010.0, 5000.0))
@@ -177,7 +204,7 @@ func _test_talent_pool_costs_two_money_and_draws_no_regular_employee() -> void:
 	_assert_equal(_count_cards_by_definition(state, "card.employee.external_dev"), 0, "Talent-Pool should not draw an external dev.")
 
 	var seeded_controller: RunController = _create_controller(60.0)
-	var seeded_state: RunState = seeded_controller.start_new_run(1)
+	var seeded_state: RunState = _start_run_with_opened_startup(seeded_controller, 1)
 	var seeded_slot: CardInstance = _find_card_by_definition(seeded_state, "card.shop.booster_slot.talent_pool")
 	var seeded_money: CardInstance = _spawn_card(seeded_controller, "card.resource.money", Vector2(5200.0, 5000.0))
 	_spawn_card(seeded_controller, "card.resource.money", Vector2(5210.0, 5000.0))
@@ -189,7 +216,7 @@ func _test_talent_pool_costs_two_money_and_draws_no_regular_employee() -> void:
 
 func _test_recycling_bin_is_rightmost_shop_slot() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1017)
+	var state: RunState = _start_run_with_opened_startup(controller, 1017)
 	var recycling_bin: CardInstance = _find_card_by_definition(state, "card.shop.recycling_bin")
 	_assert_true(recycling_bin != null, "Start run should include the recycling bin shop slot.")
 
@@ -203,7 +230,7 @@ func _test_recycling_bin_is_rightmost_shop_slot() -> void:
 
 func _test_recycling_bin_requires_three_recyclable_cards() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1018)
+	var state: RunState = _start_run_with_opened_startup(controller, 1018)
 	var recycling_bin: CardInstance = _find_card_by_definition(state, "card.shop.recycling_bin")
 	var bottom: CardInstance = _spawn_card(controller, "card.input.idea", Vector2(5000.0, 300.0))
 	var top: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(5100.0, 300.0))
@@ -220,7 +247,7 @@ func _test_recycling_bin_requires_three_recyclable_cards() -> void:
 
 func _test_recycling_bin_consumes_top_three_and_drops_leftovers() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1019)
+	var state: RunState = _start_run_with_opened_startup(controller, 1019)
 	var recycling_bin: CardInstance = _find_card_by_definition(state, "card.shop.recycling_bin")
 	var bottom: CardInstance = _spawn_card(controller, "card.input.idea", Vector2(5000.0, 600.0))
 	var consumed_a: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(5100.0, 600.0))
@@ -242,7 +269,7 @@ func _test_recycling_bin_consumes_top_three_and_drops_leftovers() -> void:
 
 func _test_recycling_bin_rejects_money_and_mixed_stacks() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1020)
+	var state: RunState = _start_run_with_opened_startup(controller, 1020)
 	var recycling_bin: CardInstance = _find_card_by_definition(state, "card.shop.recycling_bin")
 	var money: CardInstance = _spawn_card(controller, "card.resource.money", Vector2(5000.0, 900.0))
 	var money_stack_id: String = money.stack_id
@@ -270,7 +297,7 @@ func _test_recycling_bin_rejects_money_and_mixed_stacks() -> void:
 
 func _test_recyclable_cards_do_not_drop_on_booster_slots() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1021)
+	var state: RunState = _start_run_with_opened_startup(controller, 1021)
 	var booster_slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot")
 	var bottom: CardInstance = _spawn_card(controller, "card.input.idea", Vector2(5000.0, 1200.0))
 	var middle: CardInstance = _spawn_card(controller, "card.consumable.coffee", Vector2(5100.0, 1200.0))
@@ -287,7 +314,7 @@ func _test_recyclable_cards_do_not_drop_on_booster_slots() -> void:
 
 func _test_freelance_order_is_permanent_shop_slot() -> void:
 	var controller: RunController = _create_controller(1.0)
-	var state: RunState = controller.start_new_run(1031)
+	var state: RunState = _start_run_with_opened_startup(controller, 1031)
 	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
 	_assert_true(freelance_slot != null, "Start run should include the permanent Freelance shop slot.")
 	_assert_equal(_count_cards_by_definition(state, "card.value_source.freelance_order"), 0, "Freelance should no longer spawn as a pre-launch value-source card.")
@@ -300,7 +327,7 @@ func _test_freelance_order_is_permanent_shop_slot() -> void:
 func _test_freelance_slot_pays_three_and_rolls_bug_for_unchecked_feature() -> void:
 	var controller: RunController = _create_controller(60.0)
 	controller.content.balance.bug_chance = 1.0
-	var state: RunState = controller.start_new_run(1032)
+	var state: RunState = _start_run_with_opened_startup(controller, 1032)
 	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
 	var feature: CardInstance = _spawn_card(controller, "card.output.feature", Vector2(5000.0, 1500.0))
 	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
@@ -315,7 +342,7 @@ func _test_freelance_slot_pays_three_and_rolls_bug_for_unchecked_feature() -> vo
 func _test_freelance_slot_pays_checked_feature_without_bug() -> void:
 	var controller: RunController = _create_controller(60.0)
 	controller.content.balance.bug_chance = 1.0
-	var state: RunState = controller.start_new_run(1033)
+	var state: RunState = _start_run_with_opened_startup(controller, 1033)
 	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
 	var checked_feature: CardInstance = _spawn_card(controller, "card.output.checked_feature", Vector2(5000.0, 1700.0))
 	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
@@ -329,7 +356,7 @@ func _test_freelance_slot_pays_checked_feature_without_bug() -> void:
 
 func _test_mvp_launch_threshold_and_customer_scaling() -> void:
 	var threshold_controller: RunController = _create_controller(60.0)
-	var threshold_state: RunState = threshold_controller.start_new_run(1022)
+	var threshold_state: RunState = _start_run_with_opened_startup(threshold_controller, 1022)
 	var threshold_software: CardInstance = _find_card_by_definition(threshold_state, "card.product.software")
 	threshold_software.values[ProductLifecycleService.FEATURE_COUNT_VALUE] = 4
 	_assert_true(not threshold_controller.is_software_launch_ready(), "Four features should not be launch-ready.")
@@ -338,7 +365,7 @@ func _test_mvp_launch_threshold_and_customer_scaling() -> void:
 
 	for feature_count: int in [5, 6, 10, 15]:
 		var controller: RunController = _create_controller(60.0)
-		var state: RunState = controller.start_new_run(1022 + feature_count)
+		var state: RunState = _start_run_with_opened_startup(controller, 1022 + feature_count)
 		var software: CardInstance = _find_card_by_definition(state, "card.product.software")
 		var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
 		software.values[ProductLifecycleService.FEATURE_COUNT_VALUE] = feature_count
@@ -348,7 +375,7 @@ func _test_mvp_launch_threshold_and_customer_scaling() -> void:
 
 func _test_live_feature_threshold_spawns_next_customer_immediately() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1024)
+	var state: RunState = _start_run_with_opened_startup(controller, 1024)
 	var software: CardInstance = _find_card_by_definition(state, "card.product.software")
 	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
 	software.values[ProductLifecycleService.FEATURE_COUNT_VALUE] = 5
@@ -369,7 +396,7 @@ func _test_live_feature_threshold_spawns_next_customer_immediately() -> void:
 
 func _test_customer_spawn_creates_initial_money_and_request_without_passive_tick_income() -> void:
 	var controller: RunController = _create_controller(1.0)
-	var state: RunState = controller.start_new_run(1023)
+	var state: RunState = _start_run_with_opened_startup(controller, 1023)
 	_make_software_live(state)
 	var money_before_customer: int = _count_cards_by_definition(state, "card.resource.money")
 	var requests_before_customer: int = _count_cards_by_definition(state, "card.input.customer_request")
@@ -387,7 +414,7 @@ func _test_customer_spawn_creates_initial_money_and_request_without_passive_tick
 
 func _test_customer_demo_and_feedback_are_repeatable_active_work() -> void:
 	var demo_controller: RunController = _create_controller(60.0)
-	var demo_state: RunState = demo_controller.start_new_run(1024)
+	var demo_state: RunState = _start_run_with_opened_startup(demo_controller, 1024)
 	_make_software_live(demo_state)
 	var developer: CardInstance = _find_card_by_definition(demo_state, "card.employee.developer")
 	var customer: CardInstance = _spawn_card(demo_controller, "card.value_source.customer", Vector2(1200.0, 300.0))
@@ -404,7 +431,7 @@ func _test_customer_demo_and_feedback_are_repeatable_active_work() -> void:
 	_assert_equal(demo_stack.processing_state.active_recipe_id, "recipe.demo_customer.developer", "Demo work should restart while developer and customer remain stacked.")
 
 	var request_controller: RunController = _create_controller(60.0)
-	var request_state: RunState = request_controller.start_new_run(1030)
+	var request_state: RunState = _start_run_with_opened_startup(request_controller, 1030)
 	var request_developer: CardInstance = _find_card_by_definition(request_state, "card.employee.developer")
 	var request: CardInstance = _spawn_card(request_controller, "card.input.customer_request", Vector2(1200.0, 300.0))
 	request_controller.move_card_to_stack(request.instance_id, request_developer.stack_id)
@@ -413,7 +440,7 @@ func _test_customer_demo_and_feedback_are_repeatable_active_work() -> void:
 	_assert_equal(request_stack.processing_state.duration, 4.5, "Developer customer request handling should take half the previous 9 seconds.")
 
 	var unhappy_controller: RunController = _create_controller(60.0)
-	var unhappy_state: RunState = unhappy_controller.start_new_run(1025)
+	var unhappy_state: RunState = _start_run_with_opened_startup(unhappy_controller, 1025)
 	_make_software_live(unhappy_state)
 	var unhappy_developer: CardInstance = _find_card_by_definition(unhappy_state, "card.employee.developer")
 	var unhappy_customer: CardInstance = _spawn_card(unhappy_controller, "card.value_source.customer", Vector2(1200.0, 300.0))
@@ -427,7 +454,7 @@ func _test_customer_demo_and_feedback_are_repeatable_active_work() -> void:
 	_assert_equal(unhappy_stack.processing_state.active_recipe_id, "recipe.demo_customer.developer", "After expectations are managed, the developer should be able to demo to the customer.")
 
 	var crash_controller: RunController = _create_controller(60.0)
-	var crash_state: RunState = crash_controller.start_new_run(1028)
+	var crash_state: RunState = _start_run_with_opened_startup(crash_controller, 1028)
 	_make_software_live(crash_state)
 	var crash_developer: CardInstance = _find_card_by_definition(crash_state, "card.employee.developer")
 	var crash_customer: CardInstance = _spawn_card(crash_controller, "card.value_source.customer", Vector2(1200.0, 300.0))
@@ -436,7 +463,7 @@ func _test_customer_demo_and_feedback_are_repeatable_active_work() -> void:
 	_assert_equal(crash_state.get_stack(crash_customer.stack_id).processing_state.active_recipe_id, "", "Prod-Crash should block customer demo work immediately.")
 
 	var feedback_controller: RunController = _create_controller(60.0)
-	var feedback_state: RunState = feedback_controller.start_new_run(1026)
+	var feedback_state: RunState = _start_run_with_opened_startup(feedback_controller, 1026)
 	_make_software_live(feedback_state)
 	var product_owner: CardInstance = _spawn_card(feedback_controller, "card.employee.product_owner", Vector2(1000.0, 300.0))
 	var feedback_customer: CardInstance = _spawn_card(feedback_controller, "card.value_source.customer", Vector2(1200.0, 300.0))
@@ -452,7 +479,7 @@ func _test_customer_demo_and_feedback_are_repeatable_active_work() -> void:
 
 func _test_old_customer_requests_make_only_one_customer_unhappy_per_sprint() -> void:
 	var controller: RunController = _create_controller(1.0)
-	var state: RunState = controller.start_new_run(1027)
+	var state: RunState = _start_run_with_opened_startup(controller, 1027)
 	_make_software_live(state)
 	_spawn_card(controller, "card.value_source.customer", Vector2(1200.0, 300.0))
 	_spawn_card(controller, "card.value_source.customer", Vector2(1400.0, 300.0))
@@ -466,7 +493,7 @@ func _test_old_customer_requests_make_only_one_customer_unhappy_per_sprint() -> 
 
 func _test_business_goal_costs_scale_linearly_from_one() -> void:
 	var controller: RunController = _create_controller(60.0)
-	controller.start_new_run(1029)
+	_start_run_with_opened_startup(controller, 1029)
 
 	_assert_equal(controller.call("_get_required_money_for_business_goal_index", 1), 1, "First Business Goal should cost 1 money.")
 	_assert_equal(controller.call("_get_required_money_for_business_goal_index", 2), 2, "Second Business Goal should cost 2 money.")
@@ -479,7 +506,7 @@ func _test_interview_recipes_are_deterministic_and_recruiter_specific() -> void:
 	controller.content.balance.poc4_normal_interview_success_chance = 1.0
 	controller.content.balance.poc4_recruiter_interview_success_chance = 1.0
 	controller.content.apply_balance_overrides()
-	var state: RunState = controller.start_new_run(1009)
+	var state: RunState = _start_run_with_opened_startup(controller, 1009)
 	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
 	var candidate: CardInstance = _spawn_card(controller, "card.candidate.developer", Vector2(1200.0, 300.0))
 
@@ -499,7 +526,7 @@ func _test_interview_recipes_are_deterministic_and_recruiter_specific() -> void:
 
 func _test_offer_hiring_in_payment_defers_salary_and_attaches_onboarding() -> void:
 	var controller: RunController = _create_controller(1.0)
-	var state: RunState = controller.start_new_run(1010)
+	var state: RunState = _start_run_with_opened_startup(controller, 1010)
 	var offer: CardInstance = _spawn_card(controller, "card.offer.tester", Vector2(1200.0, 300.0))
 	var money: CardInstance = _spawn_card(controller, "card.resource.money", Vector2(1250.0, 300.0))
 
@@ -516,7 +543,7 @@ func _test_offer_hiring_in_payment_defers_salary_and_attaches_onboarding() -> vo
 
 func _test_onboarding_blocks_work_and_accepts_coffee() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1011)
+	var state: RunState = _start_run_with_opened_startup(controller, 1011)
 	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
 	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
 	var coffee: CardInstance = _find_card_by_definition(state, "card.consumable.coffee")
@@ -537,7 +564,7 @@ func _test_onboarding_blocks_work_and_accepts_coffee() -> void:
 
 func _test_recruiter_halves_active_onboarding_remaining_time() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1015)
+	var state: RunState = _start_run_with_opened_startup(controller, 1015)
 	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
 	var recruiter: CardInstance = _spawn_card(controller, "card.employee.recruiter", Vector2(1200.0, 300.0))
 	controller.call("_spawn_attached_card", developer.instance_id, "card.blocker.onboarding", "onboarding")
@@ -561,7 +588,7 @@ func _test_recruiter_halves_active_onboarding_remaining_time() -> void:
 
 func _test_work_student_is_temporary_unsalaried_work_capacity() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1012)
+	var state: RunState = _start_run_with_opened_startup(controller, 1012)
 	var work_student: CardInstance = _spawn_card(controller, "card.temp_worker.work_student", Vector2(1200.0, 300.0))
 	var idea: CardInstance = _spawn_card(controller, "card.input.idea", Vector2(1220.0, 300.0))
 
@@ -575,7 +602,7 @@ func _test_work_student_is_temporary_unsalaried_work_capacity() -> void:
 	_assert_equal(_count_cards_by_definition(state, "card.temp_worker.work_student"), 0, "Work student should disappear after one completed task.")
 
 	var payment_controller: RunController = _create_controller(1.0)
-	var payment_state: RunState = payment_controller.start_new_run(1013)
+	var payment_state: RunState = _start_run_with_opened_startup(payment_controller, 1013)
 	_spawn_card(payment_controller, "card.temp_worker.work_student", Vector2(1400.0, 300.0))
 	payment_controller.advance_time(1.0)
 	_assert_equal(payment_state.phase, ScopeEnums.RunPhase.PAYMENT, "Short sprint should enter payment for work-student salary check.")
@@ -586,7 +613,7 @@ func _test_work_student_is_temporary_unsalaried_work_capacity() -> void:
 
 func _test_recruiter_fallback_work_is_slow_but_available() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1016)
+	var state: RunState = _start_run_with_opened_startup(controller, 1016)
 	var recruiter: CardInstance = _spawn_card(controller, "card.employee.recruiter", Vector2(1200.0, 300.0))
 	var idea: CardInstance = _spawn_card(controller, "card.input.idea", Vector2(1220.0, 300.0))
 
@@ -597,7 +624,7 @@ func _test_recruiter_fallback_work_is_slow_but_available() -> void:
 
 func _test_poc4_save_load_preserves_hiring_cards_and_rng_state() -> void:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(1014)
+	var state: RunState = _start_run_with_opened_startup(controller, 1014)
 	var recruiter: CardInstance = _spawn_card(controller, "card.employee.recruiter", Vector2(1200.0, 300.0))
 	var candidate: CardInstance = _spawn_card(controller, "card.candidate.recruiter", Vector2(1220.0, 300.0))
 	var offer: CardInstance = _spawn_card(controller, "card.offer.developer", Vector2(1240.0, 300.0))
@@ -621,7 +648,7 @@ func _test_poc4_save_load_preserves_hiring_cards_and_rng_state() -> void:
 
 func _open_spawned_booster_and_get_result(run_seed: int) -> Dictionary:
 	var controller: RunController = _create_controller(60.0)
-	var state: RunState = controller.start_new_run(run_seed)
+	var state: RunState = _start_run_with_opened_startup(controller, run_seed)
 	var booster_pack: CardInstance = _spawn_card(controller, "card.resource.booster_pack", Vector2(1200.0, 360.0))
 	var existing_card_ids: Dictionary = {}
 	for card_id: String in state.cards.keys():
@@ -662,6 +689,27 @@ func _create_controller(sprint_duration: float) -> RunController:
 	catalog.balance.tech_debt_chance = 0.0
 	catalog.balance.burnout_increment_per_completed_work = 0.0
 	return RunController.new(catalog)
+
+func _start_run_with_opened_startup(controller: RunController, run_seed: int) -> RunState:
+	var state: RunState = controller.start_new_run(run_seed)
+	var startup_pack: CardInstance = _find_card_by_definition(state, "card.resource.startup_booster_pack")
+	_open_booster_pack_and_collect_definitions(controller, state, startup_pack)
+	return state
+
+func _open_booster_pack_and_collect_definitions(controller: RunController, state: RunState, booster_pack: CardInstance) -> Array[String]:
+	var opened_definitions: Array[String] = []
+	while state.get_card(booster_pack.instance_id) != null:
+		var existing_card_ids: Dictionary = {}
+		for card_id: String in state.cards.keys():
+			existing_card_ids[card_id] = true
+		_assert_true(controller.open_booster_pack_step(booster_pack.instance_id), "Booster pack should open one card per step.")
+		for card_id: String in state.cards.keys():
+			if existing_card_ids.has(card_id):
+				continue
+			var card: CardInstance = state.get_card(card_id)
+			if card != null:
+				opened_definitions.append(card.definition_id)
+	return opened_definitions
 
 func _spawn_card(controller: RunController, definition_id: String, position: Vector2) -> CardInstance:
 	return controller.call("_spawn_card_as_new_stack", definition_id, position) as CardInstance
