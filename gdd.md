@@ -1331,6 +1331,7 @@ Schnelle Lösung, die später Arbeit verursacht.
 - Neutrale Stapel bleiben liegen und können als Gruppe bewegt werden.
 - Es gibt keine harte maximale Stackgröße; Grenzen entstehen nur durch Lesbarkeit und UI.
 - Ergebnis- und Spawn-Karten erscheinen an einer freien Position nahe der verarbeiteten Karten. Sie sollen nichts verdecken und nicht unter einer bestehenden Karte spawnen.
+- Boosterpacks nutzen beim Oeffnen eine feste freie Slot-Suche um das Pack herum: zuerst 12 Uhr, danach im Uhrzeigersinn ueber obere rechte, rechte, untere rechte, untere, untere linke, linke und obere linke Position. Belegte Plaetze werden uebersprungen; danach wird der naechste Ring gesucht.
 - Bestimmte Karten dürfen beim Spawn automatisch auf einen nahen reinen Stapel derselben Karte gelegt werden, wenn die CardDefinition das erlaubt. Geld nutzt dieses Verhalten; Mitarbeiterkarten wie Entwickler, Externer Dev, Product Owner und Tester spawnen nicht automatisch aufeinander.
 - **Kamera-Steuerung:**
   - Maus-**Edge-Pan** (RTS-Stil): Maus an den Bildschirmrand bewegt die Kamera.

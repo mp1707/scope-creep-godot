@@ -20,7 +20,7 @@ Der Run startet als Pre-Launch-MVP. Auf dem Board liegt im aktuellen Startsetup 
 
 - `Dein Startup` mit Sternsymbol und 8 Oeffnungen.
 - Beim Oeffnen erscheinen in fixer Reihenfolge: Software mit MVP-Fortschritt `0 / 5 Features`, Entwickler, Idee, Kaffee, vier einzelne Geldkarten.
-- Shop-/Booster-Zugaenge fuer Gruenderpanik, Wohlbefinden, Talent-Pool, Kundenchaos, externen Bugfix, Freelance-Auftrag und Resteverwertung bleiben als Dock-Interaktionen live.
+- Shop-/Booster-Zugaenge fuer Gruenderpanik, Wohlbefinden, Talent-Pool, externen Bugfix, Freelance-Auftrag und Resteverwertung bleiben als Dock-Interaktionen live. Kundenchaos wird nach Launch als zusaetzlicher Dock-Zugang aktiviert.
 
 Geld ist wie im GDD vorgesehen keine Zahl im UI. Eine Geldkarte entspricht immer genau 1 Geld.
 
