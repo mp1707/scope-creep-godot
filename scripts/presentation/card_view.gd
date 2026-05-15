@@ -6,7 +6,7 @@ const CARD_EDGE_INSET: float = 0.0
 const CARD_HAIRLINE_WIDTH: int = 1
 const CARD_HAIRLINE_COLOR: Color = Color(0.055, 0.052, 0.047, 0.22)
 const HEADER_HEIGHT: float = 24.0
-const CARD_TEXT_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
+const CARD_TEXT_COLOR: Color = Color(0.075, 0.095, 0.12, 1.0)
 const TOOLTIP_BACKGROUND_COLOR: Color = Color(0.76, 0.76, 0.72, 1.0)
 const TOOLTIP_MAX_WIDTH: float = 286.0
 const TOOLTIP_MIN_WIDTH: float = 150.0
@@ -27,9 +27,11 @@ const STATUS_BADGE_ALERT_COLOR: Color = Color(0.98, 0.64, 0.58, 0.96)
 const STATUS_BADGE_PAID_COLOR: Color = Color(0.64, 0.86, 0.64, 0.96)
 const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
 const CARD_PAPER_TEXTURE_PATH: String = "res://assets/card/paperTexture.png"
+const ICON_SCRIBBLE_TEXTURE_PATH: String = "res://assets/icons/handdrawn/ui/scribbleCricle.png"
 const TITLE_MAX_FONT_SIZE: int = 18
 const TITLE_MIN_FONT_SIZE: int = 8
 const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 108.0)
+const DEFAULT_ICON_SCRIBBLE_PADDING: float = 24.0
 const ICON_MASK_SHADER_CODE: String = "shader_type canvas_item;\nuniform vec4 icon_color : source_color = vec4(0.06, 0.055, 0.05, 1.0);\nvoid fragment() {\n\tvec4 texture_color = texture(TEXTURE, UV);\n\tCOLOR = vec4(icon_color.rgb, texture_color.a * icon_color.a);\n}\n"
 const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")
 const CardJuiceControllerScript: Script = preload("res://scripts/presentation/card_juice_controller.gd")
@@ -45,6 +47,8 @@ static var _shared_processing_duration_label: Label = null
 static var _shared_processing_duration_value_label: Label = null
 static var _shared_paper_texture: Texture2D = null
 static var _paper_texture_load_attempted: bool = false
+static var _shared_icon_scribble_texture: Texture2D = null
+static var _icon_scribble_texture_load_attempted: bool = false
 
 @export var background_path: NodePath
 @export var title_label_path: NodePath
@@ -62,6 +66,7 @@ var _background: Control = null
 var _header_band: Control = null
 var _header_hairline: Control = null
 var _title_label: Label = null
+var _icon_scribble_texture_rect: TextureRect = null
 var _icon_texture_rect: TextureRect = null
 var _short_text_label: Label = null
 var _marker_label: Label = null
@@ -69,6 +74,7 @@ var _drop_target_feedback: Panel = null
 var _juice = null
 var _default_marker_text: String = ""
 var _card_font: FontFile = null
+var _scribble_mask_material: ShaderMaterial = null
 var _icon_mask_material: ShaderMaterial = null
 var _product_lifecycle: RefCounted = ProductLifecycleServiceScript.new()
 var _layout_initialized: bool = false
@@ -263,6 +269,8 @@ func _resolve_or_create_nodes() -> void:
 		_header_hairline = _resolve_control(NodePath("HairlineFrame"), "HairlineFrame")
 	if _title_label == null:
 		_title_label = _resolve_control(title_label_path, "TitleLabel") as Label
+	if _icon_scribble_texture_rect == null:
+		_icon_scribble_texture_rect = _resolve_control(NodePath("IconScribbleTextureRect"), "IconScribbleTextureRect") as TextureRect
 	if _icon_texture_rect == null:
 		_icon_texture_rect = _resolve_control(icon_texture_rect_path, "IconTextureRect") as TextureRect
 	if _icon_texture_rect == null:
@@ -308,6 +316,14 @@ func _resolve_or_create_nodes() -> void:
 		_title_label = _create_label("TitleLabel", Vector2(9.0, 3.0), Vector2(126.0, 25.0), HORIZONTAL_ALIGNMENT_CENTER)
 	if _marker_label == null:
 		_marker_label = _create_label("MarkerLabel", Vector2(98.0, 42.0), Vector2(34.0, 24.0), HORIZONTAL_ALIGNMENT_CENTER)
+	if _icon_scribble_texture_rect == null:
+		_icon_scribble_texture_rect = TextureRect.new()
+		_icon_scribble_texture_rect.name = "IconScribbleTextureRect"
+		_icon_scribble_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_icon_scribble_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		_icon_scribble_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		_icon_scribble_texture_rect.clip_contents = true
+		_visual_root.add_child(_icon_scribble_texture_rect)
 	if _icon_texture_rect == null:
 		_icon_texture_rect = TextureRect.new()
 		_icon_texture_rect.name = "IconTextureRect"
@@ -322,6 +338,7 @@ func _resolve_or_create_nodes() -> void:
 	_move_visual_child_to_root(_shadow)
 	_move_visual_child_to_root(_background)
 	_move_visual_child_to_root(_header_band)
+	_move_visual_child_to_root(_icon_scribble_texture_rect)
 	_move_visual_child_to_root(_icon_texture_rect)
 	_move_visual_child_to_root(_title_label)
 	_move_visual_child_to_root(_marker_label)
@@ -331,12 +348,13 @@ func _resolve_or_create_nodes() -> void:
 	_visual_root.move_child(_shadow, 0)
 	_visual_root.move_child(_background, 1)
 	_visual_root.move_child(_header_band, 2)
-	_visual_root.move_child(_icon_texture_rect, 3)
-	_visual_root.move_child(_title_label, 4)
-	_visual_root.move_child(_marker_label, 5)
-	_visual_root.move_child(_short_text_label, 6)
-	_visual_root.move_child(_header_hairline, 7)
-	_visual_root.move_child(_drop_target_feedback, 8)
+	_visual_root.move_child(_icon_scribble_texture_rect, 3)
+	_visual_root.move_child(_icon_texture_rect, 4)
+	_visual_root.move_child(_title_label, 5)
+	_visual_root.move_child(_marker_label, 6)
+	_visual_root.move_child(_short_text_label, 7)
+	_visual_root.move_child(_header_hairline, 8)
+	_visual_root.move_child(_drop_target_feedback, 9)
 	if not _layout_initialized:
 		_apply_default_layout()
 		_layout_initialized = true
@@ -458,6 +476,15 @@ func _apply_default_layout() -> void:
 	if _card_font != null:
 		_title_label.add_theme_font_override("font", _card_font)
 	_title_label.add_theme_font_size_override("font_size", TITLE_MAX_FONT_SIZE)
+	_set_top_left_layout(_icon_scribble_texture_rect)
+	_icon_scribble_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_icon_scribble_texture_rect.custom_minimum_size = Vector2.ZERO
+	_icon_scribble_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_icon_scribble_texture_rect.position = DEFAULT_ICON_CENTER - Vector2(52.0, 52.0)
+	_icon_scribble_texture_rect.size = Vector2(104.0, 104.0)
+	_icon_scribble_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_icon_scribble_texture_rect.clip_contents = true
+	_icon_scribble_texture_rect.visible = false
 	_set_top_left_layout(_icon_texture_rect)
 	_icon_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_icon_texture_rect.custom_minimum_size = Vector2.ZERO
@@ -596,6 +623,7 @@ func _apply_definition(definition: CardDefinition) -> void:
 	_short_text_label.visible = false
 	for label: Label in [_title_label, _short_text_label, _marker_label]:
 		label.add_theme_color_override("font_color", _get_card_text_color(visual))
+	_title_label.add_theme_color_override("font_color", _get_card_header_text_color())
 	_marker_label.add_theme_color_override("font_color", _get_status_badge_text_color())
 
 	_apply_card_surface_style(_background, _get_card_background_color(visual))
@@ -628,6 +656,7 @@ func _apply_icon_style(visual: CardVisualDefinition) -> void:
 	_icon_texture_rect.size = visual.icon_size
 	_icon_texture_rect.position = DEFAULT_ICON_CENTER - (visual.icon_size * 0.5) + visual.icon_offset
 	_icon_texture_rect.self_modulate = Color.WHITE
+	_apply_icon_scribble_style(visual)
 	if visual.icon_texture == null:
 		_icon_texture_rect.material = null
 		return
@@ -638,14 +667,42 @@ func _apply_icon_style(visual: CardVisualDefinition) -> void:
 		_icon_texture_rect.material = null
 		_icon_texture_rect.self_modulate = _get_card_icon_color(visual)
 
+func _apply_icon_scribble_style(visual: CardVisualDefinition) -> void:
+	if _icon_scribble_texture_rect == null:
+		return
+	var scribble_texture: Texture2D = _get_icon_scribble_texture()
+	_icon_scribble_texture_rect.texture = scribble_texture
+	_icon_scribble_texture_rect.visible = visual.icon_texture != null and scribble_texture != null
+	if not _icon_scribble_texture_rect.visible:
+		_icon_scribble_texture_rect.material = null
+		return
+	var scribble_size: float = clampf(
+		maxf(visual.icon_size.x, visual.icon_size.y) + DEFAULT_ICON_SCRIBBLE_PADDING,
+		92.0,
+		128.0
+	)
+	_icon_scribble_texture_rect.size = Vector2(scribble_size, scribble_size)
+	_icon_scribble_texture_rect.position = DEFAULT_ICON_CENTER - (_icon_scribble_texture_rect.size * 0.5) + visual.icon_offset
+	_icon_scribble_texture_rect.self_modulate = Color.WHITE
+	_icon_scribble_texture_rect.material = _get_scribble_mask_material()
+	_scribble_mask_material.set_shader_parameter("icon_color", _get_card_scribble_color(visual))
+
 func _get_icon_mask_material() -> ShaderMaterial:
-	if _icon_mask_material != null:
-		return _icon_mask_material
+	if _icon_mask_material == null:
+		_icon_mask_material = _create_alpha_mask_material()
+	return _icon_mask_material
+
+func _get_scribble_mask_material() -> ShaderMaterial:
+	if _scribble_mask_material == null:
+		_scribble_mask_material = _create_alpha_mask_material()
+	return _scribble_mask_material
+
+func _create_alpha_mask_material() -> ShaderMaterial:
 	var shader: Shader = Shader.new()
 	shader.code = ICON_MASK_SHADER_CODE
-	_icon_mask_material = ShaderMaterial.new()
-	_icon_mask_material.shader = shader
-	return _icon_mask_material
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = shader
+	return material
 
 func _apply_header_style(visual: CardVisualDefinition) -> void:
 	if _header_band == null:
@@ -681,6 +738,17 @@ func _get_paper_texture() -> Texture2D:
 	_paper_texture_load_attempted = true
 	_shared_paper_texture = ResourceLoader.load(CARD_PAPER_TEXTURE_PATH) as Texture2D
 	return _shared_paper_texture
+
+func _get_icon_scribble_texture() -> Texture2D:
+	if visual_theme != null and visual_theme.get("card_icon_scribble_texture") != null:
+		return visual_theme.get("card_icon_scribble_texture") as Texture2D
+	if _shared_icon_scribble_texture != null:
+		return _shared_icon_scribble_texture
+	if _icon_scribble_texture_load_attempted:
+		return null
+	_icon_scribble_texture_load_attempted = true
+	_shared_icon_scribble_texture = ResourceLoader.load(ICON_SCRIBBLE_TEXTURE_PATH) as Texture2D
+	return _shared_icon_scribble_texture
 
 func _apply_header_hairline_style() -> void:
 	if _header_hairline == null:
@@ -1009,10 +1077,28 @@ func _get_card_text_color(visual: CardVisualDefinition) -> Color:
 		return visual_theme.call("get_card_text_color", visual) as Color
 	return visual.text_color if visual != null else CARD_TEXT_COLOR
 
+func _get_card_header_text_color() -> Color:
+	return _get_theme_color("card_text_color", CARD_TEXT_COLOR)
+
 func _get_card_icon_color(visual: CardVisualDefinition) -> Color:
 	if visual_theme != null:
 		return visual_theme.call("get_card_icon_color", visual) as Color
-	return visual.icon_color if visual != null else CARD_TEXT_COLOR
+	if visual != null and visual.override_icon_color:
+		return visual.icon_color
+	var background_color: Color = _get_card_background_color(visual)
+	var accent_color: Color = _get_card_accent_color(visual)
+	var derived: Color = background_color.lerp(accent_color, 0.96).darkened(0.70)
+	derived.a = 1.0
+	return derived
+
+func _get_card_scribble_color(visual: CardVisualDefinition) -> Color:
+	if visual_theme != null:
+		return visual_theme.call("get_card_scribble_color", visual) as Color
+	var background_color: Color = _get_card_background_color(visual)
+	var accent_color: Color = _get_card_accent_color(visual)
+	var derived: Color = background_color.lerp(accent_color, 0.72).darkened(0.22)
+	derived.a = 0.64
+	return derived
 
 func _get_card_hairline_color() -> Color:
 	return _get_theme_color("card_hairline_color", CARD_HAIRLINE_COLOR)

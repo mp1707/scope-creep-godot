@@ -326,6 +326,8 @@ func _validate_visual_theme(visual_theme: Resource) -> void:
 		_active_visual_theme = visual_theme
 	if visual_theme.get("card_paper_texture") == null:
 		_errors.append("%s: Visual theme '%s' needs card_paper_texture." % [visual_theme.resource_path, visual_theme_id])
+	if visual_theme.get("card_icon_scribble_texture") == null:
+		_errors.append("%s: Visual theme '%s' needs card_icon_scribble_texture." % [visual_theme.resource_path, visual_theme_id])
 	var card_roles: Array = visual_theme.get("card_roles") as Array
 	if card_roles.is_empty():
 		_errors.append("%s: Visual theme '%s' needs at least one card role." % [visual_theme.resource_path, visual_theme_id])

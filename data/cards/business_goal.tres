@@ -5,9 +5,9 @@
 
 [sub_resource type="Resource" id="Resource_visual"]
 script = ExtResource("2_visual")
-background_color = Color(0.94, 0.86, 0.50, 1)
-accent_color = Color(0.46, 0.34, 0.08, 1)
-text_color = Color(0.06, 0.055, 0.05, 1)
+background_color = Color(1.00, 0.92, 0.30, 1)
+accent_color = Color(0.96, 0.68, 0.02, 1)
+text_color = Color(0.075, 0.095, 0.12, 1)
 marker_text = "GOAL"
 
 [resource]

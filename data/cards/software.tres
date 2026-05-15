@@ -5,10 +5,9 @@
 
 [sub_resource type="Resource" id="Resource_e23bo"]
 script = ExtResource("2_nd0ff")
-background_color = Color(0.62, 0.82, 0.92, 1)
-accent_color = Color(0.16, 0.42, 0.58, 1)
-text_color = Color(0.06, 0.055, 0.05, 1)
-icon_color = Color(0.06, 0.055, 0.05, 1)
+background_color = Color(0.86, 0.90, 0.90, 1)
+accent_color = Color(0.56, 0.64, 0.66, 1)
+text_color = Color(0.075, 0.095, 0.12, 1)
 icon_size = Vector2(78, 78)
 icon_offset = Vector2(0, 0)
 icon_recolor_alpha_mask = true

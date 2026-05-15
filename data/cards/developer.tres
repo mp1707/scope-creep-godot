@@ -6,9 +6,9 @@
 
 [sub_resource type="Resource" id="Resource_oityl"]
 script = ExtResource("2_2v8g7")
-background_color = Color(0.64, 0.82, 0.58, 1)
-accent_color = Color(0.25, 0.48, 0.25, 1)
-text_color = Color(0.06, 0.055, 0.05, 1)
+background_color = Color(0.58, 0.92, 1.00, 1)
+accent_color = Color(0.20, 0.68, 0.94, 1)
+text_color = Color(0.075, 0.095, 0.12, 1)
 icon_texture = ExtResource("3_u8si4")
 icon_size = Vector2(117, 117)
 

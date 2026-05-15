@@ -14,9 +14,9 @@ stack_stream = ExtResource("6_su64j")
 
 [sub_resource type="Resource" id="Resource_5j0s0"]
 script = ExtResource("2_6xonj")
-background_color = Color(0.62, 0.88, 0.66, 1)
-accent_color = Color(0.17, 0.48, 0.24, 1)
-text_color = Color(0.06, 0.055, 0.05, 1)
+background_color = Color(0.70, 0.98, 0.44, 1)
+accent_color = Color(0.34, 0.78, 0.16, 1)
+text_color = Color(0.075, 0.095, 0.12, 1)
 icon_texture = ExtResource("3_c2dpa")
 
 [resource]

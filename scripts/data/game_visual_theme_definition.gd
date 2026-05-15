@@ -4,8 +4,9 @@ extends Resource
 @export var id: String = ""
 
 @export var card_paper_texture: Texture2D
+@export var card_icon_scribble_texture: Texture2D
 @export var card_hairline_color: Color = Color(0.055, 0.052, 0.047, 0.22)
-@export var card_text_color: Color = Color(0.055, 0.052, 0.047, 1.0)
+@export var card_text_color: Color = Color(0.075, 0.095, 0.12, 1.0)
 @export var card_shadow_color: Color = Color(0.18, 0.15, 0.11, 1.0)
 @export var card_drop_target_fill_color: Color = Color(0.055, 0.052, 0.047, 0.08)
 @export var card_disabled_modulate: Color = Color(0.68, 0.68, 0.68, 1.0)
@@ -73,12 +74,25 @@ func get_card_text_color(visual: CardVisualDefinition) -> Color:
 func get_card_icon_color(visual: CardVisualDefinition) -> Color:
 	var role: Resource = _get_visual_role(visual)
 	if role != null and not visual.override_icon_color:
-		return role.get("icon_color") as Color
-	if visual != null:
+		return _derive_card_icon_color(role.get("background_color") as Color, role.get("accent_color") as Color)
+	if visual != null and visual.override_icon_color:
 		return visual.icon_color
-	return card_text_color
+	return _derive_card_icon_color(get_card_background_color(visual), get_card_accent_color(visual))
+
+func get_card_scribble_color(visual: CardVisualDefinition) -> Color:
+	return _derive_card_scribble_color(get_card_background_color(visual), get_card_accent_color(visual))
 
 func _get_visual_role(visual: CardVisualDefinition) -> Resource:
 	if visual == null or not visual.use_visual_role:
 		return null
 	return get_card_role(visual.visual_role_id)
+
+func _derive_card_scribble_color(background_color: Color, accent_color: Color) -> Color:
+	var derived: Color = background_color.lerp(accent_color, 0.72).darkened(0.22)
+	derived.a = 0.64
+	return derived
+
+func _derive_card_icon_color(background_color: Color, accent_color: Color) -> Color:
+	var derived: Color = background_color.lerp(accent_color, 0.96).darkened(0.70)
+	derived.a = 1.0
+	return derived

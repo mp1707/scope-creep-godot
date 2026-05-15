@@ -6,9 +6,9 @@
 
 [sub_resource type="Resource" id="Resource_tn0rp"]
 script = ExtResource("2_qs3wp")
-background_color = Color(0.74, 0.72, 0.68, 1)
-accent_color = Color(0.26, 0.27, 0.29, 1)
-text_color = Color(0.06, 0.055, 0.05, 1)
+background_color = Color(0.88, 0.90, 0.82, 1)
+accent_color = Color(0.54, 0.60, 0.52, 1)
+text_color = Color(0.075, 0.095, 0.12, 1)
 icon_texture = ExtResource("3_v3rxp")
 marker_text = "TD"
 
