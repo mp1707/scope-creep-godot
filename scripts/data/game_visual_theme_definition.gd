@@ -13,8 +13,8 @@ extends Resource
 @export var card_paid_modulate: Color = Color(0.68, 0.86, 0.68, 1.0)
 @export var card_payment_target_modulate: Color = Color(1.0, 0.96, 0.72, 1.0)
 
-@export var tooltip_background_color: Color = Color(0.76, 0.76, 0.72, 1.0)
-@export var tooltip_text_color: Color = Color(0.055, 0.052, 0.047, 1.0)
+@export var tooltip_background_color: Color = Color(0.18, 0.22, 0.24, 0.98)
+@export var tooltip_text_color: Color = Color(0.98, 0.96, 0.88, 1.0)
 
 @export var status_badge_text_color: Color = Color(0.055, 0.052, 0.047, 1.0)
 @export var status_badge_color: Color = Color(0.98, 0.91, 0.65, 0.96)
