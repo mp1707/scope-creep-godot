@@ -662,6 +662,8 @@ Presentation rendert Stacks Stacklands-artig:
 
 Neue Karten spawnen an einer freien Position nahe der Quelle. Der Placement-Service sucht Positionen, die keine bestehende Karte verdecken und nicht unter einer Karte liegen.
 
+Boosterpacks nutzen eine eigene freie Slot-Suche um das Pack herum: zuerst 12 Uhr, danach im Uhrzeigersinn ueber obere rechte, rechte, untere rechte, untere, untere linke, linke und obere linke Position; belegte Plaetze werden uebersprungen, danach wird der naechste Ring gesucht.
+
 CardDefinitions koennen `auto_stack_on_spawn` aktivieren. Solche Karten werden beim Spawn auf einen nahen reinen Stack derselben CardDefinition gelegt, wenn dessen Basisposition innerhalb des Balancing-Werts `auto_stack_spawn_radius` liegt. Mitarbeiterkarten lassen dieses Flag deaktiviert und spawnen dadurch immer als eigener Stack.
 
 Der Placement-Service ist Teil der Board-Simulation oder ein deterministic helper. Presentation darf die Spawn-Position animieren, aber nicht eigenmaechtig andere Zielpositionen waehlen.

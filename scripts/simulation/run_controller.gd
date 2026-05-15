@@ -463,7 +463,7 @@ func open_booster_pack_step(card_id: String) -> bool:
 	booster_pack.values[BOOSTER_REMAINING_CARD_IDS_VALUE] = remaining_card_ids
 	_set_booster_pack_marker(booster_pack, remaining_card_ids.size())
 
-	_spawn_card_as_new_stack(spawned_card_definition_id, _get_spawn_position_near_stack(booster_pack.stack_id, 0))
+	_spawn_card_as_new_stack(spawned_card_definition_id, _get_booster_spawn_position_near_stack(booster_pack.stack_id))
 	if remaining_card_ids.is_empty():
 		_remove_card_instance(booster_pack.instance_id)
 	else:
@@ -1387,6 +1387,9 @@ func _delete_stack_if_empty(stack: StackState) -> void:
 
 func _get_spawn_position_near_stack(source_stack_id: String, spawn_index: int = 0) -> Vector2:
 	return _spawn_placement.get_spawn_position_near_stack(source_stack_id, spawn_index)
+
+func _get_booster_spawn_position_near_stack(source_stack_id: String) -> Vector2:
+	return _spawn_placement.get_booster_spawn_position_near_stack(source_stack_id)
 
 func _prune_stale_spawn_history() -> void:
 	_spawn_placement.prune_stale_spawn_history()

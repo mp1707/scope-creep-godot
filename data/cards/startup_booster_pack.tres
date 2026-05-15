@@ -22,7 +22,7 @@ display_name = "Dein Startup"
 type = 5
 tags = PackedStringArray("booster", "pack", "startup")
 short_text = "8 Startkarten"
-tooltip_text = "Oeffnet deine Startkarten in fixer Reihenfolge."
+tooltip_text = "Ein guter Start."
 visual = SubResource("Visual_startup_pack")
 base_values = {
 "booster_definition_id": "booster.startup"

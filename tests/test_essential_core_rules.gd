@@ -56,6 +56,7 @@ func _test_start_run_uses_startup_booster_pack() -> void:
 	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), 0, "Money should not start directly on the board.")
 
 	var opened_definitions: Array[String] = _open_booster_pack_and_collect_definitions(controller, state, startup_pack)
+	var step: Vector2 = Vector2(144.0, 196.0) + Vector2(36.0, 36.0)
 	_assert_equal(opened_definitions, [
 		"card.product.software",
 		"card.employee.developer",
@@ -66,6 +67,10 @@ func _test_start_run_uses_startup_booster_pack() -> void:
 		"card.resource.money",
 		"card.resource.money",
 	], "Startup booster should open the eight start cards in the requested order.")
+	_assert_equal(_find_card_by_definition(state, "card.product.software").position, startup_pack.position + Vector2(0.0, -step.y), "First startup card should spawn at 12 o'clock.")
+	_assert_equal(_find_card_by_definition(state, "card.employee.developer").position, startup_pack.position + Vector2(step.x, -step.y), "Second startup card should spawn clockwise at the upper-right slot.")
+	_assert_equal(_find_card_by_definition(state, "card.input.idea").position, startup_pack.position + Vector2(step.x, 0.0), "Third startup card should spawn clockwise at 3 o'clock.")
+	_assert_equal(_find_card_by_definition(state, "card.consumable.coffee").position, startup_pack.position + Vector2(step.x, step.y), "Fourth startup card should spawn clockwise at the lower-right slot.")
 	_assert_equal(state.get_card(startup_pack.instance_id), null, "Startup booster should disappear after the eighth click.")
 
 func _test_money_exists_as_single_cards() -> void:

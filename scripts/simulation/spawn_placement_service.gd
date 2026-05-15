@@ -59,6 +59,38 @@ func get_spawn_position_near_stack(source_stack_id: String, spawn_index: int = 0
 	state.board.spawn_history.append(fallback)
 	return fallback
 
+func get_booster_spawn_position_near_stack(source_stack_id: String) -> Vector2:
+	prune_stale_spawn_history()
+	var source_position: Vector2 = _get_spawn_source_position(source_stack_id)
+	var step: Vector2 = CARD_SIZE + Vector2(GAP, GAP)
+	var directions: Array[Vector2] = [
+		Vector2.UP,
+		Vector2(1.0, -1.0),
+		Vector2.RIGHT,
+		Vector2(1.0, 1.0),
+		Vector2.DOWN,
+		Vector2(-1.0, 1.0),
+		Vector2.LEFT,
+		Vector2(-1.0, -1.0),
+	]
+
+	for ring: int in SEARCH_RINGS:
+		var ring_distance: Vector2 = step * float(ring + 1)
+		for direction: Vector2 in directions:
+			var candidate: Vector2 = source_position + Vector2(direction.x * ring_distance.x, direction.y * ring_distance.y)
+			if not _does_spawn_overlap(candidate):
+				state.board.spawn_history.append(candidate)
+				return candidate
+
+	var grid_position: Vector2 = _find_free_spawn_grid_position(source_position)
+	if grid_position != INVALID_POSITION:
+		state.board.spawn_history.append(grid_position)
+		return grid_position
+
+	var fallback: Vector2 = _clamp_spawn_position_to_board(source_position + Vector2(0.0, -step.y))
+	state.board.spawn_history.append(fallback)
+	return fallback
+
 func get_spawn_position_near_position(source_position: Vector2, spawn_index: int = 0) -> Vector2:
 	prune_stale_spawn_history()
 	var step_x: float = CARD_SIZE.x + GAP
