@@ -26,6 +26,7 @@ const STATUS_BADGE_COLOR: Color = Color(0.98, 0.91, 0.65, 0.96)
 const STATUS_BADGE_ALERT_COLOR: Color = Color(0.98, 0.64, 0.58, 0.96)
 const STATUS_BADGE_PAID_COLOR: Color = Color(0.64, 0.86, 0.64, 0.96)
 const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
+const CARD_PAPER_TEXTURE_PATH: String = "res://assets/card/paperTexture.png"
 const TITLE_MAX_FONT_SIZE: int = 18
 const TITLE_MIN_FONT_SIZE: int = 8
 const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 108.0)
@@ -42,6 +43,8 @@ static var _shared_processing_title_label: Label = null
 static var _shared_processing_duration_row: HBoxContainer = null
 static var _shared_processing_duration_label: Label = null
 static var _shared_processing_duration_value_label: Label = null
+static var _shared_paper_texture: Texture2D = null
+static var _paper_texture_load_attempted: bool = false
 
 @export var background_path: NodePath
 @export var title_label_path: NodePath
@@ -585,12 +588,7 @@ func _apply_definition(definition: CardDefinition) -> void:
 		label.add_theme_color_override("font_color", visual.text_color)
 	_marker_label.add_theme_color_override("font_color", STATUS_BADGE_TEXT_COLOR)
 
-	if _background is ColorRect:
-		(_background as ColorRect).color = visual.background_color
-	else:
-		var style_box: StyleBoxFlat = StyleBoxFlat.new()
-		style_box.bg_color = visual.background_color
-		_background.add_theme_stylebox_override("panel", style_box)
+	_apply_card_surface_style(_background, visual.background_color)
 	_apply_header_style(visual)
 
 func _fit_title_to_single_line() -> void:
@@ -642,12 +640,35 @@ func _get_icon_mask_material() -> ShaderMaterial:
 func _apply_header_style(visual: CardVisualDefinition) -> void:
 	if _header_band == null:
 		return
-	if _header_band is ColorRect:
-		(_header_band as ColorRect).color = visual.accent_color.lightened(0.35)
+	_apply_card_surface_style(_header_band, visual.accent_color.lightened(0.35))
+
+func _apply_card_surface_style(control: Control, tint_color: Color) -> void:
+	if control == null:
 		return
-	var header_style: StyleBoxFlat = StyleBoxFlat.new()
-	header_style.bg_color = visual.accent_color.lightened(0.35)
-	_header_band.add_theme_stylebox_override("panel", header_style)
+	if control is ColorRect:
+		(control as ColorRect).color = tint_color
+		return
+	var paper_texture: Texture2D = _get_paper_texture()
+	if paper_texture == null:
+		var flat_style: StyleBoxFlat = StyleBoxFlat.new()
+		flat_style.bg_color = tint_color
+		control.add_theme_stylebox_override("panel", flat_style)
+		return
+	var texture_style: StyleBoxTexture = StyleBoxTexture.new()
+	texture_style.texture = paper_texture
+	texture_style.modulate_color = tint_color
+	texture_style.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	texture_style.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	control.add_theme_stylebox_override("panel", texture_style)
+
+func _get_paper_texture() -> Texture2D:
+	if _shared_paper_texture != null:
+		return _shared_paper_texture
+	if _paper_texture_load_attempted:
+		return null
+	_paper_texture_load_attempted = true
+	_shared_paper_texture = ResourceLoader.load(CARD_PAPER_TEXTURE_PATH) as Texture2D
+	return _shared_paper_texture
 
 func _apply_header_hairline_style() -> void:
 	if _header_hairline == null:
