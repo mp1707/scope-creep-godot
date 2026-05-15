@@ -23,7 +23,11 @@ func find_best_match(stack: StackState, state: RunState, content: ContentCatalog
 	for index: int in range(1, matches.size()):
 		var candidate_data: Dictionary = matches[index]
 		var candidate: RecipeDefinition = candidate_data["recipe"] as RecipeDefinition
-		if candidate.specificity_score == best.specificity_score and candidate.priority == best.priority:
+		var candidate_queue_index: int = candidate_data["active_queue_index"] as int
+		var best_queue_index: int = best_data["active_queue_index"] as int
+		if candidate.specificity_score == best.specificity_score \
+				and candidate.priority == best.priority \
+				and candidate_queue_index == best_queue_index:
 			result.ambiguous_recipe_ids.append(candidate.id)
 
 	if result.is_ambiguous():
@@ -86,8 +90,7 @@ func _find_matching_unused_card(
 	content: ContentCatalog,
 	used_card_ids: Dictionary
 ) -> String:
-	for reverse_index: int in stack.card_ids.size():
-		var card_id: String = stack.card_ids[stack.card_ids.size() - 1 - reverse_index]
+	for card_id: String in stack.card_ids:
 		if used_card_ids.has(card_id):
 			continue
 		if _card_matches_input(card_id, input, state, content):
@@ -342,7 +345,7 @@ func _get_active_queue_index(
 	state: RunState,
 	content: ContentCatalog
 ) -> int:
-	var best_index: int = -1
+	var best_index: int = 2147483647
 	for card_id: String in active_input_card_ids:
 		var card: CardInstance = state.get_card(card_id)
 		if card == null:
@@ -352,14 +355,16 @@ func _get_active_queue_index(
 			continue
 		if definition.type == ScopeEnums.CardType.EMPLOYEE or definition.type == ScopeEnums.CardType.PRODUCT:
 			continue
-		best_index = maxi(best_index, stack.card_ids.find(card_id))
+		best_index = mini(best_index, stack.card_ids.find(card_id))
+	if best_index == 2147483647:
+		return -1
 	return best_index
 
 func _compare_match_rank(left: Dictionary, right: Dictionary) -> bool:
 	var left_queue_index: int = left["active_queue_index"] as int
 	var right_queue_index: int = right["active_queue_index"] as int
 	if left_queue_index != right_queue_index:
-		return left_queue_index > right_queue_index
+		return left_queue_index < right_queue_index
 	return _compare_recipe_rank(left["recipe"] as RecipeDefinition, right["recipe"] as RecipeDefinition)
 
 func _compare_recipe_rank(left: RecipeDefinition, right: RecipeDefinition) -> bool:

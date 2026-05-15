@@ -225,7 +225,7 @@ Mindestfelder:
 - `effects_on_cancel: Array[EffectDefinition]`
 - `allowed_extra_inputs: Array[RecipeInputMatcher]`
 
-Recipes matchen auf reine Rezeptstapel. Karten, die weder Input noch explizit erlaubter Zusatzinput sind, machen den Stapel neutral. Reihenfolge ist fuer das Matching egal; die visuelle Stack-Reihenfolge bleibt aber erhalten.
+Recipes matchen auf reine Rezeptstapel. Karten, die weder Input noch explizit erlaubter Zusatzinput sind, machen den Stapel neutral. Fuer die Input-Reihenfolge eines einzelnen Recipes ist die visuelle Reihenfolge egal; bei mehreren queuebaren Aufgaben in einem Stack nutzt die Simulation die visuelle Stack-Reihenfolge als Arbeitswarteschlange. Die unterste Aufgabe wird zuerst bearbeitet, weitere passende Aufgaben oberhalb bleiben queuebare Zusatzkarten und duerfen laufendes Processing nicht abbrechen.
 
 Wenn mehrere Recipes matchen, gilt:
 

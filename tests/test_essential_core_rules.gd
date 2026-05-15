@@ -8,6 +8,7 @@ func _init() -> void:
 	_test_start_run_uses_startup_booster_pack()
 	_test_money_exists_as_single_cards()
 	_test_neutral_extra_card_cancels_processing()
+	_test_queued_tasks_preserve_active_bottom_work()
 	_test_coffee_accelerates_employee_work_only()
 	_test_bug_formation_happens_before_duplication()
 	_test_save_is_only_allowed_when_frozen_and_restores_state()
@@ -95,6 +96,28 @@ func _test_neutral_extra_card_cancels_processing() -> void:
 	_assert_equal(stack.processing_state.active_recipe_id, "", "Neutral extra cards should cancel active processing.")
 	_assert_equal(stack.processing_state.status, ScopeEnums.ProcessingStatus.IDLE, "Cancelled processing should return to idle.")
 	_assert_equal(stack.processing_state.elapsed, 0.0, "Cancelled processing should reset elapsed time.")
+
+func _test_queued_tasks_preserve_active_bottom_work() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = _start_run_with_opened_startup(controller, 1030)
+	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
+	var idea: CardInstance = _find_card_by_definition(state, "card.input.idea")
+	var bug: CardInstance = _spawn_card(controller, "card.problem.bug", Vector2(1200.0, 300.0))
+
+	controller.move_card_to_stack(idea.instance_id, developer.stack_id)
+	controller.advance_time(2.0)
+	controller.move_card_to_stack(bug.instance_id, developer.stack_id)
+
+	var stack: StackState = state.get_stack(developer.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.developer", "Stacked tasks should not replace the active bottom task.")
+	_assert_equal(stack.processing_state.elapsed, 2.0, "Stacking a queued task should not reset active progress.")
+	_assert_true(stack.processing_state.active_input_card_ids.has(idea.instance_id), "The lower idea should remain the active task input.")
+	_assert_true(not stack.processing_state.active_input_card_ids.has(bug.instance_id), "The upper bug should stay queued while the idea is active.")
+
+	controller.advance_time(6.0)
+	_assert_equal(_count_cards_by_definition(state, "card.input.idea"), 0, "Completed bottom idea work should consume the idea.")
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.debug_bug.developer", "The upper bug should start after the lower idea completes.")
+	_assert_true(stack.processing_state.active_input_card_ids.has(bug.instance_id), "The queued bug should become the next active task input.")
 
 func _test_coffee_accelerates_employee_work_only() -> void:
 	var employee_controller: RunController = _create_controller(60.0)

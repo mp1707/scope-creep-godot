@@ -275,7 +275,9 @@ Eine Kombination ist entweder:
 
 Unterschiedliche Mitarbeiter können dieselbe wirksame Kombination unterschiedlich schnell erledigen (z. B. Entwickler baut Funktion in 30s, PO in 120s). Das ist kein „falsch", sondern ein Effizienz-Spektrum: einen unbeschäftigten Mitarbeiter auf eine ineffiziente Aufgabe zu setzen ist meist besser, als ihn Däumchen drehen zu lassen — Timer-Carryover über Sprints macht das tragfähig.
 
-**Reihenfolge im Stapel ist irrelevant.** `Bug + Tester` und `Tester + Bug` führen zum selben Recipe-Match.
+Fuer ein einzelnes Recipe ist die Reihenfolge der benoetigten Karten egal: `Bug + Tester` und `Tester + Bug` fuehren zum selben Recipe-Match.
+
+Wenn ein Stack mehrere Aufgaben fuer denselben Bearbeiter oder dasselbe Ziel enthaelt, gilt aber eine Queue-Regel: **die unterste Aufgabe wird zuerst bearbeitet**. Weitere passende Aufgaben oberhalb des aktiven Recipe-Sets bleiben als Warteschlange im Stack. Beispiel: `Entwickler + Idee + Bug` bearbeitet zuerst die Idee; der Bug startet erst danach.
 
 Recipes matchen grundsätzlich auf **reine Rezeptstapel**: Ein Stapel löst nur dann eine Aktion aus, wenn die enthaltenen Karten zu einem Recipe passen. Zusätzliche Karten, die nicht Teil dieses Recipes sind, machen den Stapel neutral. Beispiel: Zwei Mitarbeiter plus eine normale Aufgabe lösen kein Einzelmitarbeiter-Recipe aus — der Spieler muss den passenden Rezeptstapel bewusst bauen.
 
@@ -288,7 +290,7 @@ Mitarbeiter + Burnout + Pizza Party → 5s „Erholung…"
 
 Hier zieht das schnellere Pizza-Party-Recipe, weil es spezifischer ist. Bei echtem Gleichstand muss ein Recipe später explizit priorisiert werden.
 
-Eine laufende Bearbeitung bricht sofort ab, wenn der Stapel verändert wird und das aktive Recipe dadurch nicht mehr gültig ist. Das gilt auch, wenn eine neutrale Karte auf einen laufenden Stack gelegt oder eine benötigte Karte aus einem laufenden Stack herausgezogen wird. Beim Abbruch verschwindet der Arbeitsbalken; der Mitarbeiter ist wieder idle, und es entsteht kein separates Cancelled-Objekt.
+Eine laufende Bearbeitung bricht sofort ab, wenn der Stapel verändert wird und das aktive Recipe dadurch nicht mehr gültig ist. Das gilt insbesondere, wenn eine benoetigte Karte aus einem laufenden Stack herausgezogen wird oder eine nicht queuebare/neutrale Zusatzkarte den aktiven Stack ungültig macht. Queuebare Aufgaben oberhalb des aktiven Recipe-Sets brechen die laufende Bearbeitung nicht ab; sie werden nach Abschluss der unteren Aufgabe automatisch erneut gematcht. Beim Abbruch verschwindet der Arbeitsbalken; der Mitarbeiter ist wieder idle, und es entsteht kein separates Cancelled-Objekt.
 
 ---
 

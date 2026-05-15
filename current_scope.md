@@ -24,7 +24,7 @@ Der Run startet als Pre-Launch-MVP. Auf dem Board liegt im aktuellen Startsetup 
 
 Geld ist wie im GDD vorgesehen keine Zahl im UI. Eine Geldkarte entspricht immer genau 1 Geld.
 
-Der Spieler kann Karten per Drag-and-Drop bewegen, stapeln und wieder auseinanderziehen. Passende Stacks starten automatisch Processing mit Aktionstext und Fortschritt. Nicht passende Zusatzkarten machen einen Stack neutral; der Stack bleibt trotzdem bewegbar und organisierbar.
+Der Spieler kann Karten per Drag-and-Drop bewegen, stapeln und wieder auseinanderziehen. Passende Stacks starten automatisch Processing mit Aktionstext und Fortschritt. Nicht passende Zusatzkarten machen einen Stack neutral; der Stack bleibt trotzdem bewegbar und organisierbar. Wenn mehrere passende Aufgaben auf einem aktiven Mitarbeiter- oder Zielstack liegen, wird die unterste Aufgabe zuerst bearbeitet. Oberhalb gestapelte weitere Aufgaben bleiben in der Warteschlange und brechen die laufende Bearbeitung nicht ab.
 
 ## Aktueller Run-Bogen
 
