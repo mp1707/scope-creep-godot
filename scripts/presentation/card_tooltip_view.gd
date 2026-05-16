@@ -37,8 +37,8 @@ func _ready() -> void:
 	_resolve_required_nodes()
 	_apply_style()
 
-func set_visual_theme(theme: Resource) -> void:
-	visual_theme = theme
+func set_visual_theme(new_visual_theme: Resource) -> void:
+	visual_theme = new_visual_theme
 	_resolve_required_nodes()
 	_apply_style()
 

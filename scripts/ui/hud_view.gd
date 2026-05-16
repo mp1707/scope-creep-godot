@@ -52,8 +52,8 @@ func _ready() -> void:
 	_initialize_master_volume_control()
 	_apply_visual_theme()
 
-func set_visual_theme(theme: Resource) -> void:
-	_visual_theme = theme
+func set_visual_theme(new_visual_theme: Resource) -> void:
+	_visual_theme = new_visual_theme
 	_apply_visual_theme()
 
 func update_from_run(run_state: RunState, sprint_remaining: float, can_auto_pay: bool, can_save: bool, can_load: bool) -> void:

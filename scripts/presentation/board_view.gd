@@ -1066,11 +1066,11 @@ func _get_screen_drag_scale() -> Vector2:
 	return Vector2(board_scale.x / layer_scale.x, board_scale.y / layer_scale.y)
 
 func _get_board_canvas_scale() -> Vector2:
-	var transform: Transform2D = get_global_transform_with_canvas()
-	return Vector2(transform.x.length(), transform.y.length())
+	var canvas_transform: Transform2D = get_global_transform_with_canvas()
+	return Vector2(canvas_transform.x.length(), canvas_transform.y.length())
 
 func _get_screen_drag_layer_canvas_scale() -> Vector2:
 	if not _is_using_screen_drag_layer():
 		return Vector2.ONE
-	var transform: Transform2D = screen_drag_layer.get_global_transform_with_canvas()
-	return Vector2(maxf(0.001, transform.x.length()), maxf(0.001, transform.y.length()))
+	var canvas_transform: Transform2D = screen_drag_layer.get_global_transform_with_canvas()
+	return Vector2(maxf(0.001, canvas_transform.x.length()), maxf(0.001, canvas_transform.y.length()))

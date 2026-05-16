@@ -1,44 +1,40 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://blew6xaqtxw8g"]
 
 [ext_resource type="Script" path="res://scripts/presentation/card_tooltip_view.gd" id="1_tooltip"]
 
-[node name="CardTooltipView" type="PanelContainer"]
+[node name="CardTooltipView" type="PanelContainer" unique_id=228377822]
 offset_right = 150.0
 offset_bottom = 48.0
 mouse_filter = 2
 script = ExtResource("1_tooltip")
 
-[node name="PlainLabel" type="Label" parent="."]
+[node name="PlainLabel" type="Label" parent="." unique_id=1630158355]
 layout_mode = 2
-mouse_filter = 2
 autowrap_mode = 3
 
-[node name="ProcessingContainer" type="VBoxContainer" parent="."]
+[node name="ProcessingContainer" type="VBoxContainer" parent="." unique_id=535106054]
 visible = false
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="TitleLabel" type="Label" parent="ProcessingContainer"]
+[node name="TitleLabel" type="Label" parent="ProcessingContainer" unique_id=225440746]
 layout_mode = 2
-mouse_filter = 2
 
-[node name="DurationRow" type="HBoxContainer" parent="ProcessingContainer"]
+[node name="DurationRow" type="HBoxContainer" parent="ProcessingContainer" unique_id=1081407072]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 12
 
-[node name="DurationLabel" type="Label" parent="ProcessingContainer/DurationRow"]
+[node name="DurationLabel" type="Label" parent="ProcessingContainer/DurationRow" unique_id=227180959]
 layout_mode = 2
-mouse_filter = 2
 text = "Restdauer:"
 
-[node name="Spacer" type="Control" parent="ProcessingContainer/DurationRow"]
+[node name="Spacer" type="Control" parent="ProcessingContainer/DurationRow" unique_id=495166846]
 layout_mode = 2
-mouse_filter = 2
 size_flags_horizontal = 3
-
-[node name="DurationValueLabel" type="Label" parent="ProcessingContainer/DurationRow"]
-layout_mode = 2
 mouse_filter = 2
+
+[node name="DurationValueLabel" type="Label" parent="ProcessingContainer/DurationRow" unique_id=395271408]
+layout_mode = 2
 horizontal_alignment = 2

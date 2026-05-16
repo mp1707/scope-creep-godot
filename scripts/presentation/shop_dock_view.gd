@@ -89,14 +89,14 @@ func set_hovered_stack_id(stack_id: String) -> void:
 func play_drop_pulse(stack_id: String) -> void:
 	if stack_id.is_empty():
 		return
-	var slot: Control = _get_editor_slot_for_stack_id(stack_id)
-	if slot != null and slot.has_method("play_drop_pulse"):
-		slot.call("play_drop_pulse")
-		return
 	var card_id: String = _get_card_id_for_stack_id(stack_id)
 	var view: CardView = get_card_view(card_id)
 	if view != null:
 		view.play_drop_target_pulse()
+		return
+	var slot: Control = _get_editor_slot_for_stack_id(stack_id)
+	if slot != null and slot.has_method("play_drop_pulse"):
+		slot.call("play_drop_pulse")
 
 func get_card_view(card_id: String) -> CardView:
 	return _card_views.get(card_id, null) as CardView
@@ -256,14 +256,14 @@ func _get_card_id_for_stack_id(stack_id: String) -> String:
 	return ""
 
 func _set_drop_feedback_for_stack(stack_id: String, active: bool) -> void:
-	var slot: Control = _get_editor_slot_for_stack_id(stack_id)
-	if slot != null and slot.has_method("set_drop_feedback"):
-		slot.call("set_drop_feedback", active)
-		return
 	var card_id: String = _get_card_id_for_stack_id(stack_id)
 	var view: CardView = get_card_view(card_id)
 	if view != null:
 		view.set_drop_target_feedback(active)
+		return
+	var slot: Control = _get_editor_slot_for_stack_id(stack_id)
+	if slot != null and slot.has_method("set_drop_feedback"):
+		slot.call("set_drop_feedback", active)
 
 func _get_editor_slots() -> Array[Control]:
 	var slots: Array[Control] = []

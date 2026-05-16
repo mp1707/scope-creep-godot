@@ -119,8 +119,8 @@ func _exit_tree() -> void:
 func _get_tooltip(_at_position: Vector2) -> String:
 	return ""
 
-func set_visual_theme(theme: Resource) -> void:
-	visual_theme = theme
+func set_visual_theme(new_visual_theme: Resource) -> void:
+	visual_theme = new_visual_theme
 	if _shadow != null:
 		_apply_shadow_style()
 	if _header_hairline != null:
@@ -128,7 +128,7 @@ func set_visual_theme(theme: Resource) -> void:
 	if _drop_target_feedback != null:
 		_apply_drop_target_feedback_style()
 	if _active_tooltip_owner == self and _shared_tooltip_view != null and is_instance_valid(_shared_tooltip_view):
-		_shared_tooltip_view.set_visual_theme(visual_theme)
+		_shared_tooltip_view.call("set_visual_theme", visual_theme)
 
 func set_processing_tooltip(action_title: String, remaining_seconds: float) -> void:
 	_processing_tooltip_title = action_title.strip_edges()
@@ -342,7 +342,6 @@ func _apply_scene_node_defaults() -> void:
 		_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		if _card_font != null:
 			_title_label.add_theme_font_override("font", _card_font)
-		_title_label.add_theme_font_size_override("font_size", TITLE_MAX_FONT_SIZE)
 	if _marker_label != null:
 		_marker_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_marker_label.add_theme_font_size_override("font_size", 18)
@@ -398,21 +397,25 @@ func _apply_definition(definition: CardDefinition) -> void:
 
 func _fit_title_to_single_line() -> void:
 	_title_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	_title_label.clip_text = false
-	var font: Font = _title_label.get_theme_font("font")
+	_title_label.clip_text = true
+	var font: Font = _card_font
 	if font == null:
-		font = _card_font
+		font = _title_label.get_theme_font("font")
 	if font == null:
 		_title_label.add_theme_font_size_override("font_size", TITLE_MAX_FONT_SIZE)
 		return
 
-	var available_width: float = maxf(1.0, _title_label.size.x - 2.0)
+	var label_width: float = _title_label.size.x
+	if label_width <= 1.0:
+		label_width = DEFAULT_CARD_SIZE.x - (_title_label.position.x * 2.0)
+	var available_width: float = maxf(1.0, label_width - 4.0)
 	var font_size: int = TITLE_MAX_FONT_SIZE
-	while font_size > TITLE_MIN_FONT_SIZE:
+	while font_size >= TITLE_MIN_FONT_SIZE:
 		var text_size: Vector2 = font.get_string_size(_title_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size)
 		if text_size.x <= available_width:
 			break
 		font_size -= 1
+	font_size = maxi(TITLE_MIN_FONT_SIZE, font_size)
 	_title_label.add_theme_font_size_override("font_size", font_size)
 
 func _apply_icon_style(visual: CardVisualDefinition) -> void:
@@ -467,9 +470,9 @@ func _get_scribble_mask_material() -> ShaderMaterial:
 func _create_alpha_mask_material() -> ShaderMaterial:
 	var shader: Shader = Shader.new()
 	shader.code = ICON_MASK_SHADER_CODE
-	var material: ShaderMaterial = ShaderMaterial.new()
-	material.shader = shader
-	return material
+	var shader_material: ShaderMaterial = ShaderMaterial.new()
+	shader_material.shader = shader
+	return shader_material
 
 func _apply_header_style(visual: CardVisualDefinition) -> void:
 	if _header_band == null:

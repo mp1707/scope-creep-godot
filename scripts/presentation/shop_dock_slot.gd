@@ -43,8 +43,8 @@ var visual_theme: Resource = null
 var _drop_feedback_active: bool = false
 var _pulse_tween: Tween = null
 
-func set_visual_theme(theme: Resource) -> void:
-	visual_theme = theme
+func set_visual_theme(new_visual_theme: Resource) -> void:
+	visual_theme = new_visual_theme
 	queue_redraw()
 
 func _ready() -> void:
