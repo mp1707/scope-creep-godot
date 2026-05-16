@@ -8,10 +8,11 @@ const STACK_PROGRESS_Z_OFFSET: int = 4
 const MAX_STACK_LAYER: int = 360
 const BOARD_RECT_POSITION: Vector2 = Vector2.ZERO
 const BOARD_RECT_END_MARGIN: Vector2 = Vector2.ZERO
-const BOARD_BACKGROUND_COLOR: Color = Color(0.955, 0.948, 0.918, 1.0)
+const BOARD_BACKGROUND_COLOR: Color = Color(0.982, 0.98, 0.966, 1.0)
 const BOARD_BORDER_COLOR: Color = Color(0.055, 0.052, 0.047, 1.0)
-const BOARD_GRID_COLOR: Color = Color(0.58, 0.64, 0.62, 0.12)
-const BOARD_NOTE_COLOR: Color = Color(0.38, 0.52, 0.58, 0.16)
+const BOARD_DOT_COLOR: Color = Color(0.075, 0.095, 0.12, 0.12)
+const BOARD_DOT_SPACING: float = 32.0
+const BOARD_DOT_RADIUS: float = 1.1
 const PROGRESS_OFFSET: Vector2 = Vector2(0.0, -24.0)
 const PROGRESS_CONTAINER_SIZE: Vector2 = Vector2(144.0, 12.0)
 const PROGRESS_BAR_POSITION: Vector2 = Vector2.ZERO
@@ -83,18 +84,22 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	var board_rect: Rect2 = _get_board_rect()
 	draw_rect(board_rect, _get_board_background_color(), true)
+	_draw_board_dot_grid(board_rect)
 
-	for x_index: int in range(int(board_rect.position.x) + 96, int(board_rect.end.x), 160):
-		var x: float = float(x_index)
-		draw_line(Vector2(x, board_rect.position.y + 16.0), Vector2(x, board_rect.end.y - 16.0), _get_board_grid_color(), 1.0)
-	for y_index: int in range(int(board_rect.position.y) + 96, int(board_rect.end.y), 160):
-		var y: float = float(y_index)
-		draw_line(Vector2(board_rect.position.x + 16.0, y), Vector2(board_rect.end.x - 16.0, y), _get_board_grid_color(), 1.0)
+func _draw_board_dot_grid(board_rect: Rect2) -> void:
+	var dot_color: Color = _get_board_dot_color()
+	if dot_color.a <= 0.0:
+		return
 
-	draw_arc(Vector2(350.0, 845.0), 34.0, 0.15, 2.8, 16, _get_board_note_color(), 2.0)
-	draw_arc(board_rect.end - Vector2(338.0, 193.0), 42.0, 3.5, 5.9, 16, _get_board_note_color(), 2.0)
-	draw_line(board_rect.position + Vector2(board_rect.size.x - 408.0, 94.0), board_rect.position + Vector2(board_rect.size.x - 346.0, 94.0), _get_board_note_color(), 2.0)
-	draw_line(board_rect.position + Vector2(board_rect.size.x - 408.0, 118.0), board_rect.position + Vector2(board_rect.size.x - 312.0, 118.0), _get_board_note_color(), 2.0)
+	var spacing: float = _get_board_dot_spacing()
+	var radius: float = _get_board_dot_radius()
+	var x: float = board_rect.position.x + spacing * 0.5
+	while x < board_rect.end.x:
+		var y: float = board_rect.position.y + spacing * 0.5
+		while y < board_rect.end.y:
+			draw_circle(Vector2(x, y), radius, dot_color)
+			y += spacing
+		x += spacing
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -1001,11 +1006,14 @@ func _get_board_size() -> Vector2:
 func _get_board_background_color() -> Color:
 	return _get_theme_color("board_background_color", BOARD_BACKGROUND_COLOR)
 
-func _get_board_grid_color() -> Color:
-	return _get_theme_color("board_grid_color", BOARD_GRID_COLOR)
+func _get_board_dot_color() -> Color:
+	return _get_theme_color("board_dot_color", BOARD_DOT_COLOR)
 
-func _get_board_note_color() -> Color:
-	return _get_theme_color("board_note_color", BOARD_NOTE_COLOR)
+func _get_board_dot_spacing() -> float:
+	return maxf(4.0, _get_theme_float("board_dot_spacing", BOARD_DOT_SPACING))
+
+func _get_board_dot_radius() -> float:
+	return maxf(0.25, _get_theme_float("board_dot_radius", BOARD_DOT_RADIUS))
 
 func _get_progress_background_color() -> Color:
 	return _get_theme_color("progress_background_color", PROGRESS_BACKGROUND_COLOR)
@@ -1022,6 +1030,16 @@ func _get_theme_color(property_name: String, fallback: Color) -> Color:
 	var value: Variant = visual_theme.get(property_name)
 	if value is Color:
 		return value as Color
+	return fallback
+
+func _get_theme_float(property_name: String, fallback: float) -> float:
+	if visual_theme == null:
+		return fallback
+	var value: Variant = visual_theme.get(property_name)
+	if value is float:
+		return value as float
+	if value is int:
+		return float(value as int)
 	return fallback
 
 func _should_render_card_on_board(card_id: String) -> bool:

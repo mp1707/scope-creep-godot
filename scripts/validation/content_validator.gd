@@ -330,6 +330,18 @@ func _validate_visual_theme(visual_theme: Resource) -> void:
 		_errors.append("%s: Visual theme '%s' needs card_paper_texture." % [visual_theme.resource_path, visual_theme_id])
 	if visual_theme.get("card_icon_scribble_texture") == null:
 		_errors.append("%s: Visual theme '%s' needs card_icon_scribble_texture." % [visual_theme.resource_path, visual_theme_id])
+	var board_background_color: Color = visual_theme.get("board_background_color") as Color
+	var board_dot_color: Color = visual_theme.get("board_dot_color") as Color
+	var board_dot_spacing: float = visual_theme.get("board_dot_spacing") as float
+	var board_dot_radius: float = visual_theme.get("board_dot_radius") as float
+	if board_background_color.a <= 0.0:
+		_errors.append("%s: Visual theme '%s' needs visible board_background_color." % [visual_theme.resource_path, visual_theme_id])
+	if board_dot_color.a < 0.0 or board_dot_color.a > 0.35:
+		_errors.append("%s: Visual theme '%s' needs subtle board_dot_color alpha between 0 and 0.35." % [visual_theme.resource_path, visual_theme_id])
+	if board_dot_spacing <= 0.0:
+		_errors.append("%s: Visual theme '%s' needs positive board_dot_spacing." % [visual_theme.resource_path, visual_theme_id])
+	if board_dot_radius <= 0.0 or board_dot_radius >= board_dot_spacing * 0.25:
+		_errors.append("%s: Visual theme '%s' needs board_dot_radius above 0 and clearly smaller than spacing." % [visual_theme.resource_path, visual_theme_id])
 	var card_roles: Array = visual_theme.get("card_roles") as Array
 	if card_roles.is_empty():
 		_errors.append("%s: Visual theme '%s' needs at least one card role." % [visual_theme.resource_path, visual_theme_id])

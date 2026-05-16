@@ -197,7 +197,7 @@ Kartenfarben tragen Gameplay-Semantik und gehoeren deshalb nicht ausschliesslich
 
 - globale Card-Surface-Werte wie Papiertextur, Hairline, Schatten, Status-Badges und Drop-Feedback
 - Icon-Scribble-Textur und abgeleitete Icon-/Scribble-Farben, damit Icons nicht als generisches Schwarz gegen die Kartenfarbe stehen
-- Board- und Progress-Farben
+- Board-Dotgrid-Werte wie Hintergrundfarbe, Punktfarbe, Punktabstand und Punktradius sowie Progress-Farben
 - HUD-, Tooltip- und Shop-Dock-Farben
 - semantische `CardVisualRoleDefinition`-Eintraege, z. B. `visual_role.employee`, `visual_role.problem`, `visual_role.resource`, `visual_role.output`, `visual_role.product`, `visual_role.shop`, `visual_role.goal`
 

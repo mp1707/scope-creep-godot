@@ -21,9 +21,10 @@ extends Resource
 @export var status_badge_alert_color: Color = Color(0.98, 0.64, 0.58, 0.96)
 @export var status_badge_paid_color: Color = Color(0.64, 0.86, 0.64, 0.96)
 
-@export var board_background_color: Color = Color(0.955, 0.948, 0.918, 1.0)
-@export var board_grid_color: Color = Color(0.58, 0.64, 0.62, 0.12)
-@export var board_note_color: Color = Color(0.38, 0.52, 0.58, 0.16)
+@export var board_background_color: Color = Color(0.982, 0.98, 0.966, 1.0)
+@export var board_dot_color: Color = Color(0.075, 0.095, 0.12, 0.12)
+@export_range(4.0, 256.0, 1.0, "or_greater") var board_dot_spacing: float = 32.0
+@export_range(0.25, 8.0, 0.05, "or_greater") var board_dot_radius: float = 1.1
 @export var progress_background_color: Color = Color(0.76, 0.76, 0.72, 1.0)
 @export var progress_fill_color: Color = Color(0.18, 0.18, 0.17, 1.0)
 @export var progress_border_color: Color = Color(0.18, 0.18, 0.17, 1.0)
