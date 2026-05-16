@@ -39,7 +39,7 @@ mouse_filter = 2
 script = ExtResource("6_shopdock")
 
 [node name="FounderPanicSlot" type="Control" parent="UiLayer/ShopDock" unique_id=56639836]
-custom_minimum_size = Vector2(144, 196)
+custom_minimum_size = Vector2(144, 180)
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -49,7 +49,7 @@ anchor_bottom = 1.0
 offset_left = -942.0
 offset_top = -89.0
 offset_right = -798.0
-offset_bottom = 107.0
+offset_bottom = 91.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
@@ -58,7 +58,7 @@ card_definition_id = "card.shop.booster_slot"
 preview_label = "Gruenderpanik"
 
 [node name="WellbeingSlot" type="Control" parent="UiLayer/ShopDock" unique_id=1418177653]
-custom_minimum_size = Vector2(144, 196)
+custom_minimum_size = Vector2(144, 180)
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -68,7 +68,7 @@ anchor_bottom = 1.0
 offset_left = -778.0
 offset_top = -89.0
 offset_right = -634.0
-offset_bottom = 107.0
+offset_bottom = 91.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
@@ -77,7 +77,7 @@ card_definition_id = "card.shop.booster_slot.office_invest"
 preview_label = "Wohlbefinden"
 
 [node name="ExternalHelpSlot" type="Control" parent="UiLayer/ShopDock" unique_id=1438723163]
-custom_minimum_size = Vector2(144, 196)
+custom_minimum_size = Vector2(144, 180)
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -87,7 +87,7 @@ anchor_bottom = 1.0
 offset_left = -614.0
 offset_top = -89.0
 offset_right = -470.0
-offset_bottom = 107.0
+offset_bottom = 91.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
@@ -96,7 +96,7 @@ card_definition_id = "card.shop.bugfix_patch_slot"
 preview_label = "Externe Hilfe"
 
 [node name="CustomerChaosSlot" type="Control" parent="UiLayer/ShopDock" unique_id=1538085392]
-custom_minimum_size = Vector2(144, 196)
+custom_minimum_size = Vector2(144, 180)
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -106,7 +106,7 @@ anchor_bottom = 1.0
 offset_left = -289.0
 offset_top = -89.0
 offset_right = -145.0
-offset_bottom = 107.0
+offset_bottom = 91.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
@@ -115,7 +115,7 @@ card_definition_id = "card.shop.booster_slot.customer_chaos"
 preview_label = "Kundenchaos"
 
 [node name="TalentPoolSlot" type="Control" parent="UiLayer/ShopDock" unique_id=1056744752]
-custom_minimum_size = Vector2(144, 196)
+custom_minimum_size = Vector2(144, 180)
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -125,7 +125,7 @@ anchor_bottom = 1.0
 offset_left = -451.0
 offset_top = -89.0
 offset_right = -307.0
-offset_bottom = 107.0
+offset_bottom = 91.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
@@ -134,7 +134,7 @@ card_definition_id = "card.shop.booster_slot.talent_pool"
 preview_label = "Talent-Pool"
 
 [node name="FreelanceSlot" type="Control" parent="UiLayer/ShopDock" unique_id=686774058]
-custom_minimum_size = Vector2(144, 196)
+custom_minimum_size = Vector2(144, 180)
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -144,7 +144,7 @@ anchor_bottom = 1.0
 offset_left = 638.0
 offset_top = -89.0
 offset_right = 782.0
-offset_bottom = 107.0
+offset_bottom = 91.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
@@ -153,7 +153,7 @@ card_definition_id = "card.shop.freelance_order"
 preview_label = "Freelance"
 
 [node name="RecyclingSlot" type="Control" parent="UiLayer/ShopDock" unique_id=1047047330]
-custom_minimum_size = Vector2(144, 196)
+custom_minimum_size = Vector2(144, 180)
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -163,7 +163,7 @@ anchor_bottom = 1.0
 offset_left = 802.0
 offset_top = -89.0
 offset_right = 946.0
-offset_bottom = 107.0
+offset_bottom = 91.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2

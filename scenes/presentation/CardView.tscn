@@ -4,11 +4,11 @@
 [ext_resource type="Script" uid="uid://dnowpa6uig3pc" path="res://scripts/presentation/card_juice_controller.gd" id="2_juice"]
 
 [node name="CardView" type="Control" unique_id=577671738]
-custom_minimum_size = Vector2(144, 196)
+custom_minimum_size = Vector2(144, 180)
 layout_mode = 3
 anchors_preset = 0
 offset_right = 144.0
-offset_bottom = 196.0
+offset_bottom = 180.0
 mouse_filter = 1
 script = ExtResource("1_1fu8s")
 visual_root_path = NodePath("VisualRoot")
@@ -28,8 +28,8 @@ metadata/_custom_type_script = "uid://btde6a6hcp0h4"
 [node name="VisualRoot" type="Control" parent="." unique_id=2043987601]
 layout_mode = 0
 offset_right = 144.0
-offset_bottom = 196.0
-pivot_offset = Vector2(72, 98)
+offset_bottom = 180.0
+pivot_offset = Vector2(72, 90)
 mouse_filter = 2
 
 [node name="CardShadow" type="Panel" parent="VisualRoot"]
@@ -38,13 +38,13 @@ layout_mode = 0
 offset_left = 3.0
 offset_top = 4.0
 offset_right = 147.0
-offset_bottom = 200.0
+offset_bottom = 184.0
 mouse_filter = 2
 
 [node name="Background" type="Panel" parent="VisualRoot" unique_id=435676595]
 layout_mode = 0
 offset_right = 144.0
-offset_bottom = 196.0
+offset_bottom = 180.0
 mouse_filter = 2
 
 [node name="HeaderBand" type="Panel" parent="VisualRoot" unique_id=725238716]
@@ -57,9 +57,9 @@ mouse_filter = 2
 visible = false
 layout_mode = 0
 offset_left = 20.0
-offset_top = 56.0
+offset_top = 48.0
 offset_right = 124.0
-offset_bottom = 160.0
+offset_bottom = 152.0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
@@ -67,9 +67,9 @@ stretch_mode = 5
 [node name="IconTextureRect" type="TextureRect" parent="VisualRoot" unique_id=1847566360]
 layout_mode = 0
 offset_left = 33.0
-offset_top = 69.0
+offset_top = 61.0
 offset_right = 111.0
-offset_bottom = 147.0
+offset_bottom = 139.0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
@@ -117,7 +117,7 @@ mouse_filter = 2
 visible = false
 layout_mode = 0
 offset_right = 144.0
-offset_bottom = 196.0
+offset_bottom = 180.0
 mouse_filter = 2
 
 [node name="CardJuiceController" type="Node" parent="."]

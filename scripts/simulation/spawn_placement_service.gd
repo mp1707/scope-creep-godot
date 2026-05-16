@@ -1,7 +1,7 @@
 class_name SpawnPlacementService
 extends RefCounted
 
-const CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
+const CARD_SIZE: Vector2 = Vector2(144.0, 180.0)
 const GAP: float = 36.0
 const BOARD_MARGIN: float = 56.0
 const SEARCH_RINGS: int = 7

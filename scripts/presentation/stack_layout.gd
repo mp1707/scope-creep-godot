@@ -1,7 +1,7 @@
 class_name StackLayout
 extends RefCounted
 
-var card_size: Vector2 = Vector2(144.0, 196.0)
+var card_size: Vector2 = Vector2(144.0, 180.0)
 var stack_offset: Vector2 = Vector2(0.0, 26.0)
 
 func get_card_position(stack: StackState, card_id: String) -> Vector2:

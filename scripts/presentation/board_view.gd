@@ -36,7 +36,7 @@ signal board_pan_requested(relative: Vector2)
 signal interaction_preview_changed(stack_ids: PackedStringArray, dragged_card_id: String)
 
 @export var card_view_scene: PackedScene
-@export var card_size: Vector2 = Vector2(144.0, 196.0)
+@export var card_size: Vector2 = Vector2(144.0, 180.0)
 @export var stack_offset: Vector2 = Vector2(0.0, 26.0)
 @export var snap_distance: float = 96.0
 

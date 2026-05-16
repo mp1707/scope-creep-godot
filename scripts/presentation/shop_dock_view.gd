@@ -11,7 +11,7 @@ const INTERACTION_HIGHLIGHT_MARGIN: float = 11.0
 const INTERACTION_HIGHLIGHT_Z_OFFSET: int = 6
 
 @export var card_view_scene: PackedScene
-@export var card_size: Vector2 = Vector2(144.0, 196.0)
+@export var card_size: Vector2 = Vector2(144.0, 180.0)
 @export var visible_height: float = 72.0
 @export var hover_raise: float = 54.0
 @export var slot_gap: float = 20.0

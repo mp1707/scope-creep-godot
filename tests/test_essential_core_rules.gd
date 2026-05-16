@@ -57,7 +57,7 @@ func _test_start_run_uses_startup_booster_pack() -> void:
 	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), 0, "Money should not start directly on the board.")
 
 	var opened_definitions: Array[String] = _open_booster_pack_and_collect_definitions(controller, state, startup_pack)
-	var step: Vector2 = Vector2(144.0, 196.0) + Vector2(36.0, 36.0)
+	var step: Vector2 = Vector2(144.0, 180.0) + Vector2(36.0, 36.0)
 	_assert_equal(opened_definitions, [
 		"card.product.software",
 		"card.employee.developer",

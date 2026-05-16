@@ -1,7 +1,7 @@
 class_name CardView
 extends Control
 
-const DEFAULT_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
+const DEFAULT_CARD_SIZE: Vector2 = Vector2(144.0, 180.0)
 const CARD_EDGE_INSET: float = 0.0
 const CARD_HAIRLINE_WIDTH: int = 1
 const CARD_HAIRLINE_COLOR: Color = Color(0.055, 0.052, 0.047, 0.22)
@@ -22,7 +22,7 @@ const CARD_PAPER_TEXTURE_PATH: String = "res://assets/card/paperTexture.png"
 const ICON_SCRIBBLE_TEXTURE_PATH: String = "res://assets/icons/handdrawn/ui/scribbleCricle.png"
 const TITLE_MAX_FONT_SIZE: int = 18
 const TITLE_MIN_FONT_SIZE: int = 8
-const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 108.0)
+const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 100.0)
 const DEFAULT_ICON_SCRIBBLE_PADDING: float = 24.0
 const ICON_MASK_SHADER_CODE: String = "shader_type canvas_item;\nuniform vec4 icon_color : source_color = vec4(0.06, 0.055, 0.05, 1.0);\nvoid fragment() {\n\tvec4 texture_color = texture(TEXTURE, UV);\n\tCOLOR = vec4(icon_color.rgb, texture_color.a * icon_color.a);\n}\n"
 const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")

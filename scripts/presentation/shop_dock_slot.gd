@@ -2,7 +2,7 @@
 class_name ShopDockSlot
 extends Control
 
-const PREVIEW_CARD_SIZE: Vector2 = Vector2(144.0, 196.0)
+const PREVIEW_CARD_SIZE: Vector2 = Vector2(144.0, 180.0)
 const PREVIEW_FILL_COLOR: Color = Color(0.98, 0.88, 0.58, 0.42)
 const PREVIEW_HEADER_COLOR: Color = Color(0.76, 0.60, 0.32, 0.42)
 const PREVIEW_HAIRLINE_COLOR: Color = Color(0.055, 0.052, 0.047, 0.22)
