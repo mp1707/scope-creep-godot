@@ -14,6 +14,8 @@ Das Spiel ist damit mehr als ein reiner Recipe-Test. Es hat inzwischen einen Anf
 
 Die Karten-Presentation hat inzwischen ein einheitliches Juice-System: Hover, Drag-Lift, verzoegertes Drag-Follow, subtile Drag-Rotation, Snap-Bounce, Schattenzustaende und Drop-Ziel-Feedback laufen zentral ueber die CardView-Presentation und nicht ueber verstreute Einzel-Tweens. Das Visual-Theming ist als `GameVisualThemeDefinition` zentral geladen: Board, HUD, Tooltips, Status-Badges, Shop-Dock-Preview und Card-Surface-Werte kommen aus dem aktiven Visual-Theme. Die aktuelle Kartenpalette orientiert sich an hellen Post-it-Toenen statt gedeckten Ockerfarben. Kartenicons nutzen einen Scribble-Kreis als Hintergrund; Scribble und Icon-Farbe werden aus dunkleren Toenen der jeweiligen Kartenfarbe abgeleitet, waehrend Header-Text einen einheitlichen dunkel blau-grauen Ton nutzt. Bestehende Karten behalten ihre direkten `CardVisualDefinition`-Farben als Overrides; neue Karten koennen ueber semantische `visual_role_id`s aus dem Theme starten. SFX bleiben davon getrennt.
 
+`CardView.tscn` enthaelt die sichtbare Karten-Node-Struktur jetzt vollstaendig als editorseitig anpassbare Scene. Das Script bindet Content, Runtime-Zustand, Theme und Juice, erzeugt aber normale sichtbare Kartenbestandteile nicht mehr still nach. Karten-Tooltips sind in `CardTooltipView.tscn`/`card_tooltip_view.gd` ausgelagert, damit Tooltip-Layout und Styling ebenfalls im Editor feinjustierbar bleiben.
+
 ## Wie eine Runde aktuell startet
 
 Der Run startet als Pre-Launch-MVP. Auf dem Board liegt im aktuellen Startsetup nur ein spezielles Boosterpack:

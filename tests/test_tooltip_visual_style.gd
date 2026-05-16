@@ -4,13 +4,13 @@ var _failed: bool = false
 
 func _init() -> void:
 	var visual_theme: Resource = ResourceLoader.load("res://data/visual_themes/poc_default_visual_theme.tres")
-	var card_scene: PackedScene = ResourceLoader.load("res://scenes/presentation/CardView.tscn") as PackedScene
-	var view: CardView = card_scene.instantiate() as CardView
-	root.add_child(view)
-	view.set_visual_theme(visual_theme)
+	var tooltip_scene: PackedScene = ResourceLoader.load("res://scenes/presentation/CardTooltipView.tscn") as PackedScene
+	var tooltip: PanelContainer = tooltip_scene.instantiate() as PanelContainer
+	root.add_child(tooltip)
+	tooltip.call("set_visual_theme", visual_theme)
+	tooltip.call("show_plain", "Kontrasttest")
 
-	var tooltip: PanelContainer = view.call("_make_custom_tooltip", "Kontrasttest") as PanelContainer
-	_assert_true(tooltip != null, "CardView should create a tooltip panel.")
+	_assert_true(tooltip != null, "CardTooltipView should instantiate.")
 	if tooltip != null:
 		var style_box: StyleBoxFlat = tooltip.get_theme_stylebox("panel") as StyleBoxFlat
 		_assert_true(style_box != null, "Tooltip panel should use a flat stylebox.")
@@ -24,7 +24,6 @@ func _init() -> void:
 
 	if tooltip != null:
 		tooltip.free()
-	view.free()
 
 	if _failed:
 		quit(1)

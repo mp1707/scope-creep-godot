@@ -71,6 +71,8 @@ Zustaendig fuer:
 
 Presentation sendet Spielerabsichten als Commands an Application/Simulation, z. B. `move_card_to_stack`, `split_stack`, `start_next_sprint`, `pay_employee`.
 
+Wiederverwendbare Presentation-Bausteine sollen als echte Scenes gepflegt werden. Scripts binden Simulation-State, Content-Definitionen, Theme-Werte und Input/Animation, erzeugen aber normale sichtbare UI-Bestandteile nicht still zur Laufzeit nach. `CardView.tscn` ist die Layout-Wahrheit fuer Karten; `CardTooltipView.tscn` ist die Layout-Wahrheit fuer Karten-Tooltips. Dadurch bleiben Layout, Abstaende und Node-Komposition im Godot Editor feinjustierbar, ohne die datengetriebene Simulation aufzugeben.
+
 Permanente Shop-Karten werden nicht auf dem Board gerendert, sondern im `UiLayer/ShopDock`. Editor-seitig platzierte `ShopDockSlot`-Marker bestimmen die sichtbare Dock-Position; falls kein Marker existiert, darf `ShopDockView` auf ein automatisches Layout zurueckfallen. Die Simulation bleibt dafuer unveraendert datengetrieben: Shop-Slots sind weiterhin normale CardInstances mit `shop`-Tag und eigenem Stack.
 
 ### Application

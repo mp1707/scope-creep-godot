@@ -2,12 +2,15 @@
 
 [ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_card"]
 [ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+[ext_resource type="Texture2D" uid="uid://c87jo4kl50kse" path="res://assets/icons/handdrawn/characters/steve.png" id="3_icon"]
 
 [sub_resource type="Resource" id="Resource_visual"]
 script = ExtResource("2_visual")
 background_color = Color(0.64, 0.94, 1.00, 1)
 accent_color = Color(0.22, 0.66, 0.88, 1)
 text_color = Color(0.075, 0.095, 0.12, 1)
+icon_texture = ExtResource("3_icon")
+icon_size = Vector2(117, 117)
 marker_text = "DEV?"
 
 [resource]

@@ -2,12 +2,14 @@
 
 [ext_resource type="Script" uid="uid://cindpeikx18t1" path="res://scripts/data/card_definition.gd" id="1_card"]
 [ext_resource type="Script" uid="uid://doiop67wth2ac" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/heart.png" id="3_icon"]
 
 [sub_resource type="Resource" id="Resource_visual"]
 script = ExtResource("2_visual")
 background_color = Color(0.82, 0.80, 1.00, 1)
 accent_color = Color(0.54, 0.46, 0.94, 1)
 text_color = Color(0.075, 0.095, 0.12, 1)
+icon_texture = ExtResource("3_icon")
 marker_text = "ZEN"
 
 [resource]

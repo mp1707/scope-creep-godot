@@ -7,17 +7,7 @@ const CARD_HAIRLINE_WIDTH: int = 1
 const CARD_HAIRLINE_COLOR: Color = Color(0.055, 0.052, 0.047, 0.22)
 const HEADER_HEIGHT: float = 24.0
 const CARD_TEXT_COLOR: Color = Color(0.075, 0.095, 0.12, 1.0)
-const TOOLTIP_BACKGROUND_COLOR: Color = Color(0.18, 0.22, 0.24, 0.98)
-const TOOLTIP_MAX_WIDTH: float = 286.0
-const TOOLTIP_MIN_WIDTH: float = 150.0
-const TOOLTIP_FONT_SIZE: int = 18
-const TOOLTIP_TIME_FONT_SIZE: int = 18
-const TOOLTIP_CONTENT_MARGIN: int = 12
-const TOOLTIP_SHADOW_OFFSET: Vector2 = Vector2(3.0, 4.0)
-const TOOLTIP_SHADOW_OPACITY: float = 0.25
 const TOOLTIP_SHOW_DELAY_SECONDS: float = 0.35
-const TOOLTIP_CURSOR_OFFSET: Vector2 = Vector2(22.0, 24.0)
-const TOOLTIP_VIEWPORT_MARGIN: float = 12.0
 const TOOLTIP_LAYER: int = 1200
 const CARD_HOVER_Z_INDEX: int = 1000
 const CARD_DRAG_Z_INDEX: int = 2000
@@ -37,26 +27,28 @@ const DEFAULT_ICON_SCRIBBLE_PADDING: float = 24.0
 const ICON_MASK_SHADER_CODE: String = "shader_type canvas_item;\nuniform vec4 icon_color : source_color = vec4(0.06, 0.055, 0.05, 1.0);\nvoid fragment() {\n\tvec4 texture_color = texture(TEXTURE, UV);\n\tCOLOR = vec4(icon_color.rgb, texture_color.a * icon_color.a);\n}\n"
 const ProductLifecycleServiceScript: Script = preload("res://scripts/simulation/product_lifecycle_service.gd")
 const CardJuiceControllerScript: Script = preload("res://scripts/presentation/card_juice_controller.gd")
+const CARD_TOOLTIP_VIEW_SCENE: PackedScene = preload("res://scenes/presentation/CardTooltipView.tscn")
 
 static var _active_tooltip_owner: Control = null
 static var _shared_tooltip_layer: CanvasLayer = null
-static var _shared_tooltip_panel: PanelContainer = null
-static var _shared_tooltip_label: Label = null
-static var _shared_processing_tooltip_container: VBoxContainer = null
-static var _shared_processing_title_label: Label = null
-static var _shared_processing_duration_row: HBoxContainer = null
-static var _shared_processing_duration_label: Label = null
-static var _shared_processing_duration_value_label: Label = null
+static var _shared_tooltip_view: Control = null
 static var _shared_paper_texture: Texture2D = null
 static var _paper_texture_load_attempted: bool = false
 static var _shared_icon_scribble_texture: Texture2D = null
 static var _icon_scribble_texture_load_attempted: bool = false
 
+@export var visual_root_path: NodePath = NodePath("VisualRoot")
+@export var shadow_path: NodePath = NodePath("VisualRoot/CardShadow")
 @export var background_path: NodePath
+@export var header_band_path: NodePath = NodePath("VisualRoot/HeaderBand")
+@export var header_hairline_path: NodePath = NodePath("VisualRoot/HeaderHairline")
 @export var title_label_path: NodePath
+@export var icon_scribble_texture_rect_path: NodePath = NodePath("VisualRoot/IconScribbleTextureRect")
 @export var icon_texture_rect_path: NodePath
 @export var short_text_label_path: NodePath
 @export var marker_label_path: NodePath
+@export var drop_target_feedback_path: NodePath = NodePath("VisualRoot/DropTargetFeedback")
+@export var juice_controller_path: NodePath = NodePath("CardJuiceController")
 
 var card_id: String = ""
 var stack_id: String = ""
@@ -79,7 +71,6 @@ var _card_font: FontFile = null
 var _scribble_mask_material: ShaderMaterial = null
 var _icon_mask_material: ShaderMaterial = null
 var _product_lifecycle: RefCounted = ProductLifecycleServiceScript.new()
-var _layout_initialized: bool = false
 var _custom_tooltip_text: String = ""
 var _processing_tooltip_title: String = ""
 var _processing_tooltip_remaining_seconds: float = 0.0
@@ -136,6 +127,8 @@ func set_visual_theme(theme: Resource) -> void:
 		_apply_header_hairline_style()
 	if _drop_target_feedback != null:
 		_apply_drop_target_feedback_style()
+	if _active_tooltip_owner == self and _shared_tooltip_view != null and is_instance_valid(_shared_tooltip_view):
+		_shared_tooltip_view.set_visual_theme(visual_theme)
 
 func set_processing_tooltip(action_title: String, remaining_seconds: float) -> void:
 	_processing_tooltip_title = action_title.strip_edges()
@@ -260,124 +253,33 @@ func set_visual_hovered(hovered: bool, hover_z_index: int = CARD_HOVER_Z_INDEX, 
 	_stop_tooltip_hover()
 
 func _resolve_or_create_nodes() -> void:
-	_ensure_visual_root()
+	if _visual_root == null:
+		_visual_root = _resolve_control(visual_root_path, "VisualRoot")
+	if _shadow == null:
+		_shadow = _resolve_control(shadow_path, "CardShadow")
 	if _background == null:
 		_background = _resolve_control(background_path, "Background")
 	if _header_band == null:
-		_header_band = _resolve_control(NodePath("HeaderBand"), "HeaderBand")
+		_header_band = _resolve_control(header_band_path, "HeaderBand")
 	if _header_hairline == null:
-		_header_hairline = _resolve_control(NodePath("HeaderHairline"), "HeaderHairline")
-	if _header_hairline == null:
-		_header_hairline = _resolve_control(NodePath("HairlineFrame"), "HairlineFrame")
+		_header_hairline = _resolve_control(header_hairline_path, "HeaderHairline")
 	if _title_label == null:
 		_title_label = _resolve_control(title_label_path, "TitleLabel") as Label
 	if _icon_scribble_texture_rect == null:
-		_icon_scribble_texture_rect = _resolve_control(NodePath("IconScribbleTextureRect"), "IconScribbleTextureRect") as TextureRect
+		_icon_scribble_texture_rect = _resolve_control(icon_scribble_texture_rect_path, "IconScribbleTextureRect") as TextureRect
 	if _icon_texture_rect == null:
 		_icon_texture_rect = _resolve_control(icon_texture_rect_path, "IconTextureRect") as TextureRect
-	if _icon_texture_rect == null:
-		_icon_texture_rect = _resolve_control(NodePath("IconTextureRect"), "IconTextureRect") as TextureRect
 	if _short_text_label == null:
 		_short_text_label = _resolve_control(short_text_label_path, "ShortTextLabel") as Label
 	if _marker_label == null:
 		_marker_label = _resolve_control(marker_label_path, "MarkerLabel") as Label
-
-	if _shadow == null:
-		_shadow = _resolve_control(NodePath("CardShadow"), "CardShadow")
-	if _shadow == null:
-		_shadow = _resolve_control(NodePath("DragShadow"), "DragShadow")
-	if _shadow == null:
-		_shadow = Panel.new()
-		_shadow.name = "CardShadow"
-		_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_shadow.visible = false
-		_visual_root.add_child(_shadow)
-
-	if _background == null:
-		_background = Panel.new()
-		_background.name = "Background"
-		_background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_visual_root.add_child(_background)
-
-	if _header_band == null:
-		_header_band = Panel.new()
-		_header_band.name = "HeaderBand"
-		_header_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_visual_root.add_child(_header_band)
-
-	if _header_hairline == null:
-		_header_hairline = Panel.new()
-		_header_hairline.name = "HeaderHairline"
-		_header_hairline.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_visual_root.add_child(_header_hairline)
-
+	if _drop_target_feedback == null:
+		_drop_target_feedback = _resolve_control(drop_target_feedback_path, "DropTargetFeedback") as Panel
+	_report_missing_required_nodes()
 	if _card_font == null:
 		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
-	if _title_label == null:
-		_title_label = _create_label("TitleLabel", Vector2(9.0, 3.0), Vector2(126.0, 25.0), HORIZONTAL_ALIGNMENT_CENTER)
-	if _marker_label == null:
-		_marker_label = _create_label("MarkerLabel", Vector2(98.0, 42.0), Vector2(34.0, 24.0), HORIZONTAL_ALIGNMENT_CENTER)
-	if _icon_scribble_texture_rect == null:
-		_icon_scribble_texture_rect = TextureRect.new()
-		_icon_scribble_texture_rect.name = "IconScribbleTextureRect"
-		_icon_scribble_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_icon_scribble_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		_icon_scribble_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		_icon_scribble_texture_rect.clip_contents = true
-		_visual_root.add_child(_icon_scribble_texture_rect)
-	if _icon_texture_rect == null:
-		_icon_texture_rect = TextureRect.new()
-		_icon_texture_rect.name = "IconTextureRect"
-		_icon_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_icon_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		_icon_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		_icon_texture_rect.clip_contents = true
-		_visual_root.add_child(_icon_texture_rect)
-	if _short_text_label == null:
-		_short_text_label = _create_label("ShortTextLabel", Vector2(12.0, 74.0), Vector2(120.0, 62.0), HORIZONTAL_ALIGNMENT_LEFT)
-		_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_move_visual_child_to_root(_shadow)
-	_move_visual_child_to_root(_background)
-	_move_visual_child_to_root(_header_band)
-	_move_visual_child_to_root(_icon_scribble_texture_rect)
-	_move_visual_child_to_root(_icon_texture_rect)
-	_move_visual_child_to_root(_title_label)
-	_move_visual_child_to_root(_marker_label)
-	_move_visual_child_to_root(_short_text_label)
-	_move_visual_child_to_root(_header_hairline)
-	_ensure_drop_target_feedback()
-	_visual_root.move_child(_shadow, 0)
-	_visual_root.move_child(_background, 1)
-	_visual_root.move_child(_header_band, 2)
-	_visual_root.move_child(_icon_scribble_texture_rect, 3)
-	_visual_root.move_child(_icon_texture_rect, 4)
-	_visual_root.move_child(_title_label, 5)
-	_visual_root.move_child(_marker_label, 6)
-	_visual_root.move_child(_short_text_label, 7)
-	_visual_root.move_child(_header_hairline, 8)
-	_visual_root.move_child(_drop_target_feedback, 9)
-	if not _layout_initialized:
-		_apply_default_layout()
-		_layout_initialized = true
+	_apply_scene_node_defaults()
 	_ensure_juice_controller()
-
-func _ensure_visual_root() -> void:
-	if _visual_root != null and is_instance_valid(_visual_root):
-		return
-	_visual_root = get_node_or_null("VisualRoot") as Control
-	if _visual_root == null:
-		_visual_root = Control.new()
-		_visual_root.name = "VisualRoot"
-		_visual_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		add_child(_visual_root)
-		move_child(_visual_root, 0)
-	_set_top_left_layout(_visual_root)
-	_visual_root.position = Vector2.ZERO
-	_visual_root.size = DEFAULT_CARD_SIZE
-	_visual_root.custom_minimum_size = DEFAULT_CARD_SIZE
-	_visual_root.pivot_offset = DEFAULT_CARD_SIZE * 0.5
-	_visual_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 func _resolve_control(path: NodePath, fallback_name: String) -> Control:
 	var path_text: String = String(path)
@@ -396,214 +298,75 @@ func _resolve_control(path: NodePath, fallback_name: String) -> Control:
 		return _visual_root.get_node_or_null(fallback_name) as Control
 	return null
 
-func _move_visual_child_to_root(child: Control) -> void:
-	if child == null or child == _visual_root or child.get_parent() == _visual_root:
-		return
-	child.reparent(_visual_root, false)
+func _report_missing_required_nodes() -> void:
+	var required_nodes: Dictionary = {
+		"VisualRoot": _visual_root,
+		"CardShadow": _shadow,
+		"Background": _background,
+		"HeaderBand": _header_band,
+		"HeaderHairline": _header_hairline,
+		"TitleLabel": _title_label,
+		"IconScribbleTextureRect": _icon_scribble_texture_rect,
+		"IconTextureRect": _icon_texture_rect,
+		"ShortTextLabel": _short_text_label,
+		"MarkerLabel": _marker_label,
+		"DropTargetFeedback": _drop_target_feedback,
+	}
+	for node_name: String in required_nodes.keys():
+		if required_nodes[node_name] == null:
+			push_error("CardView scene is missing required node '%s'." % node_name)
 
-func _ensure_drop_target_feedback() -> void:
-	if _drop_target_feedback == null:
-		_drop_target_feedback = _resolve_control(NodePath("DropTargetFeedback"), "DropTargetFeedback") as Panel
-	if _drop_target_feedback == null:
-		_drop_target_feedback = Panel.new()
-		_drop_target_feedback.name = "DropTargetFeedback"
+func _apply_scene_node_defaults() -> void:
+	_set_top_left_layout(self)
+	custom_minimum_size = DEFAULT_CARD_SIZE
+	size = DEFAULT_CARD_SIZE
+	mouse_filter = Control.MOUSE_FILTER_PASS
+	if _visual_root != null:
+		_visual_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_visual_root.pivot_offset = DEFAULT_CARD_SIZE * 0.5
+	if _shadow != null:
+		_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_apply_shadow_style()
+	if _background != null:
+		_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if _header_band != null:
+		_header_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if _header_hairline != null:
+		_header_hairline.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_apply_header_hairline_style()
+	if _icon_scribble_texture_rect != null:
+		_icon_scribble_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if _icon_texture_rect != null:
+		_icon_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if _title_label != null:
+		_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if _card_font != null:
+			_title_label.add_theme_font_override("font", _card_font)
+		_title_label.add_theme_font_size_override("font_size", TITLE_MAX_FONT_SIZE)
+	if _marker_label != null:
+		_marker_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_marker_label.add_theme_font_size_override("font_size", 18)
+		_marker_label.add_theme_color_override("font_color", _get_status_badge_text_color())
+	if _short_text_label != null:
+		_short_text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if _card_font != null:
+			_short_text_label.add_theme_font_override("font", _card_font)
+		_short_text_label.add_theme_font_size_override("font_size", 18)
+	if _drop_target_feedback != null:
 		_drop_target_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_drop_target_feedback.visible = false
-		_visual_root.add_child(_drop_target_feedback)
-	_set_top_left_layout(_drop_target_feedback)
-	_drop_target_feedback.position = Vector2.ZERO
-	_drop_target_feedback.size = DEFAULT_CARD_SIZE
-	_drop_target_feedback.pivot_offset = DEFAULT_CARD_SIZE * 0.5
-	_drop_target_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_apply_drop_target_feedback_style()
+		_apply_drop_target_feedback_style()
 
 func _ensure_juice_controller() -> void:
 	if _juice == null:
-		_juice = get_node_or_null("CardJuiceController")
+		_juice = get_node_or_null(juice_controller_path)
 	if _juice == null:
 		_juice = CardJuiceControllerScript.new() as Node
 		_juice.name = "CardJuiceController"
 		add_child(_juice)
+	if _visual_root == null or _shadow == null or _drop_target_feedback == null:
+		return
 	_juice.setup(self, _visual_root, _shadow, _drop_target_feedback)
 	_juice.set_idle_rotation(_get_idle_rotation_for_card_id(card_id))
-
-func _create_label(node_name: String, label_position: Vector2, label_size: Vector2, alignment: HorizontalAlignment) -> Label:
-	var label: Label = Label.new()
-	label.name = node_name
-	label.position = label_position
-	label.size = label_size
-	label.horizontal_alignment = alignment
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.clip_text = true
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_visual_root.add_child(label)
-	return label
-
-func _apply_default_layout() -> void:
-	_set_top_left_layout(self)
-	mouse_filter = Control.MOUSE_FILTER_PASS
-	custom_minimum_size = DEFAULT_CARD_SIZE
-	size = DEFAULT_CARD_SIZE
-	_set_top_left_layout(_visual_root)
-	_visual_root.position = Vector2.ZERO
-	_visual_root.size = DEFAULT_CARD_SIZE
-	_visual_root.pivot_offset = DEFAULT_CARD_SIZE * 0.5
-	_set_top_left_layout(_shadow)
-	_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_shadow.position = Vector2(3.0, 4.0)
-	_shadow.size = DEFAULT_CARD_SIZE
-	_shadow.pivot_offset = Vector2.ZERO
-	_apply_shadow_style()
-	_set_top_left_layout(_background)
-	_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_background.position = Vector2.ZERO
-	_background.size = DEFAULT_CARD_SIZE
-	_set_top_left_layout(_header_band)
-	_header_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_header_band.position = Vector2(CARD_EDGE_INSET, CARD_EDGE_INSET)
-	_header_band.size = Vector2(DEFAULT_CARD_SIZE.x - CARD_EDGE_INSET * 2.0, HEADER_HEIGHT)
-	_set_top_left_layout(_header_hairline)
-	_header_hairline.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_header_hairline.position = Vector2(0.0, HEADER_HEIGHT)
-	_header_hairline.size = Vector2(DEFAULT_CARD_SIZE.x, float(CARD_HAIRLINE_WIDTH))
-	_apply_header_hairline_style()
-	_set_top_left_layout(_title_label)
-	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_title_label.position = Vector2(10.0, CARD_EDGE_INSET)
-	_title_label.size = Vector2(124.0, HEADER_HEIGHT)
-	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_title_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	_title_label.clip_text = true
-	if _card_font != null:
-		_title_label.add_theme_font_override("font", _card_font)
-	_title_label.add_theme_font_size_override("font_size", TITLE_MAX_FONT_SIZE)
-	_set_top_left_layout(_icon_scribble_texture_rect)
-	_icon_scribble_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_icon_scribble_texture_rect.custom_minimum_size = Vector2.ZERO
-	_icon_scribble_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_icon_scribble_texture_rect.position = DEFAULT_ICON_CENTER - Vector2(52.0, 52.0)
-	_icon_scribble_texture_rect.size = Vector2(104.0, 104.0)
-	_icon_scribble_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_icon_scribble_texture_rect.clip_contents = true
-	_icon_scribble_texture_rect.visible = false
-	_set_top_left_layout(_icon_texture_rect)
-	_icon_texture_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_icon_texture_rect.custom_minimum_size = Vector2.ZERO
-	_icon_texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_icon_texture_rect.position = DEFAULT_ICON_CENTER - Vector2(39.0, 39.0)
-	_icon_texture_rect.size = Vector2(78.0, 78.0)
-	_icon_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_icon_texture_rect.clip_contents = true
-	_set_top_left_layout(_marker_label)
-	_marker_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_marker_label.position = Vector2(98.0, 42.0)
-	_marker_label.size = Vector2(34.0, 24.0)
-	_marker_label.visible = false
-	_marker_label.add_theme_font_size_override("font_size", 18)
-	_marker_label.add_theme_color_override("font_color", _get_status_badge_text_color())
-	_set_top_left_layout(_short_text_label)
-	_short_text_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_short_text_label.position = Vector2(12.0, 74.0)
-	_short_text_label.size = Vector2(120.0, 62.0)
-	_short_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_short_text_label.visible = false
-	if _card_font != null:
-		_short_text_label.add_theme_font_override("font", _card_font)
-	_short_text_label.add_theme_font_size_override("font_size", 18)
-
-func _make_custom_tooltip(for_text: String) -> Object:
-	if for_text.strip_edges().is_empty():
-		return null
-	var panel: PanelContainer = PanelContainer.new()
-	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_apply_tooltip_panel_style(panel)
-
-	var label: Label = _create_tooltip_label(for_text)
-	panel.add_child(label)
-	return panel
-
-func _apply_tooltip_panel_style(panel: PanelContainer) -> void:
-	var style_box: StyleBoxFlat = StyleBoxFlat.new()
-	style_box.bg_color = _get_tooltip_background_color()
-	var shadow_color: Color = _get_card_shadow_color()
-	shadow_color.a *= TOOLTIP_SHADOW_OPACITY
-	style_box.shadow_color = shadow_color
-	style_box.shadow_offset = TOOLTIP_SHADOW_OFFSET
-	style_box.shadow_size = 0
-	style_box.content_margin_bottom = TOOLTIP_CONTENT_MARGIN
-	style_box.content_margin_left = TOOLTIP_CONTENT_MARGIN
-	style_box.content_margin_right = TOOLTIP_CONTENT_MARGIN
-	style_box.content_margin_top = TOOLTIP_CONTENT_MARGIN
-	panel.add_theme_stylebox_override("panel", style_box)
-
-func _create_tooltip_label(for_text: String) -> Label:
-	var label: Label = Label.new()
-	label.text = for_text
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.clip_text = false
-	label.add_theme_color_override("font_color", _get_tooltip_text_color())
-	if _card_font == null:
-		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
-	if _card_font != null:
-		label.add_theme_font_override("font", _card_font)
-	label.add_theme_font_size_override("font_size", TOOLTIP_FONT_SIZE)
-	label.custom_minimum_size.x = _get_tooltip_text_width(for_text, label.get_theme_font("font"))
-	return label
-
-func _create_processing_tooltip_container() -> VBoxContainer:
-	var container: VBoxContainer = VBoxContainer.new()
-	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.add_theme_constant_override("separation", 4)
-
-	_shared_processing_title_label = _create_tooltip_label("")
-	container.add_child(_shared_processing_title_label)
-
-	_shared_processing_duration_row = HBoxContainer.new()
-	_shared_processing_duration_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_shared_processing_duration_row.add_theme_constant_override("separation", 12)
-
-	_shared_processing_duration_label = _create_processing_tooltip_label("Restdauer:")
-	_shared_processing_duration_row.add_child(_shared_processing_duration_label)
-
-	var spacer: Control = Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_shared_processing_duration_row.add_child(spacer)
-
-	_shared_processing_duration_value_label = _create_processing_tooltip_label("")
-	_shared_processing_duration_value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_shared_processing_duration_row.add_child(_shared_processing_duration_value_label)
-
-	container.add_child(_shared_processing_duration_row)
-	return container
-
-func _create_processing_tooltip_label(for_text: String) -> Label:
-	var label: Label = Label.new()
-	label.text = for_text
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	label.clip_text = false
-	label.add_theme_color_override("font_color", _get_tooltip_text_color())
-	if _card_font == null:
-		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
-	if _card_font != null:
-		label.add_theme_font_override("font", _card_font)
-	label.add_theme_font_size_override("font_size", TOOLTIP_TIME_FONT_SIZE)
-	return label
-
-func _get_tooltip_text_width(text: String, font: Font) -> float:
-	if font == null:
-		return TOOLTIP_MAX_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2)
-	var widest_line: float = 0.0
-	for line: String in text.split("\n"):
-		widest_line = maxf(widest_line, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1.0, TOOLTIP_FONT_SIZE).x)
-	return clampf(
-		widest_line,
-		TOOLTIP_MIN_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2),
-		TOOLTIP_MAX_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2)
-	)
 
 func _set_top_left_layout(control: Control) -> void:
 	control.anchor_left = 0.0
@@ -926,71 +689,17 @@ func _stop_tooltip_hover() -> void:
 
 func _show_custom_tooltip() -> void:
 	_ensure_shared_tooltip()
-	if _shared_tooltip_panel == null or _shared_tooltip_label == null:
+	if _shared_tooltip_view == null:
 		return
 	if _active_tooltip_owner != null and _active_tooltip_owner != self and is_instance_valid(_active_tooltip_owner):
 		_active_tooltip_owner.call("_mark_custom_tooltip_hidden")
 	_active_tooltip_owner = self
 	_is_tooltip_shown = true
 	if _uses_processing_tooltip:
-		_apply_processing_tooltip_content()
+		_shared_tooltip_view.call("show_processing", _processing_tooltip_title, _processing_tooltip_remaining_seconds)
 	else:
-		_apply_plain_tooltip_content()
-	_shared_tooltip_panel.visible = true
-	_shared_tooltip_panel.reset_size()
+		_shared_tooltip_view.call("show_plain", _custom_tooltip_text)
 	_position_shared_tooltip()
-
-func _apply_plain_tooltip_content() -> void:
-	if _shared_tooltip_label == null:
-		return
-	_shared_tooltip_label.visible = true
-	if _shared_processing_tooltip_container != null:
-		_shared_processing_tooltip_container.visible = false
-	_shared_tooltip_label.text = _custom_tooltip_text
-	_shared_tooltip_label.custom_minimum_size.x = _get_tooltip_text_width(
-		_custom_tooltip_text,
-		_shared_tooltip_label.get_theme_font("font")
-	)
-
-func _apply_processing_tooltip_content() -> void:
-	if _shared_processing_tooltip_container == null:
-		return
-	if _shared_tooltip_label != null:
-		_shared_tooltip_label.visible = false
-	_shared_processing_tooltip_container.visible = true
-	var tooltip_title: String = _get_processing_tooltip_title_text()
-	var remaining_text: String = "%d Sek" % ceili(_processing_tooltip_remaining_seconds)
-	var content_width: float = _get_processing_tooltip_width(tooltip_title, remaining_text)
-
-	_shared_processing_title_label.text = tooltip_title
-	_shared_processing_title_label.custom_minimum_size.x = content_width
-	_shared_processing_duration_row.custom_minimum_size.x = content_width
-	_shared_processing_duration_label.text = "Restdauer:"
-	_shared_processing_duration_value_label.text = remaining_text
-
-func _get_processing_tooltip_title_text() -> String:
-	if _processing_tooltip_title.ends_with("..."):
-		return _processing_tooltip_title
-	return "%s..." % _processing_tooltip_title
-
-func _get_processing_tooltip_width(title_text: String, remaining_text: String) -> float:
-	var title_width: float = TOOLTIP_MIN_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2)
-	var title_font: Font = _shared_processing_title_label.get_theme_font("font") if _shared_processing_title_label != null else null
-	if title_font != null:
-		title_width = title_font.get_string_size(title_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, TOOLTIP_FONT_SIZE).x
-
-	var duration_width: float = TOOLTIP_MIN_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2)
-	var time_font: Font = _shared_processing_duration_label.get_theme_font("font") if _shared_processing_duration_label != null else null
-	if time_font != null:
-		duration_width = time_font.get_string_size("Restdauer:", HORIZONTAL_ALIGNMENT_LEFT, -1.0, TOOLTIP_TIME_FONT_SIZE).x
-		duration_width += 32.0
-		duration_width += time_font.get_string_size(remaining_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, TOOLTIP_TIME_FONT_SIZE).x
-
-	return clampf(
-		maxf(title_width, duration_width),
-		TOOLTIP_MIN_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2),
-		TOOLTIP_MAX_WIDTH - float(TOOLTIP_CONTENT_MARGIN * 2)
-	)
 
 func _hide_custom_tooltip() -> void:
 	if _active_tooltip_owner != self:
@@ -998,8 +707,8 @@ func _hide_custom_tooltip() -> void:
 		return
 	_is_tooltip_shown = false
 	_active_tooltip_owner = null
-	if _shared_tooltip_panel != null and is_instance_valid(_shared_tooltip_panel):
-		_shared_tooltip_panel.visible = false
+	if _shared_tooltip_view != null and is_instance_valid(_shared_tooltip_view):
+		_shared_tooltip_view.call("hide_tooltip")
 
 func _mark_custom_tooltip_hidden() -> void:
 	_is_tooltip_shown = false
@@ -1010,48 +719,23 @@ func _ensure_shared_tooltip() -> void:
 		_shared_tooltip_layer.name = "CardTooltipLayer"
 		_shared_tooltip_layer.layer = TOOLTIP_LAYER
 		get_tree().root.add_child(_shared_tooltip_layer)
-	if _shared_tooltip_panel != null and is_instance_valid(_shared_tooltip_panel):
+	if _shared_tooltip_view != null and is_instance_valid(_shared_tooltip_view):
+		_shared_tooltip_view.call("set_visual_theme", visual_theme)
 		return
 
-	_shared_tooltip_panel = PanelContainer.new()
-	_shared_tooltip_panel.name = "CardTooltip"
-	_shared_tooltip_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_shared_tooltip_panel.visible = false
-	_apply_tooltip_panel_style(_shared_tooltip_panel)
-	_shared_tooltip_label = _create_tooltip_label("")
-	_shared_tooltip_panel.add_child(_shared_tooltip_label)
-	_shared_processing_tooltip_container = _create_processing_tooltip_container()
-	_shared_processing_tooltip_container.visible = false
-	_shared_tooltip_panel.add_child(_shared_processing_tooltip_container)
-	_shared_tooltip_layer.add_child(_shared_tooltip_panel)
+	_shared_tooltip_view = CARD_TOOLTIP_VIEW_SCENE.instantiate() as Control
+	_shared_tooltip_view.name = "CardTooltip"
+	_shared_tooltip_view.call("set_visual_theme", visual_theme)
+	_shared_tooltip_layer.add_child(_shared_tooltip_view)
 
 func _position_shared_tooltip() -> void:
-	if _shared_tooltip_panel == null or not is_instance_valid(_shared_tooltip_panel):
+	if _shared_tooltip_view == null or not is_instance_valid(_shared_tooltip_view):
 		return
 	var viewport: Viewport = get_viewport()
 	if viewport == null:
 		return
-	var viewport_size: Vector2 = viewport.get_visible_rect().size
 	var mouse_position: Vector2 = viewport.get_mouse_position()
-	var tooltip_size: Vector2 = _shared_tooltip_panel.get_combined_minimum_size()
-	var target_position: Vector2 = mouse_position + TOOLTIP_CURSOR_OFFSET
-
-	if target_position.x + tooltip_size.x > viewport_size.x - TOOLTIP_VIEWPORT_MARGIN:
-		target_position.x = mouse_position.x - TOOLTIP_CURSOR_OFFSET.x - tooltip_size.x
-	if target_position.y + tooltip_size.y > viewport_size.y - TOOLTIP_VIEWPORT_MARGIN:
-		target_position.y = mouse_position.y - TOOLTIP_CURSOR_OFFSET.y - tooltip_size.y
-
-	target_position.x = clampf(
-		target_position.x,
-		TOOLTIP_VIEWPORT_MARGIN,
-		maxf(TOOLTIP_VIEWPORT_MARGIN, viewport_size.x - tooltip_size.x - TOOLTIP_VIEWPORT_MARGIN)
-	)
-	target_position.y = clampf(
-		target_position.y,
-		TOOLTIP_VIEWPORT_MARGIN,
-		maxf(TOOLTIP_VIEWPORT_MARGIN, viewport_size.y - tooltip_size.y - TOOLTIP_VIEWPORT_MARGIN)
-	)
-	_shared_tooltip_panel.position = target_position
+	_shared_tooltip_view.call("position_near_pointer", viewport, mouse_position)
 
 func _update_runtime_tint(card: CardInstance) -> void:
 	if card.state == null:
@@ -1112,12 +796,6 @@ func _get_card_shadow_color() -> Color:
 
 func _get_card_drop_target_fill_color() -> Color:
 	return _get_theme_color("card_drop_target_fill_color", DROP_TARGET_FILL_COLOR)
-
-func _get_tooltip_background_color() -> Color:
-	return _get_theme_color("tooltip_background_color", TOOLTIP_BACKGROUND_COLOR)
-
-func _get_tooltip_text_color() -> Color:
-	return _get_theme_color("tooltip_text_color", CARD_TEXT_COLOR)
 
 func _get_status_badge_text_color() -> Color:
 	return _get_theme_color("status_badge_text_color", STATUS_BADGE_TEXT_COLOR)
