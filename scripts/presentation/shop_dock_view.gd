@@ -7,7 +7,6 @@ const SHOP_ORDER_VALUE: String = "shop_dock_order"
 const ShopDockSlotScript: Script = preload("res://scripts/presentation/shop_dock_slot.gd")
 const ShopInteractionServiceScript: Script = preload("res://scripts/simulation/shop_interaction_service.gd")
 const INTERACTION_HIGHLIGHT_VIEW_SCENE: PackedScene = preload("res://scenes/presentation/InteractionHighlightView.tscn")
-const INTERACTION_HIGHLIGHT_MARGIN: float = 11.0
 const INTERACTION_HIGHLIGHT_Z_OFFSET: int = 6
 
 @export var card_view_scene: PackedScene
@@ -338,10 +337,18 @@ func _update_interaction_highlight(stack_id: String, highlight: Control) -> void
 	if highlight.get_parent() != target_parent:
 		target_parent.add_child(highlight)
 		highlight.call("play_show")
-	var target_size: Vector2 = card_size + Vector2(INTERACTION_HIGHLIGHT_MARGIN * 2.0, INTERACTION_HIGHLIGHT_MARGIN * 2.0)
-	highlight.position = view.position - Vector2(INTERACTION_HIGHLIGHT_MARGIN, INTERACTION_HIGHLIGHT_MARGIN)
+	highlight.position = view.position
 	highlight.z_index = view.z_index + INTERACTION_HIGHLIGHT_Z_OFFSET
-	highlight.call("configure", target_size, visual_theme)
+	highlight.call("configure", card_size, visual_theme, _get_card_visual(card_id))
+
+func _get_card_visual(card_id: String) -> CardVisualDefinition:
+	if state == null or content == null:
+		return null
+	var card: CardInstance = state.get_card(card_id)
+	if card == null:
+		return null
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition.visual if definition != null else null
 
 func _get_editor_slots() -> Array[Control]:
 	var slots: Array[Control] = []

@@ -12,15 +12,13 @@ extends Resource
 @export var card_disabled_modulate: Color = Color(0.68, 0.68, 0.68, 1.0)
 @export var card_paid_modulate: Color = Color(0.68, 0.86, 0.68, 1.0)
 @export var card_payment_target_modulate: Color = Color(1.0, 0.96, 0.72, 1.0)
-@export_range(1.0, 64.0, 0.5, "or_greater") var interaction_preview_dash_length: float = 10.0
-@export_range(1.0, 64.0, 0.5, "or_greater") var interaction_preview_dash_gap: float = 7.0
-@export_range(0.5, 12.0, 0.1, "or_greater") var interaction_preview_line_width: float = 2.0
-@export_range(0.0, 1.0, 0.01) var interaction_preview_alpha: float = 1.0
-@export_range(0.0, 1.0, 0.01) var interaction_preview_pulse_alpha: float = 0.0
-@export_range(0.0, 6.0, 0.1, "or_greater") var interaction_preview_pulse_width: float = 0.0
-@export_range(0.0, 256.0, 1.0, "or_greater") var interaction_preview_dash_speed: float = 23.4
-@export_range(0.0, 16.0, 0.1, "or_greater") var interaction_preview_pulse_speed: float = 2.4
-@export_range(0.0, 32.0, 0.5, "or_greater") var interaction_preview_line_inset: float = 8.0
+@export var interaction_preview_arrow_texture: Texture2D
+@export var interaction_preview_arrow_size: Vector2 = Vector2(56.0, 56.0)
+@export var interaction_preview_arrow_offset: Vector2 = Vector2(-20.0, -38.0)
+@export var stack_drop_corner_texture: Texture2D
+@export_range(8.0, 96.0, 1.0, "or_greater") var stack_drop_corner_size: float = 42.0
+@export_range(-32.0, 32.0, 1.0) var stack_drop_corner_margin: float = 0.0
+@export_range(0.0, 1.0, 0.01) var stack_drop_corner_alpha: float = 0.88
 
 @export var tooltip_background_color: Color = Color(0.18, 0.22, 0.24, 0.98)
 @export var tooltip_text_color: Color = Color(0.98, 0.96, 0.88, 1.0)
@@ -91,6 +89,14 @@ func get_card_icon_color(visual: CardVisualDefinition) -> Color:
 
 func get_card_scribble_color(visual: CardVisualDefinition) -> Color:
 	return _derive_card_scribble_color(get_card_background_color(visual), get_card_accent_color(visual))
+
+func get_interaction_preview_color(visual: CardVisualDefinition) -> Color:
+	return get_card_text_color(visual)
+
+func get_stack_drop_corner_color(visual: CardVisualDefinition) -> Color:
+	var derived: Color = get_card_accent_color(visual).lightened(0.12)
+	derived.a = stack_drop_corner_alpha
+	return derived
 
 func _get_visual_role(visual: CardVisualDefinition) -> Resource:
 	if visual == null or not visual.use_visual_role:

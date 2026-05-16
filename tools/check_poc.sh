@@ -12,6 +12,7 @@ checks=(
 	"res://tests/test_tooltip_visual_style.gd"
 	"res://tests/test_card_title_fit.gd"
 	"res://tests/test_interaction_highlight_view.gd"
+	"res://tests/test_stack_drop_highlight_view.gd"
 )
 
 for check_script in "${checks[@]}"; do

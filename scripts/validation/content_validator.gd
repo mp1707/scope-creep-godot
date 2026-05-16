@@ -330,6 +330,10 @@ func _validate_visual_theme(visual_theme: Resource) -> void:
 		_errors.append("%s: Visual theme '%s' needs card_paper_texture." % [visual_theme.resource_path, visual_theme_id])
 	if visual_theme.get("card_icon_scribble_texture") == null:
 		_errors.append("%s: Visual theme '%s' needs card_icon_scribble_texture." % [visual_theme.resource_path, visual_theme_id])
+	if visual_theme.get("interaction_preview_arrow_texture") == null:
+		_errors.append("%s: Visual theme '%s' needs interaction_preview_arrow_texture." % [visual_theme.resource_path, visual_theme_id])
+	if visual_theme.get("stack_drop_corner_texture") == null:
+		_errors.append("%s: Visual theme '%s' needs stack_drop_corner_texture." % [visual_theme.resource_path, visual_theme_id])
 	var board_background_color: Color = visual_theme.get("board_background_color") as Color
 	var board_dot_color: Color = visual_theme.get("board_dot_color") as Color
 	var board_dot_spacing: float = visual_theme.get("board_dot_spacing") as float
