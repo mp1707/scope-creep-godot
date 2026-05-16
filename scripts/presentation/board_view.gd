@@ -360,27 +360,9 @@ func _update_interaction_highlight(stack_id: String, highlight: Control) -> void
 	highlight.z_index = _get_stack_base_z(stack.stack_id) + stack.card_ids.size() + INTERACTION_HIGHLIGHT_Z_OFFSET
 	highlight.call(
 		"configure",
-		_get_interaction_highlight_color(stack),
 		rect.size + Vector2(INTERACTION_HIGHLIGHT_MARGIN * 2.0, INTERACTION_HIGHLIGHT_MARGIN * 2.0),
 		visual_theme
 	)
-
-func _get_interaction_highlight_color(stack: StackState) -> Color:
-	var card_id: String = _get_stack_top_rendered_card_id(stack.stack_id)
-	if card_id.is_empty():
-		return Color.WHITE
-	var card: CardInstance = state.get_card(card_id)
-	if card == null or content == null:
-		return Color.WHITE
-	var definition: CardDefinition = content.get_card_definition(card.definition_id)
-	if definition == null:
-		return Color.WHITE
-	var visual: CardVisualDefinition = definition.visual
-	if visual == null:
-		visual = CardVisualDefinition.new()
-	if visual_theme != null:
-		return visual_theme.call("get_card_background_color", visual) as Color
-	return visual.background_color
 
 func _get_stack_top_rendered_card_id(stack_id: String) -> String:
 	if state == null or not state.stacks.has(stack_id):

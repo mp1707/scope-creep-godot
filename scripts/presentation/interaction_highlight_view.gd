@@ -3,14 +3,14 @@ extends Control
 
 const DEFAULT_DASH_LENGTH: float = 10.0
 const DEFAULT_DASH_GAP: float = 7.0
-const DEFAULT_LINE_WIDTH: float = 2.5
-const DEFAULT_ALPHA: float = 0.86
-const DEFAULT_PULSE_ALPHA: float = 0.12
-const DEFAULT_PULSE_WIDTH: float = 0.7
+const DEFAULT_LINE_WIDTH: float = 2.0
+const DEFAULT_ALPHA: float = 1.0
+const DEFAULT_PULSE_ALPHA: float = 0.0
+const DEFAULT_PULSE_WIDTH: float = 0.0
 const DEFAULT_DASH_SPEED: float = 23.4
 const DEFAULT_PULSE_SPEED: float = 2.4
 const DEFAULT_INSET: float = 8.0
-const DEFAULT_COLOR_DARKEN: float = 0.08
+const DEFAULT_LINE_COLOR: Color = Color(0.075, 0.095, 0.12, 1.0)
 const SHOW_SCALE_START: Vector2 = Vector2(0.965, 0.965)
 const SHOW_DURATION: float = 0.12
 
@@ -23,14 +23,12 @@ const SHOW_DURATION: float = 0.12
 @export var dash_speed: float = DEFAULT_DASH_SPEED
 @export var pulse_speed: float = DEFAULT_PULSE_SPEED
 @export var line_inset: float = DEFAULT_INSET
-@export_range(0.0, 1.0, 0.01) var color_darken: float = DEFAULT_COLOR_DARKEN
 
-var target_color: Color = Color.WHITE:
+var line_color: Color = DEFAULT_LINE_COLOR:
 	set(value):
-		target_color = value
+		line_color = value
 		queue_redraw()
 
-var paper_texture: Texture2D = null
 var _dash_offset: float = 0.0
 var _pulse_seconds: float = 0.0
 var _show_tween: Tween = null
@@ -40,12 +38,11 @@ func _ready() -> void:
 	pivot_offset = size * 0.5
 	set_process(true)
 
-func configure(highlight_color: Color, highlight_size: Vector2, visual_theme: Resource = null) -> void:
+func configure(highlight_size: Vector2, visual_theme: Resource = null) -> void:
 	apply_visual_theme(visual_theme)
-	target_color = highlight_color
 	size = highlight_size
-	custom_minimum_size = highlight_size
-	pivot_offset = highlight_size * 0.5
+	custom_minimum_size = size
+	pivot_offset = size * 0.5
 	queue_redraw()
 
 func apply_visual_theme(visual_theme: Resource) -> void:
@@ -60,10 +57,9 @@ func apply_visual_theme(visual_theme: Resource) -> void:
 	dash_speed = _get_theme_float(visual_theme, "interaction_preview_dash_speed", dash_speed)
 	pulse_speed = _get_theme_float(visual_theme, "interaction_preview_pulse_speed", pulse_speed)
 	line_inset = _get_theme_float(visual_theme, "interaction_preview_line_inset", line_inset)
-	color_darken = _get_theme_float(visual_theme, "interaction_preview_color_darken", color_darken)
-	var theme_paper_texture: Variant = visual_theme.get("card_paper_texture")
-	if theme_paper_texture is Texture2D:
-		paper_texture = theme_paper_texture as Texture2D
+	var theme_line_color: Variant = visual_theme.get("card_text_color")
+	if theme_line_color is Color:
+		line_color = theme_line_color as Color
 
 func play_show() -> void:
 	if DisplayServer.get_name() == "headless" or not is_inside_tree():
@@ -98,14 +94,21 @@ func _draw() -> void:
 	if size.x <= line_inset * 2.0 or size.y <= line_inset * 2.0:
 		return
 	var pulse: float = (sin(_pulse_seconds * pulse_speed) + 1.0) * 0.5
-	var draw_color: Color = target_color.darkened(color_darken)
+	var draw_color: Color = line_color
 	draw_color.a *= clampf(base_alpha + pulse * pulse_alpha, 0.0, 1.0)
 	var width: float = line_width + pulse * pulse_width
 	var rect: Rect2 = Rect2(Vector2(line_inset, line_inset), size - Vector2(line_inset * 2.0, line_inset * 2.0))
-	_draw_dashed_line(rect.position, rect.position + Vector2(rect.size.x, 0.0), draw_color, width)
-	_draw_dashed_line(rect.position + Vector2(rect.size.x, 0.0), rect.end, draw_color, width)
-	_draw_dashed_line(rect.end, rect.position + Vector2(0.0, rect.size.y), draw_color, width)
-	_draw_dashed_line(rect.position + Vector2(0.0, rect.size.y), rect.position, draw_color, width)
+	var corner_gap: float = maxf(roundf(width * 1.5), 3.0)
+	if rect.size.x <= corner_gap * 2.0 or rect.size.y <= corner_gap * 2.0:
+		return
+	var top_left: Vector2 = rect.position
+	var top_right: Vector2 = rect.position + Vector2(rect.size.x, 0.0)
+	var bottom_right: Vector2 = rect.end
+	var bottom_left: Vector2 = rect.position + Vector2(0.0, rect.size.y)
+	_draw_dashed_line(top_left + Vector2(corner_gap, 0.0), top_right - Vector2(corner_gap, 0.0), draw_color, width)
+	_draw_dashed_line(top_right + Vector2(0.0, corner_gap), bottom_right - Vector2(0.0, corner_gap), draw_color, width)
+	_draw_dashed_line(bottom_right - Vector2(corner_gap, 0.0), bottom_left + Vector2(corner_gap, 0.0), draw_color, width)
+	_draw_dashed_line(bottom_left - Vector2(0.0, corner_gap), top_left + Vector2(0.0, corner_gap), draw_color, width)
 
 func _draw_dashed_line(from: Vector2, to: Vector2, color: Color, width: float) -> void:
 	var vector: Vector2 = to - from
@@ -125,38 +128,22 @@ func _draw_dashed_line(from: Vector2, to: Vector2, color: Color, width: float) -
 func _draw_dash_segment(from: Vector2, to: Vector2, color: Color, width: float) -> void:
 	if from.is_equal_approx(to):
 		return
-	if paper_texture == null:
-		draw_line(from, to, color, width, true)
-		var radius: float = width * 0.5
-		draw_circle(from, radius, color)
-		draw_circle(to, radius, color)
-	else:
-		_draw_textured_axis_aligned_dash(from, to, color, width, true)
-		_draw_textured_cap(from, color, width)
-		_draw_textured_cap(to, color, width)
-
-func _draw_textured_axis_aligned_dash(from: Vector2, to: Vector2, color: Color, width: float, skip_caps: bool = false) -> void:
-	var min_position: Vector2 = Vector2(minf(from.x, to.x), minf(from.y, to.y))
-	var max_position: Vector2 = Vector2(maxf(from.x, to.x), maxf(from.y, to.y))
-	var rect: Rect2
+	var pixel_width: float = maxf(1.0, roundf(width))
+	var radius: float = pixel_width * 0.5
 	if is_equal_approx(from.y, to.y):
-		var left: float = min_position.x + (width * 0.5 if skip_caps else 0.0)
-		var right: float = max_position.x - (width * 0.5 if skip_caps else 0.0)
-		rect = Rect2(Vector2(left, from.y - width * 0.5), Vector2(maxf(1.0, right - left), width))
-	else:
-		var top: float = min_position.y + (width * 0.5 if skip_caps else 0.0)
-		var bottom: float = max_position.y - (width * 0.5 if skip_caps else 0.0)
-		rect = Rect2(Vector2(from.x - width * 0.5, top), Vector2(width, maxf(1.0, bottom - top)))
-	var source_position: Vector2 = Vector2(fmod(rect.position.x, paper_texture.get_width()), fmod(rect.position.y, paper_texture.get_height()))
-	var source_rect: Rect2 = Rect2(source_position, Vector2(minf(rect.size.x, paper_texture.get_width()), minf(rect.size.y, paper_texture.get_height())))
-	draw_texture_rect_region(paper_texture, rect, source_rect, color)
-
-func _draw_textured_cap(center: Vector2, color: Color, width: float) -> void:
-	var radius: float = width * 0.5
-	var rect: Rect2 = Rect2(center - Vector2(radius, radius), Vector2(width, width))
-	var source_position: Vector2 = Vector2(fmod(rect.position.x, paper_texture.get_width()), fmod(rect.position.y, paper_texture.get_height()))
-	var source_rect: Rect2 = Rect2(source_position, Vector2(minf(rect.size.x, paper_texture.get_width()), minf(rect.size.y, paper_texture.get_height())))
-	draw_texture_rect_region(paper_texture, rect, source_rect, color)
+		var left: float = roundf(minf(from.x, to.x))
+		var right: float = roundf(maxf(from.x, to.x))
+		var y: float = roundf(from.y - pixel_width * 0.5)
+		draw_rect(Rect2(Vector2(left, y), Vector2(maxf(1.0, right - left), pixel_width)), color, true)
+		draw_circle(Vector2(left, y + radius), radius, color)
+		draw_circle(Vector2(right, y + radius), radius, color)
+		return
+	var top: float = roundf(minf(from.y, to.y))
+	var bottom: float = roundf(maxf(from.y, to.y))
+	var x: float = roundf(from.x - pixel_width * 0.5)
+	draw_rect(Rect2(Vector2(x, top), Vector2(pixel_width, maxf(1.0, bottom - top))), color, true)
+	draw_circle(Vector2(x + radius, top), radius, color)
+	draw_circle(Vector2(x + radius, bottom), radius, color)
 
 func _get_theme_float(visual_theme: Resource, property_name: String, fallback: float) -> float:
 	var value: Variant = visual_theme.get(property_name)
