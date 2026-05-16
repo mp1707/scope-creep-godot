@@ -62,6 +62,7 @@ Zustaendig fuer:
 
 - Card-Views und Stack-Views
 - Drag-and-Drop
+- Drag-Interaktionsvorschau als rein visuelles Feedback: Presentation fragt die Simulation nach aktuell gueltigen Drop-Zielen und rendert daraus Highlight-Views, erfindet aber keine eigenen Kombinationsregeln.
 - magnetisches Snap-Verhalten
 - Board-Kamera, Edge-Pan und Zoom
 - Tooltips, Marker, Fortschrittsbalken

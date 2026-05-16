@@ -12,6 +12,16 @@ extends Resource
 @export var card_disabled_modulate: Color = Color(0.68, 0.68, 0.68, 1.0)
 @export var card_paid_modulate: Color = Color(0.68, 0.86, 0.68, 1.0)
 @export var card_payment_target_modulate: Color = Color(1.0, 0.96, 0.72, 1.0)
+@export_range(1.0, 64.0, 0.5, "or_greater") var interaction_preview_dash_length: float = 10.0
+@export_range(1.0, 64.0, 0.5, "or_greater") var interaction_preview_dash_gap: float = 7.0
+@export_range(0.5, 12.0, 0.1, "or_greater") var interaction_preview_line_width: float = 2.5
+@export_range(0.0, 1.0, 0.01) var interaction_preview_alpha: float = 0.86
+@export_range(0.0, 1.0, 0.01) var interaction_preview_pulse_alpha: float = 0.12
+@export_range(0.0, 6.0, 0.1, "or_greater") var interaction_preview_pulse_width: float = 0.7
+@export_range(0.0, 256.0, 1.0, "or_greater") var interaction_preview_dash_speed: float = 23.4
+@export_range(0.0, 16.0, 0.1, "or_greater") var interaction_preview_pulse_speed: float = 2.4
+@export_range(0.0, 32.0, 0.5, "or_greater") var interaction_preview_line_inset: float = 8.0
+@export_range(0.0, 1.0, 0.01) var interaction_preview_color_darken: float = 0.08
 
 @export var tooltip_background_color: Color = Color(0.18, 0.22, 0.24, 0.98)
 @export var tooltip_text_color: Color = Color(0.98, 0.96, 0.88, 1.0)

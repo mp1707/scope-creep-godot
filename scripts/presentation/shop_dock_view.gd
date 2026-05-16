@@ -6,6 +6,9 @@ const SHOP_HOVER_Z_OFFSET: int = 100
 const SHOP_ORDER_VALUE: String = "shop_dock_order"
 const ShopDockSlotScript: Script = preload("res://scripts/presentation/shop_dock_slot.gd")
 const ShopInteractionServiceScript: Script = preload("res://scripts/simulation/shop_interaction_service.gd")
+const INTERACTION_HIGHLIGHT_VIEW_SCENE: PackedScene = preload("res://scenes/presentation/InteractionHighlightView.tscn")
+const INTERACTION_HIGHLIGHT_MARGIN: float = 11.0
+const INTERACTION_HIGHLIGHT_Z_OFFSET: int = 6
 
 @export var card_view_scene: PackedScene
 @export var card_size: Vector2 = Vector2(144.0, 196.0)
@@ -24,6 +27,7 @@ var visual_theme: Resource = null
 var _card_views: Dictionary = {}
 var _base_positions: Dictionary = {}
 var _move_tweens: Dictionary = {}
+var _interaction_highlight_views: Dictionary = {}
 var _hovered_stack_id: String = ""
 var _shop_interactions: RefCounted = ShopInteractionServiceScript.new()
 
@@ -43,6 +47,7 @@ func bind_run(run_state: RunState, content_catalog: ContentCatalog) -> void:
 	_apply_visual_theme_to_editor_slots()
 	for view: CardView in _card_views.values():
 		view.set_visual_theme(visual_theme)
+	set_interaction_preview_stack_ids(PackedStringArray())
 	refresh()
 
 func apply_events(_events: Array[SimulationEvent]) -> void:
@@ -61,6 +66,24 @@ func refresh() -> void:
 		_ensure_card_view(card_id)
 		_update_card_view(card_id)
 	_layout_shop_cards()
+	_update_interaction_highlight_layouts()
+
+func set_interaction_preview_stack_ids(stack_ids: PackedStringArray, dragged_card_id: String = "") -> void:
+	var shop_stack_ids: PackedStringArray = PackedStringArray()
+	for stack_id: String in stack_ids:
+		if not _should_show_shop_interaction_highlight(stack_id, dragged_card_id):
+			continue
+		shop_stack_ids.append(stack_id)
+
+	var old_stack_ids: Array = _interaction_highlight_views.keys()
+	for old_stack_id: String in old_stack_ids:
+		if shop_stack_ids.has(old_stack_id):
+			continue
+		_remove_interaction_highlight(old_stack_id)
+
+	for stack_id: String in shop_stack_ids:
+		var highlight: Control = _ensure_interaction_highlight(stack_id)
+		_update_interaction_highlight(stack_id, highlight)
 
 func find_drop_stack_id(card_id: String, viewport_position: Vector2, moving_card_count: int) -> String:
 	var stack_id: String = ""
@@ -118,6 +141,9 @@ func _ensure_card_view(card_id: String) -> CardView:
 	return view
 
 func _remove_card_view(card_id: String) -> void:
+	var card: CardInstance = state.get_card(card_id) if state != null else null
+	if card != null:
+		_remove_interaction_highlight(card.stack_id)
 	var view: CardView = get_card_view(card_id)
 	if view != null:
 		view.queue_free()
@@ -264,6 +290,72 @@ func _set_drop_feedback_for_stack(stack_id: String, active: bool) -> void:
 	var slot: Control = _get_editor_slot_for_stack_id(stack_id)
 	if slot != null and slot.has_method("set_drop_feedback"):
 		slot.call("set_drop_feedback", active)
+
+func _should_show_shop_interaction_highlight(stack_id: String, dragged_card_id: String) -> bool:
+	if state == null or not state.stacks.has(stack_id):
+		return false
+	var stack: StackState = state.get_stack(stack_id)
+	var shop_card_id: String = _get_card_id_for_stack_id(stack_id)
+	if shop_card_id.is_empty():
+		return false
+	if not dragged_card_id.is_empty() and stack.card_ids.has(dragged_card_id):
+		return false
+	return true
+
+func _ensure_interaction_highlight(stack_id: String) -> Control:
+	if _interaction_highlight_views.has(stack_id):
+		return _interaction_highlight_views[stack_id] as Control
+	var highlight: Control = INTERACTION_HIGHLIGHT_VIEW_SCENE.instantiate() as Control
+	highlight.name = "InteractionHighlight_%s" % stack_id
+	highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_interaction_highlight_views[stack_id] = highlight
+	return highlight
+
+func _remove_interaction_highlight(stack_id: String) -> void:
+	var highlight: Control = _interaction_highlight_views.get(stack_id, null) as Control
+	if highlight != null:
+		highlight.queue_free()
+	_interaction_highlight_views.erase(stack_id)
+
+func _update_interaction_highlight_layouts() -> void:
+	var stack_ids: Array = _interaction_highlight_views.keys()
+	for stack_id: String in stack_ids:
+		if not _should_show_shop_interaction_highlight(stack_id, ""):
+			_remove_interaction_highlight(stack_id)
+			continue
+		_update_interaction_highlight(stack_id, _interaction_highlight_views[stack_id] as Control)
+
+func _update_interaction_highlight(stack_id: String, highlight: Control) -> void:
+	if highlight == null:
+		return
+	var card_id: String = _get_card_id_for_stack_id(stack_id)
+	var view: CardView = get_card_view(card_id)
+	if view == null:
+		return
+	var target_parent: Node = view.get_parent()
+	if target_parent == null:
+		return
+	if highlight.get_parent() != target_parent:
+		target_parent.add_child(highlight)
+		highlight.call("play_show")
+	var target_size: Vector2 = card_size + Vector2(INTERACTION_HIGHLIGHT_MARGIN * 2.0, INTERACTION_HIGHLIGHT_MARGIN * 2.0)
+	highlight.position = view.position - Vector2(INTERACTION_HIGHLIGHT_MARGIN, INTERACTION_HIGHLIGHT_MARGIN)
+	highlight.z_index = view.z_index + INTERACTION_HIGHLIGHT_Z_OFFSET
+	highlight.call("configure", _get_interaction_highlight_color(card_id), target_size, visual_theme)
+
+func _get_interaction_highlight_color(card_id: String) -> Color:
+	var card: CardInstance = state.get_card(card_id)
+	if card == null or content == null:
+		return Color.WHITE
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	if definition == null:
+		return Color.WHITE
+	var visual: CardVisualDefinition = definition.visual
+	if visual == null:
+		visual = CardVisualDefinition.new()
+	if visual_theme != null:
+		return visual_theme.call("get_card_background_color", visual) as Color
+	return visual.background_color
 
 func _get_editor_slots() -> Array[Control]:
 	var slots: Array[Control] = []

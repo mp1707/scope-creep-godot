@@ -206,6 +206,7 @@ func _bind_board_camera() -> void:
 func _connect_board_signals() -> void:
 	_board_view.screen_drop_target_resolver = Callable(self, "_resolve_screen_drop_target_stack")
 	_board_view.screen_drag_finished_callback = Callable(self, "_clear_screen_drop_hover")
+	_board_view.drop_interaction_preview_resolver = Callable(self, "_resolve_drop_interaction_preview_stacks")
 	if not _board_view.move_stack_requested.is_connected(request_move_stack):
 		_board_view.move_stack_requested.connect(request_move_stack)
 	if not _board_view.move_card_to_stack_requested.is_connected(request_move_card_to_stack):
@@ -214,6 +215,8 @@ func _connect_board_signals() -> void:
 		_board_view.split_stack_requested.connect(request_split_stack)
 	if not _board_view.card_clicked.is_connected(request_card_clicked):
 		_board_view.card_clicked.connect(request_card_clicked)
+	if not _board_view.interaction_preview_changed.is_connected(_set_shop_interaction_preview):
+		_board_view.interaction_preview_changed.connect(_set_shop_interaction_preview)
 	if _board_camera != null and not _board_view.board_pan_requested.is_connected(_board_camera.pan_by_viewport_delta):
 		_board_view.board_pan_requested.connect(_board_camera.pan_by_viewport_delta)
 
@@ -249,6 +252,15 @@ func _resolve_screen_drop_target_stack(card_id: String, viewport_position: Vecto
 	if _shop_dock == null:
 		return ""
 	return _shop_dock.call("find_drop_stack_id", card_id, viewport_position, moving_card_count) as String
+
+func _resolve_drop_interaction_preview_stacks(card_id: String) -> PackedStringArray:
+	if controller == null:
+		return PackedStringArray()
+	return controller.get_drop_interaction_preview_stack_ids(card_id)
+
+func _set_shop_interaction_preview(stack_ids: PackedStringArray, dragged_card_id: String) -> void:
+	if _shop_dock != null and _shop_dock.has_method("set_interaction_preview_stack_ids"):
+		_shop_dock.call("set_interaction_preview_stack_ids", stack_ids, dragged_card_id)
 
 func _clear_screen_drop_hover(dropped_stack_id: String = "") -> void:
 	if _shop_dock != null:

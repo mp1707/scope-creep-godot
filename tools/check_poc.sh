@@ -8,8 +8,10 @@ LOG_DIR="${SCOPE_CREEP_GODOT_LOG_DIR:-/private/tmp}"
 checks=(
 	"res://scripts/validation/run_content_validation.gd"
 	"res://tests/test_essential_core_rules.gd"
+	"res://tests/test_drop_interaction_preview.gd"
 	"res://tests/test_tooltip_visual_style.gd"
 	"res://tests/test_card_title_fit.gd"
+	"res://tests/test_interaction_highlight_view.gd"
 )
 
 for check_script in "${checks[@]}"; do

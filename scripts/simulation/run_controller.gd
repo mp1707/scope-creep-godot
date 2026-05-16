@@ -33,6 +33,7 @@ const ShopInteractionServiceScript: Script = preload("res://scripts/simulation/s
 const HiringLifecycleServiceScript: Script = preload("res://scripts/simulation/hiring_lifecycle_service.gd")
 const SprintStartPipelineServiceScript: Script = preload("res://scripts/simulation/sprint_start_pipeline_service.gd")
 const SpawnPlacementServiceScript: Script = preload("res://scripts/simulation/spawn_placement_service.gd")
+const DropInteractionPreviewServiceScript: Script = preload("res://scripts/simulation/drop_interaction_preview_service.gd")
 const START_SHOP_CARD_IDS: Array[String] = [
 	"card.shop.freelance_order",
 	"card.shop.booster_slot",
@@ -55,6 +56,7 @@ var _shop_interactions: RefCounted = ShopInteractionServiceScript.new()
 var _hiring_lifecycle: RefCounted = HiringLifecycleServiceScript.new()
 var _sprint_start_pipeline: RefCounted = SprintStartPipelineServiceScript.new()
 var _spawn_placement: RefCounted = SpawnPlacementServiceScript.new()
+var _drop_interaction_preview: RefCounted = DropInteractionPreviewServiceScript.new() as RefCounted
 var _save_serializer: RunSaveSerializer = RunSaveSerializer.new()
 var _next_card_index: int = 1
 var _next_stack_index: int = 1
@@ -83,6 +85,7 @@ func start_new_run(run_seed: int = 1) -> RunState:
 	_shop_interactions.setup(state, content)
 	_hiring_lifecycle.setup(state, content)
 	_spawn_placement.setup(state, content)
+	_drop_interaction_preview.call("setup", state, content)
 
 	var startup_pack: CardInstance = _spawn_card_as_new_stack(STARTUP_BOOSTER_PACK_DEFINITION_ID, STARTUP_BOOSTER_POSITION)
 	if startup_pack != null:
@@ -145,6 +148,7 @@ func load_run(loaded_state: RunState) -> void:
 	_shop_interactions.setup(state, content)
 	_hiring_lifecycle.setup(state, content)
 	_spawn_placement.setup(state, content)
+	_drop_interaction_preview.call("setup", state, content)
 	_rng.seed = state.rng_seed
 	_rng.state = state.rng_state
 	_sync_next_runtime_ids()
@@ -443,6 +447,10 @@ func can_auto_pay() -> bool:
 	if unpaid_employee_ids.is_empty():
 		return false
 	return _get_money_card_ids().size() >= unpaid_employee_ids.size()
+
+func get_drop_interaction_preview_stack_ids(card_id: String) -> PackedStringArray:
+	_require_state()
+	return _drop_interaction_preview.call("get_preview_stack_ids", card_id) as PackedStringArray
 
 func open_booster_pack_step(card_id: String) -> bool:
 	_require_state()
