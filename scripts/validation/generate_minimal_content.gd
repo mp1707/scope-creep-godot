@@ -238,7 +238,6 @@ func _save_booster() -> int:
 	booster.pool_entries = [
 		_create_pool_entry("card.input.idea", 5),
 		_create_pool_entry("card.consumable.coffee", 3),
-		_create_pool_entry("card.resource.money", 2),
 	]
 	return _save_resource(booster, "res://data/boosters/founder_test_pack.tres")
 

@@ -225,7 +225,7 @@ Die Shop-Slots werden in der Presentation ueber `UiLayer/ShopDock` als editor-po
 
 Aktuelle Shop-/Booster-Richtungen:
 
-- Gruenderpanik: fruehe Hilfe fuer Startdruck.
+- Gruenderpanik: fruehe Hilfe fuer Startdruck; zieht nur Ideen und Kaffee, kein Geld.
 - Wohlbefinden: Kaffee, Kaffeemaschine, Pizza Party, Stressbewaeltigungskurs.
 - Talent-Pool: kostet 2 Geld, zieht Bewerber oder Werkstudenten.
 - Externer Bugfix: gezielter Bugfix-Patch.

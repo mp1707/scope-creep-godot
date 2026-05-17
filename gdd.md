@@ -1160,7 +1160,7 @@ Ausnahme: Das Startpack **Dein Startup** ist ein fixes Boosterpack mit Sternsymb
 
 | Pack              | Inhalte (Pool)                                                            | Strategischer Sinn                                              |
 | ----------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| **Gründerpaket**  | Idee, Entwickler, Kaffee, kleines Geld                                    | günstiger Early-Game-Restock                                    |
+| **Gründerpanik**  | Idee, Kaffee                                                              | günstiger Early-Game-Restock ohne direkte Geld-Erzeugung        |
 | **Office-Invest** | Pizza Party, Stressbewältigungskurs, Konfliktworkshop, Kaffeemaschine, Kaffee, Teambuilding | Mitarbeiter gesund halten und Konflikte lösen                   |
 | **Talent-Pool**   | Bewerber für Entwickler/Product Owner/Tester/Recruiter und Werkstudenten  | gezieltes Hiring über Interview, Angebot und Onboarding         |
 | **Hot Fix Kit**   | Externer Dev, Code aufräumen, Testlauf                                    | Krisen-Pack für Bug-Stau                                        |

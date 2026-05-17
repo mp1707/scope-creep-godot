@@ -13,6 +13,7 @@ func _init() -> void:
 	_test_bug_formation_happens_before_duplication()
 	_test_save_is_only_allowed_when_frozen_and_restores_state()
 	_test_booster_draws_are_deterministic()
+	_test_founder_panic_booster_pool_contains_only_ideas_and_coffee()
 	_test_talent_pool_costs_two_money_and_draws_no_regular_employee()
 	_test_recycling_bin_is_rightmost_shop_slot()
 	_test_recycling_bin_requires_three_recyclable_cards()
@@ -204,6 +205,18 @@ func _test_booster_draws_are_deterministic() -> void:
 
 	_assert_equal(first["drawn_definitions"], second["drawn_definitions"], "Same seed should produce the same booster draw order.")
 	_assert_equal(first["rng_state"], second["rng_state"], "Same seed should leave the same RNG state after opening.")
+
+func _test_founder_panic_booster_pool_contains_only_ideas_and_coffee() -> void:
+	var catalog: ContentCatalog = ContentCatalog.new()
+	_assert_true(catalog.load_default_content(), "Default content should load.")
+	var booster: BoosterDefinition = catalog.get_booster_definition("booster.founder.test_pack")
+	_assert_true(booster != null, "Founder panic booster should exist.")
+	_assert_equal(booster.draw_count, 3, "Founder panic booster should still draw three cards.")
+	for entry: BoosterPoolEntry in booster.pool_entries:
+		_assert_true(
+			entry.card_definition_id == "card.input.idea" or entry.card_definition_id == "card.consumable.coffee",
+			"Founder panic booster should only contain ideas and coffee."
+		)
 
 func _test_talent_pool_costs_two_money_and_draws_no_regular_employee() -> void:
 	var controller: RunController = _create_controller(60.0)

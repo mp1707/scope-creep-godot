@@ -304,7 +304,7 @@ Fachliche Grenzen:
 
 Der Cleanup-Build setzt die Content-Version auf `poc_cleanup1`. Alte `poc5`-Saves werden ohne explizite Migration nicht geladen, weil die alten Shop-Kauf-Recipe-IDs entfernt wurden und sonst aktive Processing-Referenzen still fehlen koennten.
 
-Pool-Eintraege referenzieren `CardDefinition`-IDs und Gewichte. Booster-Ziehungen laufen ueber den Run-RNG, damit Tests und Save/Load deterministisch bleiben. Booster duerfen alternativ `fixed_card_definition_ids` nutzen, wenn das Pack eine feste, nicht zufaellige Reihenfolge braucht, z. B. das Startpack `booster.startup`.
+Pool-Eintraege referenzieren `CardDefinition`-IDs und Gewichte. Booster-Ziehungen laufen ueber den Run-RNG, damit Tests und Save/Load deterministisch bleiben. Booster duerfen alternativ `fixed_card_definition_ids` nutzen, wenn das Pack eine feste, nicht zufaellige Reihenfolge braucht, z. B. das Startpack `booster.startup`. Der aktuelle Gruenderpanik-Booster `booster.founder.test_pack` ist ein fruehes Restock-Pack und enthaelt im Pool nur Ideen und Kaffee, kein Geld.
 
 ### Shop-Slots
 
