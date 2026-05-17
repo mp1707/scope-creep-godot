@@ -3,11 +3,11 @@ extends PanelContainer
 
 const TOOLTIP_BACKGROUND_COLOR: Color = Color(0.18, 0.22, 0.24, 0.98)
 const TOOLTIP_TEXT_COLOR: Color = Color(0.075, 0.095, 0.12, 1.0)
-const TOOLTIP_MAX_WIDTH: float = 286.0
-const TOOLTIP_MIN_WIDTH: float = 150.0
+const TOOLTIP_MAX_WIDTH: float = 360.0
+const TOOLTIP_MIN_WIDTH: float = 260.0
 const TOOLTIP_FONT_SIZE: int = 18
 const TOOLTIP_TIME_FONT_SIZE: int = 18
-const TOOLTIP_CONTENT_MARGIN: int = 12
+const TOOLTIP_CONTENT_MARGIN: int = 14
 const TOOLTIP_SHADOW_OFFSET: Vector2 = Vector2(3.0, 4.0)
 const TOOLTIP_SHADOW_OPACITY: float = 0.25
 const TOOLTIP_CURSOR_OFFSET: Vector2 = Vector2(22.0, 24.0)

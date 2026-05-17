@@ -317,7 +317,7 @@ Fachliche Regeln:
 
 - Geld auf Booster-Slot erzeugt sofort ein Boosterpack mit der referenzierten BoosterDefinition.
 - Geld auf Patch-Slot erzeugt sofort einen Bugfix-Patch.
-- Geld auf Freelance-Slot erzeugt sofort eine sichtbare Auftragskarte. Die Lieferung laeuft anschliessend als normales Recipe `Auftrag + Feature`, nicht als Shop-Command.
+- Geld auf Freelance-Slot erzeugt sofort eine sichtbare Auftragskarte. Wird der Auftrag in der Bezahlphase gekauft, setzt die Simulation seinen `created_at_sprint` auf den naechsten Sprint, damit er nicht sofort beim Sprintstart verfällt. Die Lieferung laeuft anschliessend als normales Recipe `Auftrag + Feature`, nicht als Shop-Command.
 - Resteverwertung verbraucht die obersten 3 `recyclable`-Karten und erzeugt 1 Geldkarte.
 
 Diese Interaktionen sind Simulation-Commands, keine Processing-Recipes. `ShopInteractionService` kapselt Kauf-, Recycling- und Drop-Regeln; Presentation darf nur fragen, ob ein Drop visuell erlaubt ist.
@@ -529,7 +529,7 @@ Beispiele:
 - Mitarbeiter darf nicht bereits durch Burnout processing-blockiert sein.
 - Zwei Konfliktparteien duerfen keinen gemeinsamen Stack bilden, ausser das Recipe verlangt genau diesen Konflikt.
 - Konfliktworkshop verlangt Konfliktkarte plus beide referenzierten Parteien.
-- Bezahlphase erlaubt nur explizit freigegebene Geld-Interaktionen, z. B. Geld auf gehaltsfaellige Mitarbeiter oder Geld auf Angebotskarten.
+- Bezahlphase erlaubt nur explizit freigegebene Geld-Interaktionen, z. B. Geld auf gehaltsfaellige Mitarbeiter, Geld auf Angebotskarten oder Geld auf den Freelance-Slot fuer einen Auftrag des naechsten Sprints.
 - Kaffee ist kein Recipe-Input; Kaffee wirkt als aktive Processing-Interaktion nur auf laufende Stacks mit Mitarbeiterkarte oder temporaerer Arbeitskarte.
 
 ## 8. Effect Pipeline
@@ -614,7 +614,7 @@ Regeln:
 
 - Alle Processing-Timer bleiben pausiert.
 - Board und Stacks bleiben visuell erhalten.
-- Beweglich sind mindestens Geldkarten, gehaltsfaellige Mitarbeiter und Karten, die in der Bezahlphase mit Geld interagieren duerfen, z. B. Angebotskarten.
+- Beweglich sind mindestens Geldkarten, gehaltsfaellige Mitarbeiter und Karten, die in der Bezahlphase mit Geld interagieren duerfen, z. B. Angebotskarten oder der Freelance-Slot.
 - Manuelles Bezahlen eines Mitarbeiters verbraucht genau eine 1-Geld-Karte.
 - Angebot bezahlen ist eine separate Hiring-Interaktion und verbraucht ebenfalls genau eine 1-Geld-Karte, markiert aber keinen Mitarbeiter als bezahlt.
 - Auto-Pay ist nur verfuegbar, wenn genug Geld fuer alle gehaltsfaelligen regulaeren Mitarbeiter existiert.

@@ -27,5 +27,5 @@ tooltip_text = "Alles was ein Startup braucht: Ideen & Kaffee"
 visual = SubResource("Resource_7u6xq")
 base_values = {
 "booster_definition_id": "booster.founder.test_pack",
-"shop_dock_order": 10
+"shop_dock_order": 30
 }

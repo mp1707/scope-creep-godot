@@ -82,6 +82,7 @@ var _icon_mask_material: ShaderMaterial = null
 var _shop_price_icon_mask_material: ShaderMaterial = null
 var _product_lifecycle: RefCounted = ProductLifecycleServiceScript.new()
 var _custom_tooltip_text: String = ""
+var _scene_node_defaults_applied: bool = false
 var _processing_tooltip_title: String = ""
 var _processing_tooltip_remaining_seconds: float = 0.0
 var _uses_processing_tooltip: bool = false
@@ -299,7 +300,9 @@ func _resolve_or_create_nodes() -> void:
 	_report_missing_required_nodes()
 	if _card_font == null:
 		_card_font = ResourceLoader.load(CARD_FONT_PATH) as FontFile
-	_apply_scene_node_defaults()
+	if not _scene_node_defaults_applied:
+		_apply_scene_node_defaults()
+		_scene_node_defaults_applied = true
 	_ensure_juice_controller()
 
 func _resolve_control(path: NodePath, fallback_name: String) -> Control:
@@ -377,6 +380,7 @@ func _apply_scene_node_defaults() -> void:
 		_short_text_label.add_theme_font_size_override("font_size", 18)
 	if _shop_price_root != null:
 		_shop_price_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_shop_price_root.z_index = 10
 		_shop_price_root.visible = false
 	if _shop_price_label != null:
 		_shop_price_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -896,10 +900,10 @@ func _get_card_payment_target_modulate() -> Color:
 	return _get_theme_color("card_payment_target_modulate", Color(1.0, 0.96, 0.72, 1.0))
 
 func _get_shop_price_text_color() -> Color:
-	return _get_theme_color("shop_price_text_color", Color(0.98, 0.96, 0.90, 1.0))
+	return _get_theme_color("shop_price_text_color", CARD_TEXT_COLOR)
 
 func _get_shop_price_icon_color() -> Color:
-	return _get_theme_color("shop_price_icon_color", Color(0.98, 0.96, 0.90, 1.0))
+	return _get_theme_color("shop_price_icon_color", CARD_TEXT_COLOR)
 
 func _get_theme_color(property_name: String, fallback: Color) -> Color:
 	if visual_theme == null:

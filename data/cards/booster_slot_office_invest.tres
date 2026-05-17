@@ -25,5 +25,5 @@ tooltip_text = "Fürsorge für die Belegschaft. \"Work-life-balance und so\" ;)"
 visual = SubResource("Resource_visual")
 base_values = {
 "booster_definition_id": "booster.office_invest",
-"shop_dock_order": 20
+"shop_dock_order": 40
 }

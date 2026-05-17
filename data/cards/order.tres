@@ -17,6 +17,6 @@ display_name = "Auftrag"
 type = 7
 tags = PackedStringArray("value_source", "order")
 short_text = "Mit Feature liefern"
-tooltip_text = "Liefer eine Funktion auf diesen Auftrag. Offene Auftraege verfallen beim naechsten Sprintstart."
+tooltip_text = "Liefer eine Funktion auf diesen Auftrag. In der Bezahlphase gekaufte Auftraege gelten fuer den naechsten Sprint."
 visual = SubResource("Resource_visual")
 auto_stack_on_spawn = true

@@ -24,5 +24,5 @@ short_text = "Wenn es brennt und Bugs schnell gefixt werden müssen"
 tooltip_text = "Wenn es brennt und Bugs schnell gefixt werden müssen"
 visual = SubResource("Resource_visual")
 base_values = {
-"shop_dock_order": 30
+"shop_dock_order": 60
 }

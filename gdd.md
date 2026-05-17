@@ -882,8 +882,9 @@ Permanenter Shop-Slot. Der Slot verkauft sichtbare Auftragskarten und ist dadurc
 **Lifecycle:** permanent.
 
 - Geld auf den Freelance-Slot erzeugt 1 Auftragskarte.
+- Kauf in der Sprintphase erzeugt einen Auftrag fuer den laufenden Sprint; Kauf in der Bezahlphase erzeugt einen Auftrag fuer den naechsten Sprint.
 - Der Slot liegt dauerhaft im Shop-Dock.
-- Offene Auftragskarten verfallen beim Start des naechsten Sprints.
+- Offene Auftragskarten verfallen beim Start des naechsten Sprints, nachdem sie in einem Sprint spielbar waren.
 - Auftrag + Funktion erzeugt 3 einzelne Geldkarten und nutzt dieselbe Bug-Chance wie ein ungepruefter Release.
 - Auftrag + gepruefte Funktion erzeugt 3 einzelne Geldkarten ohne Bug-Roll.
 

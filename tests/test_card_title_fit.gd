@@ -33,6 +33,19 @@ func _init() -> void:
 	var after_drag_font_size: int = title_label.get_theme_font_size("font_size")
 	_assert_equal(after_drag_font_size, fitted_font_size, "Drag/drop should not reset fitted title font size.")
 
+	var shop_definition: CardDefinition = content.get_card_definition("card.shop.freelance_order")
+	_assert_true(shop_definition != null, "Freelance shop definition should exist.")
+	var shop_card: CardInstance = _create_test_card(shop_definition)
+	shop_card.values["shop_price_money_cards"] = 1
+	var shop_stack: StackState = _create_test_stack(shop_card)
+	view.setup(shop_card, shop_definition, shop_stack)
+	var price_root: Control = view.get_node("VisualRoot/ShopPriceRoot") as Control
+	_assert_true(price_root.visible, "Shop price should be visible after setup.")
+	view.set_visual_hovered(true)
+	_assert_true(price_root.visible, "Shop price should stay visible after hover starts.")
+	view.set_visual_hovered(false)
+	_assert_true(price_root.visible, "Shop price should stay visible after hover ends.")
+
 	view.free()
 	if _failed:
 		quit(1)

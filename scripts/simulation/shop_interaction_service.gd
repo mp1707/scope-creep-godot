@@ -60,6 +60,8 @@ func try_buy_shop_with_money_stack(
 	var spawned_card_definition_id: String = purchase["spawned_card_definition_id"] as String
 	var spawned_card: CardInstance = spawn_card.call(spawned_card_definition_id, get_spawn_position.call(target_stack.stack_id, 0)) as CardInstance
 	if spawned_card != null:
+		if purchase.has("created_at_sprint"):
+			spawned_card.created_at_sprint = int(purchase["created_at_sprint"])
 		var copied_values: Dictionary = purchase.get("values", {}) as Dictionary
 		for key: Variant in copied_values.keys():
 			spawned_card.values[key] = copied_values[key]
@@ -197,11 +199,15 @@ func get_shop_purchase(shop_card: CardInstance) -> Dictionary:
 		return {}
 
 	if is_freelance_slot_card(shop_card):
-		if state == null or state.phase != ScopeEnums.RunPhase.SPRINT:
+		if state == null or not (state.phase == ScopeEnums.RunPhase.SPRINT or state.phase == ScopeEnums.RunPhase.PAYMENT):
 			return {}
+		var order_sprint_index: int = state.sprint_index
+		if state.phase == ScopeEnums.RunPhase.PAYMENT:
+			order_sprint_index += 1
 		return {
 			"cost_money_cards": _get_freelance_order_cost_money_cards(),
 			"spawned_card_definition_id": ORDER_DEFINITION_ID,
+			"created_at_sprint": order_sprint_index,
 			"values": {},
 		}
 

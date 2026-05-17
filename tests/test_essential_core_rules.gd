@@ -15,14 +15,14 @@ func _init() -> void:
 	_test_booster_draws_are_deterministic()
 	_test_founder_panic_booster_pool_contains_only_ideas_and_coffee()
 	_test_talent_pool_costs_two_money_and_draws_no_regular_employee()
-	_test_recycling_bin_is_rightmost_shop_slot()
+	_test_shop_slots_use_playtest_order()
 	_test_recycling_bin_requires_three_recyclable_cards()
 	_test_recycling_bin_consumes_top_three_and_drops_leftovers()
 	_test_recycling_bin_rejects_money_and_mixed_stacks()
 	_test_recyclable_cards_do_not_drop_on_booster_slots()
 	_test_freelance_order_is_permanent_shop_slot()
 	_test_freelance_slot_sells_order_card_for_money()
-	_test_freelance_slot_rejects_order_purchase_in_payment_phase()
+	_test_freelance_slot_sells_next_sprint_order_in_payment_phase()
 	_test_freelance_slot_rejects_direct_feature_dump()
 	_test_freelance_order_pays_three_and_rolls_bug_for_unchecked_feature()
 	_test_freelance_order_pays_checked_feature_without_bug()
@@ -264,16 +264,31 @@ func _test_talent_pool_costs_two_money_and_draws_no_regular_employee() -> void:
 		_assert_true(seeded_controller.open_booster_pack_step(seeded_pack.instance_id), "Seeded Talent-Pool pack should open one card per step.")
 	_assert_true(_count_cards_by_definition(seeded_state, "card.candidate.recruiter") >= 1, "Default playtest seed should expose a recruiter candidate in the first Talent-Pool pack.")
 
-func _test_recycling_bin_is_rightmost_shop_slot() -> void:
+func _test_shop_slots_use_playtest_order() -> void:
 	var controller: RunController = _create_controller(60.0)
 	var state: RunState = _start_run_with_opened_startup(controller, 1017)
-	var recycling_bin: CardInstance = _find_card_by_definition(state, "card.shop.recycling_bin")
-	_assert_true(recycling_bin != null, "Start run should include the recycling bin shop slot.")
+	var expected_start_order: Array[String] = [
+		"card.shop.recycling_bin",
+		"card.shop.freelance_order",
+		"card.shop.booster_slot",
+		"card.shop.booster_slot.office_invest",
+		"card.shop.bugfix_patch_slot",
+		"card.shop.booster_slot.talent_pool",
+	]
+	var actual_start_order: Array[String] = _get_shop_definition_ids_by_x_position(state, controller.content)
+	_assert_equal(actual_start_order, expected_start_order, "Start shop cards should use the playtest order.")
 
-	for card: CardInstance in state.cards.values():
-		var definition: CardDefinition = controller.content.get_card_definition(card.definition_id)
-		if definition != null and definition.tags.has("shop") and card.instance_id != recycling_bin.instance_id:
-			_assert_true(recycling_bin.position.x > card.position.x, "Recycling bin should be the rightmost shop slot.")
+	var expected_dock_order: Array[String] = [
+		"card.shop.recycling_bin",
+		"card.shop.freelance_order",
+		"card.shop.booster_slot",
+		"card.shop.booster_slot.office_invest",
+		"card.shop.booster_slot.customer_chaos",
+		"card.shop.bugfix_patch_slot",
+		"card.shop.booster_slot.talent_pool",
+	]
+	var actual_dock_order: Array[String] = _get_shop_definition_ids_by_dock_order(controller.content)
+	_assert_equal(actual_dock_order, expected_dock_order, "Shop dock order should put customer chaos before external help.")
 
 func _test_recycling_bin_requires_three_recyclable_cards() -> void:
 	var controller: RunController = _create_controller(60.0)
@@ -378,26 +393,30 @@ func _test_freelance_slot_sells_order_card_for_money() -> void:
 	var money: CardInstance = _find_top_card_by_definition(state, "card.resource.money")
 	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
 
+	_assert_true(controller.can_move_card_to_stack(money.instance_id, freelance_slot.stack_id), "Freelance slot should accept money during sprint phase.")
 	controller.move_card_to_stack(money.instance_id, freelance_slot.stack_id)
 
 	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before - 1, "Buying a Freelance order should consume one money card.")
 	_assert_equal(_count_cards_by_definition(state, "card.value_source.order"), 1, "Buying from the Freelance slot should spawn one visible order card.")
 
-func _test_freelance_slot_rejects_order_purchase_in_payment_phase() -> void:
+func _test_freelance_slot_sells_next_sprint_order_in_payment_phase() -> void:
 	var controller: RunController = _create_controller(1.0)
 	var state: RunState = _start_run_with_opened_startup(controller, 1037)
 	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
 	var money: CardInstance = _find_top_card_by_definition(state, "card.resource.money")
-	var original_stack_id: String = money.stack_id
 	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
 
 	controller.advance_time(1.0)
-	_assert_equal(state.phase, ScopeEnums.RunPhase.PAYMENT, "Short sprint should enter payment before Freelance purchase rejection.")
+	_assert_equal(state.phase, ScopeEnums.RunPhase.PAYMENT, "Short sprint should enter payment before Freelance purchase.")
+	_assert_true(controller.can_move_card_to_stack(money.instance_id, freelance_slot.stack_id), "Freelance slot should accept money during payment phase.")
 	controller.move_card_to_stack(money.instance_id, freelance_slot.stack_id)
 
-	_assert_equal(money.stack_id, original_stack_id, "Freelance order purchases should be rejected in payment phase.")
-	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before, "Rejected payment-phase Freelance purchase should not consume money.")
-	_assert_equal(_count_cards_by_definition(state, "card.value_source.order"), 0, "Rejected payment-phase Freelance purchase should not spawn an order.")
+	var order: CardInstance = _find_card_by_definition(state, "card.value_source.order")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before - 1, "Payment-phase Freelance purchase should consume one money.")
+	_assert_equal(order.created_at_sprint, state.sprint_index + 1, "Payment-phase Freelance purchase should create an order for the next sprint.")
+	_assert_true(controller.auto_pay_all_employees(), "Auto-pay should keep the employee before checking order persistence.")
+	controller.start_next_sprint()
+	_assert_equal(_count_cards_by_definition(state, "card.value_source.order"), 1, "Payment-phase Freelance order should survive the immediate sprint start.")
 
 func _test_freelance_slot_rejects_direct_feature_dump() -> void:
 	var controller: RunController = _create_controller(60.0)
@@ -907,6 +926,39 @@ func _find_attachment(state: RunState, parent_card_id: String, attachment_slot: 
 		if card.parent_card_id == parent_card_id and card.attachment_slot == attachment_slot:
 			return card
 	return null
+
+func _get_shop_definition_ids_by_x_position(state: RunState, content: ContentCatalog) -> Array[String]:
+	var shop_cards: Array[CardInstance] = []
+	for card: CardInstance in state.cards.values():
+		var definition: CardDefinition = content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has("shop"):
+			shop_cards.append(card)
+	shop_cards.sort_custom(func(left: CardInstance, right: CardInstance) -> bool:
+		return left.position.x < right.position.x
+	)
+
+	var result: Array[String] = []
+	for card: CardInstance in shop_cards:
+		result.append(card.definition_id)
+	return result
+
+func _get_shop_definition_ids_by_dock_order(content: ContentCatalog) -> Array[String]:
+	var shop_definitions: Array[CardDefinition] = []
+	for definition: CardDefinition in content.cards.values():
+		if definition != null and definition.tags.has("shop"):
+			shop_definitions.append(definition)
+	shop_definitions.sort_custom(func(left: CardDefinition, right: CardDefinition) -> bool:
+		var left_order: int = int(left.base_values.get("shop_dock_order", 0))
+		var right_order: int = int(right.base_values.get("shop_dock_order", 0))
+		if left_order == right_order:
+			return left.id < right.id
+		return left_order < right_order
+	)
+
+	var result: Array[String] = []
+	for definition: CardDefinition in shop_definitions:
+		result.append(definition.id)
+	return result
 
 func _assert_true(value: bool, message: String) -> void:
 	if value:

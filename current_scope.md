@@ -12,7 +12,7 @@ Man startet mit einer MVP-Software, baut Features, finanziert sich frueh ueber s
 
 Das Spiel ist damit mehr als ein reiner Recipe-Test. Es hat inzwischen einen Anfang, einen Launch-Wendepunkt, Post-Launch-Druck, Sieg- und Niederlagebedingungen sowie kontrolliertes Teamwachstum. Balance, Lesbarkeit, UI-Polish, Content-Breite, Konflikte, Workshops, finale Card-Art, Tutorial und Meta-Progression fehlen aber noch oder sind bewusst nicht final.
 
-Die Karten-Presentation hat inzwischen ein einheitliches Juice-System: Hover, Drag-Lift, verzoegertes Drag-Follow, subtile Drag-Rotation, Snap-Bounce, Schattenzustaende und Drop-Ziel-Feedback laufen zentral ueber die CardView-Presentation und nicht ueber verstreute Einzel-Tweens. Das Visual-Theming ist als `GameVisualThemeDefinition` zentral geladen: Board, HUD, Tooltips, Status-Badges, Shop-Dock-Preview und Card-Surface-Werte kommen aus dem aktiven Visual-Theme. Das Board nutzt einen leicht offwhitefarbenen Dotgrid-Hintergrund; Punktfarbe, Abstand und Radius sind Teil des aktiven Visual-Themes. Die aktuelle Kartenpalette orientiert sich an hellen Post-it-Toenen statt gedeckten Ockerfarben. Kartenicons nutzen einen Scribble-Kreis als Hintergrund; Scribble und Icon-Farbe werden aus dunkleren Toenen der jeweiligen Kartenfarbe abgeleitet, waehrend Header-Text einen einheitlichen dunkel blau-grauen Ton nutzt. Bestehende Karten behalten ihre direkten `CardVisualDefinition`-Farben als Overrides; neue Karten koennen ueber semantische `visual_role_id`s aus dem Theme starten. SFX bleiben davon getrennt.
+Die Karten-Presentation hat inzwischen ein einheitliches Juice-System: Hover, Drag-Lift, verzoegertes Drag-Follow, subtile Drag-Rotation, Snap-Bounce, Schattenzustaende und Drop-Ziel-Feedback laufen zentral ueber die CardView-Presentation und nicht ueber verstreute Einzel-Tweens. Das Visual-Theming ist als `GameVisualThemeDefinition` zentral geladen: Board, HUD, Tooltips, Status-Badges, Shop-Dock-Preview und Card-Surface-Werte kommen aus dem aktiven Visual-Theme. Das Board nutzt einen leicht offwhitefarbenen Dotgrid-Hintergrund; Punktfarbe, Abstand und Radius sind Teil des aktiven Visual-Themes. Die aktuelle Kartenpalette orientiert sich an hellen Post-it-Toenen statt gedeckten Ockerfarben; Shop-Karten nutzen ebenfalls eine helle papierartige Flaeche mit dunklem Text. Kartenicons nutzen einen Scribble-Kreis als Hintergrund; Scribble und Icon-Farbe werden aus dunkleren Toenen der jeweiligen Kartenfarbe abgeleitet, waehrend Header-Text einen einheitlichen dunkel blau-grauen Ton nutzt. Bestehende Karten behalten ihre direkten `CardVisualDefinition`-Farben als Overrides; neue Karten koennen ueber semantische `visual_role_id`s aus dem Theme starten. SFX bleiben davon getrennt.
 
 Beim Draggen fragt die Presentation die Simulation nach allen aktuell gueltigen Drop-Zielen. Passende Board- und Shop-Stacks werden waehrend des Drags mit einem horizontal gespiegelten Pfeil am rechten oberen Karteneck markiert; der Pfeil nutzt die Header-Textfarbe der Zielkarte. Nach erfolgreichem Stapeln spielt kurz ein Snap-Feedback mit Corner-Stripes an zwei diagonal gegenueberliegenden Ecken der gestackten Karte. Die Preview zeigt nur Drops, die nach aktueller Phase, Stack-Inhalt, Mengen und Processing-Zustand wirklich ausfuehrbar sind; theoretische Spaeter-Kombinationen werden nicht markiert.
 
@@ -102,7 +102,7 @@ Gepruefte Funktionen sind ausserdem bei Auftragslieferungen sicherer, weil sie i
 
 ### Freelance als sichtbare Auftragsfinanzierung nutzen
 
-Der Freelance-Auftrag ist ein permanenter Shop-Slot. Geldkarten kaufen dort sichtbare Auftragskarten. Eine Auftragskarte muss im selben Sprint mit einer Funktion oder geprueften Funktion geliefert werden, sonst verfällt sie beim Start des naechsten Sprints.
+Der Freelance-Auftrag ist ein permanenter Shop-Slot. Geldkarten kaufen dort sichtbare Auftragskarten. Kaeufe in der Sprintphase erzeugen einen Auftrag fuer den laufenden Sprint; Kaeufe in der Bezahlphase erzeugen einen Auftrag fuer den naechsten Sprint. Eine Auftragskarte muss in ihrem aktiven Sprint mit einer Funktion oder geprueften Funktion geliefert werden, sonst verfällt sie beim naechsten Sprintstart.
 
 ```text
 Geld auf Freelance-Slot -> Auftrag
@@ -221,20 +221,20 @@ Die Zielwerte starten bei 1 Geld und steigen pro erledigtem Goal um 1: 1, 2, 3, 
 
 ### Booster und Shop nutzen
 
-Der Shop ist live im Run nutzbar. Die Shop-Slots sind feste, fast schwarze Karten am oberen Rand des Whiteboards. Geldkarten werden auf Shop-/Booster-Slots gelegt; Boosterpacks werden danach per Klick schrittweise geoeffnet.
+Der Shop ist live im Run nutzbar. Die Shop-Slots sind feste helle Papierkarten am oberen Rand des Whiteboards. Geldkarten werden auf Shop-/Booster-Slots gelegt; Boosterpacks werden danach per Klick schrittweise geoeffnet.
 Karten aus Boosterpacks suchen freie Plaetze um das Pack herum: Start bei 12 Uhr, dann im Uhrzeigersinn, belegte Plaetze werden uebersprungen.
 
 Die Shop-Slots werden in der Presentation ueber `BoardView/ShopSlots` als editor-positionierbare `ShopBoardSlot`-Marker platziert. Die Simulation behandelt sie weiterhin als normale Shop-CardInstances; Spieler koennen diese Shop-Stacks aber nicht bewegen oder splitten.
 
 Aktuelle Shop-/Booster-Richtungen:
 
+- Verkaufen: linker Shop-Slot; 3 verwertbare Restkarten werden sofort zu 1 Geld, ueberschuessige Karten fallen zurueck aufs Board.
+- Sidehustle: kostet 1 Geld, erzeugt eine sprintgebundene Auftragskarte; in der Bezahlphase gilt der Auftrag fuer den naechsten Sprint.
 - Inspiration: kostet 1 Geld, zieht 2 Karten aus Ideen und Kaffee, kein Geld.
 - Mitarbeiter Goodies: kostet 1 Geld, zieht Kaffee, Kaffeemaschine, Pizza Party oder Stressbewaeltigungskurs.
-- Neue Mitarbeiter: kostet 2 Geld, zieht Bewerber oder Werkstudenten.
-- Externe Hilfe: kostet 1 Geld, erzeugt einen gezielten Bugfix-Patch.
-- Sidehustle: kostet 1 Geld, erzeugt eine sprintgebundene Auftragskarte.
 - Kundenchaos: existiert als Content und kann nach Launch durch Launch-/Shop-Setup relevant werden.
-- Verkaufen: ganz rechter Shop-Slot; 3 verwertbare Restkarten werden sofort zu 1 Geld, ueberschuessige Karten fallen zurueck aufs Board.
+- Externe Hilfe: kostet 1 Geld, erzeugt einen gezielten Bugfix-Patch.
+- Neue Mitarbeiter: kostet 2 Geld, zieht Bewerber oder Werkstudenten.
 
 Booster-Ziehungen laufen ueber deterministischen Run-RNG und sind dadurch test- und save-kompatibel.
 
@@ -357,13 +357,13 @@ Save/Load funktioniert fuer eingefrorene Runs:
 
 ### Shop- und Booster-Slots
 
+- Resteverwertung
+- Freelance-Auftrag
 - Booster-Slot / Gruenderpanik
-- Talent-Pool
 - Wohlbefinden / Office-Invest
 - Kundenchaos
 - Patch-Shop / externer Bugfix
-- Freelance-Auftrag
-- Resteverwertung
+- Talent-Pool
 
 ## Wie umfangreich ist das aktuell?
 

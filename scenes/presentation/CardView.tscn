@@ -116,30 +116,28 @@ offset_right = 144.0
 offset_bottom = 25.0
 mouse_filter = 2
 
-[node name="ShopPriceRoot" type="Control" parent="VisualRoot"]
+[node name="ShopPriceRoot" type="HBoxContainer" parent="VisualRoot"]
 visible = false
 layout_mode = 0
-offset_left = 106.0
-offset_top = 154.0
-offset_right = 138.0
+offset_left = 102.0
+offset_top = 152.0
+offset_right = 140.0
 offset_bottom = 176.0
 mouse_filter = 2
+theme_override_constants/separation = 3
+alignment = 2
 
 [node name="PriceLabel" type="Label" parent="VisualRoot/ShopPriceRoot"]
-layout_mode = 0
-offset_right = 14.0
-offset_bottom = 22.0
+custom_minimum_size = Vector2(14, 22)
+layout_mode = 2
 mouse_filter = 2
 clip_text = true
 horizontal_alignment = 2
 vertical_alignment = 1
 
 [node name="PriceIcon" type="TextureRect" parent="VisualRoot/ShopPriceRoot"]
-layout_mode = 0
-offset_left = 16.0
-offset_top = 2.0
-offset_right = 32.0
-offset_bottom = 20.0
+custom_minimum_size = Vector2(21, 21)
+layout_mode = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5

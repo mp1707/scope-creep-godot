@@ -58,14 +58,14 @@ icon_color = Color(0.10, 0.34, 0.50, 1)
 [sub_resource type="Resource" id="Role_shop"]
 script = ExtResource("2_role")
 id = "visual_role.shop"
-background_color = Color(0.105, 0.090, 0.095, 1)
-accent_color = Color(0.075, 0.067, 0.070, 1)
-text_color = Color(0.98, 0.96, 0.90, 1)
-icon_color = Color(0.98, 0.96, 0.90, 1)
-use_custom_header_color = true
-header_color = Color(0.070, 0.064, 0.066, 1)
-use_custom_scribble_color = true
-scribble_color = Color(0.22, 0.25, 0.28, 0.92)
+background_color = Color(0.96, 0.925, 0.80, 1)
+accent_color = Color(0.82, 0.68, 0.38, 1)
+text_color = Color(0.075, 0.095, 0.12, 1)
+icon_color = Color(0.18, 0.14, 0.08, 1)
+use_custom_header_color = false
+header_color = Color(0.94, 0.86, 0.66, 1)
+use_custom_scribble_color = false
+scribble_color = Color(0.50, 0.38, 0.16, 0.64)
 
 [sub_resource type="Resource" id="Role_goal"]
 script = ExtResource("2_role")
@@ -119,6 +119,6 @@ shop_preview_hairline_color = Color(0.075, 0.095, 0.12, 0.20)
 shop_preview_hover_color = Color(0.20, 0.54, 0.70, 0.18)
 shop_drop_feedback_fill_color = Color(0.075, 0.095, 0.12, 0.08)
 shop_preview_text_color = Color(0.075, 0.095, 0.12, 0.78)
-shop_price_text_color = Color(0.98, 0.96, 0.90, 1)
-shop_price_icon_color = Color(0.98, 0.96, 0.90, 1)
+shop_price_text_color = Color(0.075, 0.095, 0.12, 1)
+shop_price_icon_color = Color(0.075, 0.095, 0.12, 1)
 card_roles = Array[ExtResource("2_role")]([SubResource("Role_default"), SubResource("Role_employee"), SubResource("Role_problem"), SubResource("Role_resource"), SubResource("Role_output"), SubResource("Role_product"), SubResource("Role_shop"), SubResource("Role_goal"), SubResource("Role_value_source")])

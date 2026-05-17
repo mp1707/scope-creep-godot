@@ -20,40 +20,40 @@ metadata/_custom_type_script = "uid://bxgdeoish6jpn"
 
 [node name="ShopSlots" type="Node2D" parent="BoardView"]
 
-[node name="FounderPanicSlot" type="Node2D" parent="BoardView/ShopSlots"]
+[node name="RecyclingSlot" type="Node2D" parent="BoardView/ShopSlots"]
 position = Vector2(140, 24)
+script = ExtResource("6_shopslot")
+card_definition_id = "card.shop.recycling_bin"
+
+[node name="FreelanceSlot" type="Node2D" parent="BoardView/ShopSlots"]
+position = Vector2(304, 24)
+script = ExtResource("6_shopslot")
+card_definition_id = "card.shop.freelance_order"
+
+[node name="FounderPanicSlot" type="Node2D" parent="BoardView/ShopSlots"]
+position = Vector2(468, 24)
 script = ExtResource("6_shopslot")
 card_definition_id = "card.shop.booster_slot"
 
 [node name="WellbeingSlot" type="Node2D" parent="BoardView/ShopSlots"]
-position = Vector2(304, 24)
+position = Vector2(632, 24)
 script = ExtResource("6_shopslot")
 card_definition_id = "card.shop.booster_slot.office_invest"
 
+[node name="CustomerChaosSlot" type="Node2D" parent="BoardView/ShopSlots"]
+position = Vector2(796, 24)
+script = ExtResource("6_shopslot")
+card_definition_id = "card.shop.booster_slot.customer_chaos"
+
 [node name="ExternalHelpSlot" type="Node2D" parent="BoardView/ShopSlots"]
-position = Vector2(468, 24)
+position = Vector2(960, 24)
 script = ExtResource("6_shopslot")
 card_definition_id = "card.shop.bugfix_patch_slot"
 
 [node name="TalentPoolSlot" type="Node2D" parent="BoardView/ShopSlots"]
-position = Vector2(632, 24)
-script = ExtResource("6_shopslot")
-card_definition_id = "card.shop.booster_slot.talent_pool"
-
-[node name="FreelanceSlot" type="Node2D" parent="BoardView/ShopSlots"]
-position = Vector2(796, 24)
-script = ExtResource("6_shopslot")
-card_definition_id = "card.shop.freelance_order"
-
-[node name="RecyclingSlot" type="Node2D" parent="BoardView/ShopSlots"]
-position = Vector2(960, 24)
-script = ExtResource("6_shopslot")
-card_definition_id = "card.shop.recycling_bin"
-
-[node name="CustomerChaosSlot" type="Node2D" parent="BoardView/ShopSlots"]
 position = Vector2(1124, 24)
 script = ExtResource("6_shopslot")
-card_definition_id = "card.shop.booster_slot.customer_chaos"
+card_definition_id = "card.shop.booster_slot.talent_pool"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=221388809]
 position = Vector2(960, 540)

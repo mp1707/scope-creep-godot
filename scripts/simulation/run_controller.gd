@@ -35,12 +35,12 @@ const SprintStartPipelineServiceScript: Script = preload("res://scripts/simulati
 const SpawnPlacementServiceScript: Script = preload("res://scripts/simulation/spawn_placement_service.gd")
 const DropInteractionPreviewServiceScript: Script = preload("res://scripts/simulation/drop_interaction_preview_service.gd")
 const START_SHOP_CARD_IDS: Array[String] = [
+	"card.shop.recycling_bin",
+	"card.shop.freelance_order",
 	"card.shop.booster_slot",
 	"card.shop.booster_slot.office_invest",
 	"card.shop.bugfix_patch_slot",
 	"card.shop.booster_slot.talent_pool",
-	"card.shop.freelance_order",
-	"card.shop.recycling_bin",
 ]
 
 var content: ContentCatalog = null
@@ -761,7 +761,9 @@ func _duplicate_remaining_bugs() -> void:
 func _expire_open_orders() -> void:
 	var order_ids: PackedStringArray = _find_card_ids_with_tag("order")
 	for card_id: String in order_ids:
-		_remove_card_instance(card_id)
+		var order: CardInstance = state.get_card(card_id)
+		if order != null and order.created_at_sprint < state.sprint_index:
+			_remove_card_instance(card_id)
 
 func _expire_unused_external_devs() -> void:
 	var external_dev_ids: PackedStringArray = _find_card_ids_with_tag("external_dev")

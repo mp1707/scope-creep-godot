@@ -25,5 +25,5 @@ tooltip_text = "Vielversprechende Bewerber & Studenten"
 visual = SubResource("Resource_visual")
 base_values = {
 "booster_definition_id": "booster.talent_pool",
-"shop_dock_order": 50
+"shop_dock_order": 70
 }
