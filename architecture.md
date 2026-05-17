@@ -94,10 +94,10 @@ Zustaendig fuer:
 
 `RunController` bleibt die Fassade fuer Application-Commands. Fachliche Teilbereiche werden in kleine Services ausgelagert:
 
-- `ShopInteractionService`: Instant-Shop-Kaeufe, Freelance-Auftragskauf, Recycling und gemeinsame Drop-Regeln fuer Board und Shop-Dock.
+- `ShopInteractionService`: Instant-Shop-Kaeufe inklusive Teilzahlungen und Mehrfachkaeufen mit Geldstapeln, Freelance-Auftragskauf, Recycling und gemeinsame Drop-Regeln fuer Board und Shop-Dock.
 - `HiringLifecycleService`: Angebot bezahlen, Ziel-Mitarbeiter bestimmen, Onboarding-Attachment und erste Gehaltsfaelligkeit anwenden.
 - `SprintStartPipelineService`: GDD-kritische Sprintstart-Reihenfolge zentral ausfuehren.
-- `SpawnPlacementService`: freie Spawn-Positionen und `auto_stack_on_spawn` deterministisch berechnen.
+- `SpawnPlacementService`: freie Spawn-Positionen, Same-Card-`auto_stack_on_spawn` und den kleineren Recipe-Auto-Stack-Radius fuer erzeugte Karten deterministisch berechnen.
 - `DropInteractionPreviewService`: gueltige Drop-Ziele fuer Drag-Highlights enumerieren. Der Service trifft keine eigenen Fachentscheidungen, sondern nutzt die zentrale Drop-Regelquery des `RunController`, damit Preview und tatsaechlicher Drop nicht auseinanderlaufen.
 
 ## 3. Zielstruktur
@@ -311,14 +311,16 @@ Pool-Eintraege referenzieren `CardDefinition`-IDs und Gewichte. Booster-Ziehunge
 
 ### Shop-Slots
 
-Der aktuelle Shop ist ueber permanente Shop-Slot-Karten modelliert, nicht ueber separate `ShopDefinition`-Resources. Ein Shop-Slot ist eine normale `CardDefinition` mit `shop`-Tag und optionalen `base_values` wie `booster_definition_id`, `shop_dock_order` oder `shop_price_money_cards`.
+Der aktuelle Shop ist ueber permanente Shop-Slot-Karten modelliert, nicht ueber separate `ShopDefinition`-Resources. Ein Shop-Slot ist eine normale `CardDefinition` mit `shop`-Tag und optionalen `base_values` wie `booster_definition_id`, `shop_dock_order`, `shop_price_money_cards` oder `shop_revealed`.
 
 Fachliche Regeln:
 
-- Geld auf Booster-Slot erzeugt sofort ein Boosterpack mit der referenzierten BoosterDefinition.
+- Geld auf Booster-Slot erzeugt sofort ein Boosterpack mit der referenzierten BoosterDefinition. Teure Slots akzeptieren Teilzahlungen: jede 1-Geld-Karte senkt den aktuellen Restpreis um 1, bis der Kauf ausgeloest wird; danach resetet der Preis fuer den naechsten Kauf.
+- Enthalten abgelegte Geldstapel den aktuellen Preis mehrfach, fuehrt der Shop mehrere Kaeufe in einem Command aus. Gekaufte Karten mit gleicher Definition und gleichen relevanten Kaufwerten werden dabei automatisch gestapelt.
 - Geld auf Patch-Slot erzeugt sofort einen Bugfix-Patch.
 - Geld auf Freelance-Slot erzeugt sofort eine sichtbare Auftragskarte. Wird der Auftrag in der Bezahlphase gekauft, setzt die Simulation seinen `created_at_sprint` auf den naechsten Sprint, damit er nicht sofort beim Sprintstart verfällt. Die Lieferung laeuft anschliessend als normales Recipe `Auftrag + Feature`, nicht als Shop-Command.
 - Resteverwertung verbraucht die obersten 3 `recyclable`-Karten und erzeugt 1 Geldkarte.
+- Nicht freigeschaltete permanente Shop-Slots bleiben als CardInstances sichtbar, sind aber ueber `shop_revealed = false` maskiert. Die Simulation akzeptiert dort keine Kaeufe; Presentation zeigt Titel `??????`, Fragezeichen-Icon und keinen Preis.
 
 Diese Interaktionen sind Simulation-Commands, keine Processing-Recipes. `ShopInteractionService` kapselt Kauf-, Recycling- und Drop-Regeln; Presentation darf nur fragen, ob ein Drop visuell erlaubt ist.
 
@@ -339,7 +341,8 @@ Beispiele:
 - Board-Snap-Distanz
 - Stack-Offset
 - Spawn-Placement-Radius
-- Auto-Stack-Radius fuer gespawnte Karten
+- Auto-Stack-Radius fuer gleiche gespawnte Karten
+- kleinerer Recipe-Auto-Stack-Radius fuer erzeugte Karten, die direkt neben einem passenden Recipe-Ziel entstehen
 - MVP-Feature-Schwelle
 - Freelance-Auftragskosten und -Auszahlung
 - Business-Goal-Werte
@@ -673,6 +676,8 @@ Neue Karten spawnen an einer freien Position nahe der Quelle. Der Placement-Serv
 Boosterpacks nutzen eine eigene freie Slot-Suche um das Pack herum: zuerst 12 Uhr, danach im Uhrzeigersinn ueber obere rechte, rechte, untere rechte, untere, untere linke, linke und obere linke Position; belegte Plaetze werden uebersprungen, danach wird der naechste Ring gesucht.
 
 CardDefinitions koennen `auto_stack_on_spawn` aktivieren. Solche Karten werden beim Spawn auf einen nahen reinen Stack derselben CardDefinition gelegt, wenn dessen Basisposition innerhalb des Balancing-Werts `auto_stack_spawn_radius` liegt. Mitarbeiterkarten lassen dieses Flag deaktiviert und spawnen dadurch immer als eigener Stack.
+
+Zusaetzlich prueft `SpawnPlacementService` fuer normale Simulation-Spawns einen kleineren `recipe_auto_stack_spawn_radius`: Wenn die erzeugte Karte mit einem nahen vorhandenen Stack sofort ein Recipe bilden wuerde, wird sie direkt auf diesen Stack gelegt und das Processing startet bzw. laeuft weiter. Boosterpack-Oeffnungen nutzen diese Recipe-Auto-Stack-Regel nicht, damit Packs nicht ungewollt Start- oder Loot-Karten in Arbeitsstacks ziehen; Same-Card-Autostacking bleibt dort aktiv.
 
 Der Placement-Service ist Teil der Board-Simulation oder ein deterministic helper. Presentation darf die Spawn-Position animieren, aber nicht eigenmaechtig andere Zielpositionen waehlen.
 

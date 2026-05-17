@@ -9,7 +9,8 @@ func _init() -> void:
 	_test_feature_preview_marks_software_and_order_not_freelance()
 	_test_money_preview_marks_freelance_order_shop()
 	_test_recycling_preview_requires_three_recyclable_cards()
-	_test_insufficient_money_does_not_mark_expensive_shop_slot()
+	_test_partial_money_preview_marks_expensive_shop_slot()
+	_test_hidden_shop_slot_does_not_preview_payment()
 	_test_preview_matches_controller_drop_query_for_all_stacks()
 
 	if _failed:
@@ -117,14 +118,23 @@ func _test_recycling_preview_requires_three_recyclable_cards() -> void:
 	var three_card_preview: PackedStringArray = controller.get_drop_interaction_preview_stack_ids(first.instance_id)
 	_assert_true(three_card_preview.has(recycling_bin.stack_id), "Three recyclable cards should preview the recycling bin.")
 
-func _test_insufficient_money_does_not_mark_expensive_shop_slot() -> void:
+func _test_partial_money_preview_marks_expensive_shop_slot() -> void:
 	var controller: RunController = _create_controller(60.0)
 	var state: RunState = _start_run_with_opened_startup(controller, 2007)
 	var money: CardInstance = _spawn_card(controller, "card.resource.money", Vector2(5000.0, 5000.0))
 	var talent_pool: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.talent_pool")
 
 	var preview: PackedStringArray = controller.get_drop_interaction_preview_stack_ids(money.instance_id)
-	_assert_true(not preview.has(talent_pool.stack_id), "One money card should not preview the two-money Talent-Pool slot.")
+	_assert_true(preview.has(talent_pool.stack_id), "One money card should preview the two-money Talent-Pool slot as a partial payment.")
+
+func _test_hidden_shop_slot_does_not_preview_payment() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = _start_run_with_opened_startup(controller, 2011)
+	var money: CardInstance = _find_top_card_by_definition(state, "card.resource.money")
+	var customer_chaos: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.customer_chaos")
+
+	var preview: PackedStringArray = controller.get_drop_interaction_preview_stack_ids(money.instance_id)
+	_assert_true(not preview.has(customer_chaos.stack_id), "Hidden shop slots should not preview payment.")
 
 func _test_preview_matches_controller_drop_query_for_all_stacks() -> void:
 	var controller: RunController = _create_controller(60.0)
@@ -154,7 +164,7 @@ func _start_run_with_opened_startup(controller: RunController, run_seed: int) ->
 	return state
 
 func _spawn_card(controller: RunController, definition_id: String, position: Vector2) -> CardInstance:
-	return controller.call("_spawn_card_as_new_stack", definition_id, position) as CardInstance
+	return controller.call("_spawn_card_as_new_stack", definition_id, position, false) as CardInstance
 
 func _find_card_by_definition(state: RunState, definition_id: String) -> CardInstance:
 	for card: CardInstance in state.cards.values():

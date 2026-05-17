@@ -46,6 +46,17 @@ func _init() -> void:
 	view.set_visual_hovered(false)
 	_assert_true(price_root.visible, "Shop price should stay visible after hover ends.")
 
+	var hidden_shop_definition: CardDefinition = content.get_card_definition("card.shop.booster_slot.customer_chaos")
+	_assert_true(hidden_shop_definition != null, "Customer chaos shop definition should exist.")
+	var hidden_shop_card: CardInstance = _create_test_card(hidden_shop_definition)
+	hidden_shop_card.values["shop_revealed"] = false
+	var hidden_shop_stack: StackState = _create_test_stack(hidden_shop_card)
+	view.setup(hidden_shop_card, hidden_shop_definition, hidden_shop_stack)
+	var icon_texture_rect: TextureRect = view.get_node("VisualRoot/IconTextureRect") as TextureRect
+	_assert_equal(title_label.text, "??????", "Hidden shop cards should show the masked title.")
+	_assert_true(not price_root.visible, "Hidden shop cards should not show a price.")
+	_assert_true(icon_texture_rect.texture != null and icon_texture_rect.texture.resource_path.ends_with("questionmark.png"), "Hidden shop cards should use the questionmark icon.")
+
 	view.free()
 	if _failed:
 		quit(1)

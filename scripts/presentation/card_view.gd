@@ -21,6 +21,9 @@ const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
 const CARD_PAPER_TEXTURE_PATH: String = "res://assets/card/paperTexture.png"
 const ICON_SCRIBBLE_TEXTURE_PATH: String = "res://assets/icons/handdrawn/ui/scribbleCricle.png"
 const SHOP_PRICE_ICON_TEXTURE_PATH: String = "res://assets/icons/handdrawn/smallIcons/moneySmall.png"
+const HIDDEN_SHOP_ICON_TEXTURE_PATH: String = "res://assets/icons/handdrawn/cardIcons/questionmark.png"
+const SHOP_REVEALED_VALUE: String = "shop_revealed"
+const SHOP_REMAINING_PRICE_VALUE: String = "shop_remaining_price_money_cards"
 const TITLE_MAX_FONT_SIZE: int = 18
 const TITLE_MIN_FONT_SIZE: int = 8
 const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 100.0)
@@ -39,6 +42,8 @@ static var _shared_icon_scribble_texture: Texture2D = null
 static var _icon_scribble_texture_load_attempted: bool = false
 static var _shared_shop_price_icon_texture: Texture2D = null
 static var _shop_price_icon_texture_load_attempted: bool = false
+static var _shared_hidden_shop_icon_texture: Texture2D = null
+static var _hidden_shop_icon_texture_load_attempted: bool = false
 
 @export var visual_root_path: NodePath = NodePath("VisualRoot")
 @export var shadow_path: NodePath = NodePath("VisualRoot/CardShadow")
@@ -175,6 +180,7 @@ func setup(card: CardInstance, definition: CardDefinition, stack: StackState) ->
 func update_runtime(card: CardInstance, _stack: StackState, definition: CardDefinition = null) -> void:
 	card_id = card.instance_id
 	stack_id = card.stack_id
+	_update_hidden_shop_presentation(card, definition)
 	_update_runtime_marker(card, definition)
 	_update_runtime_short_text(card, definition)
 	_update_shop_price(card, definition)
@@ -576,6 +582,15 @@ func _get_shop_price_icon_texture() -> Texture2D:
 	_shared_shop_price_icon_texture = ResourceLoader.load(SHOP_PRICE_ICON_TEXTURE_PATH) as Texture2D
 	return _shared_shop_price_icon_texture
 
+func _get_hidden_shop_icon_texture() -> Texture2D:
+	if _shared_hidden_shop_icon_texture != null:
+		return _shared_hidden_shop_icon_texture
+	if _hidden_shop_icon_texture_load_attempted:
+		return null
+	_hidden_shop_icon_texture_load_attempted = true
+	_shared_hidden_shop_icon_texture = ResourceLoader.load(HIDDEN_SHOP_ICON_TEXTURE_PATH) as Texture2D
+	return _shared_hidden_shop_icon_texture
+
 func _apply_header_hairline_style() -> void:
 	if _header_hairline == null:
 		return
@@ -622,6 +637,8 @@ func _update_runtime_short_text(card: CardInstance, definition: CardDefinition) 
 	_short_text_label.visible = false
 	if definition == null:
 		return
+	if _is_hidden_shop(card, definition):
+		return
 	if definition.tags.has("business_goal"):
 		_short_text_label.text = "Goal %d\n%d/%d Geld" % [
 			maxi(1, int(card.values.get("goal_index", 1))),
@@ -649,7 +666,9 @@ func _update_shop_price(card: CardInstance, definition: CardDefinition) -> void:
 	_shop_price_root.visible = false
 	if definition == null or not definition.tags.has("shop"):
 		return
-	var price: int = int(card.values.get("shop_price_money_cards", definition.base_values.get("shop_price_money_cards", 0)))
+	if _is_hidden_shop(card, definition):
+		return
+	var price: int = int(card.values.get(SHOP_REMAINING_PRICE_VALUE, card.values.get("shop_price_money_cards", definition.base_values.get("shop_price_money_cards", 0))))
 	if price <= 0:
 		return
 	_shop_price_label.text = str(price)
@@ -701,6 +720,10 @@ func _apply_marker_style(card: CardInstance, marker_text: String) -> void:
 	_marker_label.add_theme_stylebox_override("normal", style_box)
 
 func _update_tooltip(card: CardInstance, definition: CardDefinition) -> void:
+	if _is_hidden_shop(card, definition):
+		_set_card_tooltip_text("")
+		return
+
 	var details: PackedStringArray = PackedStringArray()
 	var base_text: String = definition.tooltip_text if not definition.tooltip_text.is_empty() else definition.short_text
 	if definition.tags.has("software"):
@@ -733,6 +756,27 @@ func _update_tooltip(card: CardInstance, definition: CardDefinition) -> void:
 		_set_card_tooltip_text("\n".join(details))
 	else:
 		_set_card_tooltip_text("%s\n%s" % [base_text, "\n".join(details)])
+
+func _update_hidden_shop_presentation(card: CardInstance, definition: CardDefinition) -> void:
+	if not _is_hidden_shop(card, definition):
+		return
+	_title_label.text = "??????"
+	_fit_title_to_single_line()
+	var hidden_icon: Texture2D = _get_hidden_shop_icon_texture()
+	_icon_texture_rect.texture = hidden_icon
+	_icon_texture_rect.visible = hidden_icon != null
+	if hidden_icon != null and definition != null and definition.visual != null:
+		_icon_texture_rect.size = definition.visual.icon_size
+		_icon_texture_rect.position = DEFAULT_ICON_CENTER - (definition.visual.icon_size * 0.5) + definition.visual.icon_offset
+		_icon_texture_rect.self_modulate = Color.WHITE
+		_icon_texture_rect.material = _get_icon_mask_material()
+		_icon_mask_material.set_shader_parameter("icon_color", _get_card_icon_color(definition.visual))
+		_apply_icon_scribble_style(definition.visual)
+
+func _is_hidden_shop(card: CardInstance, definition: CardDefinition) -> bool:
+	if card == null or definition == null or not definition.tags.has("shop"):
+		return false
+	return not bool(card.values.get(SHOP_REVEALED_VALUE, definition.base_values.get(SHOP_REVEALED_VALUE, true)))
 
 func _set_card_tooltip_text(text: String) -> void:
 	_custom_tooltip_text = text.strip_edges()

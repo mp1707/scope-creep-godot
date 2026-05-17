@@ -8,6 +8,8 @@ const RECYCLING_BIN_DEFINITION_ID: String = "card.shop.recycling_bin"
 const FREELANCE_SLOT_DEFINITION_ID: String = "card.shop.freelance_order"
 const MONEY_DEFINITION_ID: String = "card.resource.money"
 const ORDER_DEFINITION_ID: String = "card.value_source.order"
+const SHOP_REVEALED_VALUE: String = "shop_revealed"
+const SHOP_REMAINING_PRICE_VALUE: String = "shop_remaining_price_money_cards"
 const RECYCLABLE_TAG: String = "recyclable"
 const RECYCLING_CARD_COUNT: int = 3
 
@@ -42,32 +44,39 @@ func try_buy_shop_with_money_stack(
 	if purchase.is_empty():
 		return false
 
-	var cost_money_cards: int = purchase["cost_money_cards"] as int
-	if moving_card_ids.size() < cost_money_cards:
+	var base_cost_money_cards: int = purchase["cost_money_cards"] as int
+	if base_cost_money_cards <= 0:
 		return false
 
-	var consumed_money_ids: PackedStringArray = PackedStringArray()
-	var leftover_money_ids: PackedStringArray = PackedStringArray()
-	for index: int in moving_card_ids.size():
-		if index < cost_money_cards:
-			consumed_money_ids.append(moving_card_ids[index])
-		else:
-			leftover_money_ids.append(moving_card_ids[index])
-
-	for consumed_money_id: String in consumed_money_ids:
-		consume_money_card.call(consumed_money_id)
+	var remaining_price: int = _get_remaining_shop_price(target_shop_card, base_cost_money_cards)
+	var purchase_count: int = 0
+	var applied_money_count: int = moving_card_ids.size()
+	while applied_money_count > 0:
+		var paid_now: int = mini(applied_money_count, remaining_price)
+		applied_money_count -= paid_now
+		remaining_price -= paid_now
+		if remaining_price <= 0:
+			purchase_count += 1
+			remaining_price = base_cost_money_cards
 
 	var spawned_card_definition_id: String = purchase["spawned_card_definition_id"] as String
-	var spawned_card: CardInstance = spawn_card.call(spawned_card_definition_id, get_spawn_position.call(target_stack.stack_id, 0)) as CardInstance
-	if spawned_card != null:
-		if purchase.has("created_at_sprint"):
-			spawned_card.created_at_sprint = int(purchase["created_at_sprint"])
-		var copied_values: Dictionary = purchase.get("values", {}) as Dictionary
-		for key: Variant in copied_values.keys():
-			spawned_card.values[key] = copied_values[key]
+	var copied_values: Dictionary = purchase.get("values", {}) as Dictionary
+	for consumed_money_id: String in moving_card_ids:
+		consume_money_card.call(consumed_money_id)
 
-	if not leftover_money_ids.is_empty():
-		move_existing_cards.call(leftover_money_ids, get_spawn_position.call(target_stack.stack_id, 1))
+	for purchase_index: int in purchase_count:
+		var spawned_card: CardInstance = spawn_card.call(
+			spawned_card_definition_id,
+			get_spawn_position.call(target_stack.stack_id, 0),
+			copied_values
+		) as CardInstance
+		if spawned_card != null and purchase.has("created_at_sprint"):
+			spawned_card.created_at_sprint = int(purchase["created_at_sprint"])
+
+	if remaining_price >= base_cost_money_cards:
+		target_shop_card.values.erase(SHOP_REMAINING_PRICE_VALUE)
+	else:
+		target_shop_card.values[SHOP_REMAINING_PRICE_VALUE] = remaining_price
 
 	emit_stack_changed.call(target_stack.stack_id)
 	return true
@@ -128,9 +137,11 @@ func can_drop_card_on_shop(card_id: String, moving_card_count: int, shop_card: C
 	if moving_card_ids.size() != moving_card_count:
 		return false
 	if is_recycling_bin_card(shop_card):
+		if not is_shop_revealed(shop_card):
+			return false
 		return moving_card_ids.size() >= RECYCLING_CARD_COUNT and are_all_recyclable_cards(moving_card_ids)
 
-	return are_all_cards_tagged(moving_card_ids, "money") and moving_card_ids.size() >= get_shop_purchase_cost(shop_card)
+	return is_shop_revealed(shop_card) and are_all_cards_tagged(moving_card_ids, "money")
 
 func get_moving_card_ids(card_id: String) -> PackedStringArray:
 	var result: PackedStringArray = PackedStringArray()
@@ -167,6 +178,12 @@ func is_recycling_bin_card(card: CardInstance) -> bool:
 func is_freelance_slot_card(card: CardInstance) -> bool:
 	return card != null and card.definition_id == FREELANCE_SLOT_DEFINITION_ID
 
+func is_shop_revealed(shop_card: CardInstance) -> bool:
+	var definition: CardDefinition = _get_definition(shop_card)
+	if definition == null or not definition.tags.has("shop"):
+		return false
+	return bool(shop_card.values.get(SHOP_REVEALED_VALUE, definition.base_values.get(SHOP_REVEALED_VALUE, true)))
+
 func is_money_card(card: CardInstance) -> bool:
 	var definition: CardDefinition = _get_definition(card)
 	return definition != null and definition.tags.has("money")
@@ -196,6 +213,8 @@ func are_all_recyclable_cards(card_ids: PackedStringArray) -> bool:
 func get_shop_purchase(shop_card: CardInstance) -> Dictionary:
 	var definition: CardDefinition = _get_definition(shop_card)
 	if definition == null:
+		return {}
+	if not is_shop_revealed(shop_card):
 		return {}
 
 	if is_freelance_slot_card(shop_card):
@@ -237,7 +256,7 @@ func get_shop_purchase_cost(shop_card: CardInstance) -> int:
 	var purchase: Dictionary = get_shop_purchase(shop_card)
 	if purchase.is_empty():
 		return 100000
-	return purchase["cost_money_cards"] as int
+	return _get_remaining_shop_price(shop_card, purchase["cost_money_cards"] as int)
 
 func _can_interact_with_board() -> bool:
 	return state != null and (state.phase == ScopeEnums.RunPhase.SPRINT or state.phase == ScopeEnums.RunPhase.PAYMENT)
@@ -246,6 +265,10 @@ func _get_freelance_order_cost_money_cards() -> int:
 	if content == null or content.balance == null:
 		return 1
 	return maxi(1, content.balance.freelance_order_cost_money_cards)
+
+func _get_remaining_shop_price(shop_card: CardInstance, base_cost_money_cards: int) -> int:
+	var safe_base_cost: int = maxi(1, base_cost_money_cards)
+	return clampi(int(shop_card.values.get(SHOP_REMAINING_PRICE_VALUE, safe_base_cost)), 1, safe_base_cost)
 
 func _get_definition(card: CardInstance) -> CardDefinition:
 	if card == null or content == null:

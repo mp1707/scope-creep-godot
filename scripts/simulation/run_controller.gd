@@ -11,6 +11,7 @@ const DEFAULT_BOOSTER_DEFINITION_ID: String = "booster.founder.test_pack"
 const CONTENT_VERSION: String = "poc_cleanup1"
 const BOOSTER_DEFINITION_ID_VALUE: String = "booster_definition_id"
 const BOOSTER_REMAINING_CARD_IDS_VALUE: String = "booster_remaining_card_ids"
+const SHOP_REVEALED_VALUE: String = "shop_revealed"
 const BURNOUT_ATTACHMENT_SLOT: String = "burnout"
 const UNHAPPY_CUSTOMER_ATTACHMENT_SLOT: String = "unhappy_customer"
 const ONBOARDING_ATTACHMENT_SLOT: String = "onboarding"
@@ -39,6 +40,7 @@ const START_SHOP_CARD_IDS: Array[String] = [
 	"card.shop.freelance_order",
 	"card.shop.booster_slot",
 	"card.shop.booster_slot.office_invest",
+	"card.shop.booster_slot.customer_chaos",
 	"card.shop.bugfix_patch_slot",
 	"card.shop.booster_slot.talent_pool",
 ]
@@ -84,10 +86,10 @@ func start_new_run(run_seed: int = 1) -> RunState:
 	state.active_timers[SPRINT_TIMER_ID] = _get_sprint_duration()
 	_shop_interactions.setup(state, content)
 	_hiring_lifecycle.setup(state, content)
-	_spawn_placement.setup(state, content)
+	_spawn_placement.setup(state, content, _recipe_engine)
 	_drop_interaction_preview.call("setup", state, Callable(self, "can_move_card_to_stack"))
 
-	var startup_pack: CardInstance = _spawn_card_as_new_stack(STARTUP_BOOSTER_PACK_DEFINITION_ID, STARTUP_BOOSTER_POSITION)
+	var startup_pack: CardInstance = _spawn_card_as_new_stack(STARTUP_BOOSTER_PACK_DEFINITION_ID, STARTUP_BOOSTER_POSITION, false)
 	if startup_pack != null:
 		_get_or_create_booster_remaining_card_ids(startup_pack)
 
@@ -95,14 +97,14 @@ func start_new_run(run_seed: int = 1) -> RunState:
 		var column: int = index % START_LAYOUT_COLUMNS
 		var row: int = floori(float(index) / float(START_LAYOUT_COLUMNS))
 		var position: Vector2 = START_LAYOUT_ORIGIN + Vector2(float(column), float(row)) * START_LAYOUT_STEP
-		_spawn_card_as_new_stack(START_SHOP_CARD_IDS[index], position)
+		_spawn_card_as_new_stack(START_SHOP_CARD_IDS[index], position, false)
 
 	for checked_feature_index: int in START_CHECKED_FEATURE_CARD_COUNT:
 		var layout_index: int = START_SHOP_CARD_IDS.size() + checked_feature_index
 		var column: int = layout_index % START_LAYOUT_COLUMNS
 		var row: int = floori(float(layout_index) / float(START_LAYOUT_COLUMNS))
 		var position: Vector2 = START_LAYOUT_ORIGIN + Vector2(float(column), float(row)) * START_LAYOUT_STEP
-		_spawn_card_as_new_stack(CHECKED_FEATURE_DEFINITION_ID, position)
+		_spawn_card_as_new_stack(CHECKED_FEATURE_DEFINITION_ID, position, false)
 	_product_lifecycle.ensure_software_defaults(state, _get_mvp_required_features())
 	var software: CardInstance = get_software_card()
 	if software != null:
@@ -147,7 +149,7 @@ func load_run(loaded_state: RunState) -> void:
 	state = loaded_state
 	_shop_interactions.setup(state, content)
 	_hiring_lifecycle.setup(state, content)
-	_spawn_placement.setup(state, content)
+	_spawn_placement.setup(state, content, _recipe_engine)
 	_drop_interaction_preview.call("setup", state, Callable(self, "can_move_card_to_stack"))
 	_rng.seed = state.rng_seed
 	_rng.state = state.rng_state
@@ -377,7 +379,7 @@ func _try_buy_shop_with_money_stack(card: CardInstance, moving_card_ids: PackedS
 		moving_card_ids,
 		target_stack,
 		Callable(self, "_consume_money_card"),
-		Callable(self, "_spawn_card_as_new_stack"),
+		Callable(self, "_spawn_purchased_card"),
 		Callable(self, "_move_existing_cards_to_new_stack"),
 		Callable(self, "_get_spawn_position_near_stack"),
 		Callable(self, "_emit_stack_changed")
@@ -542,7 +544,7 @@ func open_booster_pack_step(card_id: String) -> bool:
 	booster_pack.values[BOOSTER_REMAINING_CARD_IDS_VALUE] = remaining_card_ids
 	_set_booster_pack_marker(booster_pack, remaining_card_ids.size())
 
-	_spawn_card_as_new_stack(spawned_card_definition_id, _get_booster_spawn_position_near_stack(booster_pack.stack_id))
+	_spawn_card_as_new_stack(spawned_card_definition_id, _get_booster_spawn_position_near_stack(booster_pack.stack_id), false)
 	if remaining_card_ids.is_empty():
 		_remove_card_instance(booster_pack.instance_id)
 	else:
@@ -1229,16 +1231,29 @@ func _execute_effects(
 	context.spawn_card = Callable(self, "_spawn_card_as_new_stack")
 	context.remove_card = Callable(self, "_remove_card_instance")
 	context.get_spawn_position = Callable(self, "_get_spawn_position_near_stack")
+	context.reveal_shop_slot = Callable(self, "_reveal_shop_slot")
 	_effect_pipeline.execute(effects, context)
 	state.rng_state = _rng.state
 
-func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> CardInstance:
+func _spawn_card_as_new_stack(
+	card_definition_id: String,
+	position: Vector2,
+	allow_recipe_auto_stack: bool = true
+) -> CardInstance:
+	return _spawn_card_as_new_stack_with_values(card_definition_id, position, {}, allow_recipe_auto_stack)
+
+func _spawn_card_as_new_stack_with_values(
+	card_definition_id: String,
+	position: Vector2,
+	extra_values: Dictionary,
+	allow_recipe_auto_stack: bool = true
+) -> CardInstance:
 	if not content.has_card_definition(card_definition_id):
 		push_error("Missing card definition: %s" % card_definition_id)
 		return null
 
 	var definition: CardDefinition = content.get_card_definition(card_definition_id)
-	var stack: StackState = _find_auto_stack_spawn_target(definition, position)
+	var stack: StackState = _find_auto_stack_spawn_target(definition, position, allow_recipe_auto_stack)
 	var was_stacked_on_spawn: bool = stack != null
 	if stack == null:
 		stack = _create_stack(position)
@@ -1253,6 +1268,8 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 	card.created_at_sprint = state.sprint_index
 	if definition != null:
 		card.values = definition.base_values.duplicate(true)
+	for key: Variant in extra_values.keys():
+		card.values[key] = extra_values[key]
 	_product_lifecycle.ensure_card_defaults(card, _get_mvp_required_features())
 	stack.card_ids.append(card.instance_id)
 	state.cards[card.instance_id] = card
@@ -1263,6 +1280,60 @@ func _spawn_card_as_new_stack(card_definition_id: String, position: Vector2) -> 
 	if card.definition_id == CUSTOMER_DEFINITION_ID:
 		_spawn_initial_customer_cards(card)
 	return card
+
+func _spawn_purchased_card(card_definition_id: String, position: Vector2, extra_values: Dictionary) -> CardInstance:
+	var target_stack: StackState = _spawn_placement.find_compatible_purchase_stack_target(
+		card_definition_id,
+		position,
+		extra_values
+	)
+	if target_stack != null:
+		return _spawn_card_on_existing_stack(card_definition_id, target_stack.stack_id, extra_values)
+	return _spawn_card_as_new_stack_with_values(card_definition_id, position, extra_values, false)
+
+func _spawn_card_on_existing_stack(
+	card_definition_id: String,
+	target_stack_id: String,
+	extra_values: Dictionary
+) -> CardInstance:
+	if not content.has_card_definition(card_definition_id):
+		push_error("Missing card definition: %s" % card_definition_id)
+		return null
+	if not state.stacks.has(target_stack_id):
+		return null
+
+	var definition: CardDefinition = content.get_card_definition(card_definition_id)
+	var stack: StackState = _get_existing_stack(target_stack_id)
+	var card: CardInstance = CardInstance.new()
+	card.instance_id = _create_card_instance_id()
+	card.definition_id = card_definition_id
+	card.stack_id = stack.stack_id
+	card.position = stack.base_position
+	card.created_at_sprint = state.sprint_index
+	if definition != null:
+		card.values = definition.base_values.duplicate(true)
+	for key: Variant in extra_values.keys():
+		card.values[key] = extra_values[key]
+	_product_lifecycle.ensure_card_defaults(card, _get_mvp_required_features())
+	stack.card_ids.append(card.instance_id)
+	state.cards[card.instance_id] = card
+
+	_emit(SimulationEvent.card_spawned(card.instance_id, stack.stack_id, card.definition_id, true))
+	_emit(SimulationEvent.stack_changed(stack.stack_id))
+	_refresh_stack_recipe_if_present(stack.stack_id)
+	if card.definition_id == CUSTOMER_DEFINITION_ID:
+		_spawn_initial_customer_cards(card)
+	return card
+
+func _reveal_shop_slot(card_definition_id: String) -> bool:
+	var revealed_any: bool = false
+	for card: CardInstance in state.cards.values():
+		if card.definition_id != card_definition_id:
+			continue
+		card.values[SHOP_REVEALED_VALUE] = true
+		revealed_any = true
+		_emit(SimulationEvent.stack_changed(card.stack_id))
+	return revealed_any
 
 func _spawn_initial_customer_cards(customer: CardInstance) -> void:
 	if customer == null or not _is_software_live():
@@ -1283,8 +1354,12 @@ func _spawn_initial_customer_cards(customer: CardInstance) -> void:
 func _get_spawn_position_near_position(source_position: Vector2, spawn_index: int = 0) -> Vector2:
 	return _spawn_placement.get_spawn_position_near_position(source_position, spawn_index)
 
-func _find_auto_stack_spawn_target(definition: CardDefinition, position: Vector2) -> StackState:
-	return _spawn_placement.find_auto_stack_spawn_target(definition, position)
+func _find_auto_stack_spawn_target(
+	definition: CardDefinition,
+	position: Vector2,
+	allow_recipe_auto_stack: bool = true
+) -> StackState:
+	return _spawn_placement.find_auto_stack_spawn_target(definition, position, allow_recipe_auto_stack)
 
 func _spawn_attached_card(parent_card_id: String, card_definition_id: String, attachment_slot: String) -> CardInstance:
 	if not content.has_card_definition(card_definition_id):

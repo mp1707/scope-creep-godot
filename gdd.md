@@ -1164,6 +1164,8 @@ Spieler darf alle 3 Karten aus einem geöffneten Pack behalten. Boosterpacks sin
 
 Ausnahme: Das Startpack **Dein Startup** ist ein fixes Boosterpack mit Sternsymbol. Es liegt zu Run-Beginn allein auf dem Board und kann 8× geöffnet werden: Software, Entwickler, Idee, Kaffee, Geld, Geld, Geld, Geld.
 
+Shop-Slots sind permanente Karten. Noch nicht freigeschaltete Slots bleiben sichtbar, zeigen aber nur `??????`, ein Fragezeichen-Icon und keinen Preis. Solche Slots nehmen keine Zahlungen an, bis ein Spielereignis sie freischaltet.
+
 ### 13.2 Pack-Themen (Prototyp)
 
 | Pack              | Inhalte (Pool)                                                            | Strategischer Sinn                                              |
@@ -1188,6 +1190,8 @@ Klick auf Boosterpack → 1 Karte aus Pack-Pool; nach 3 Klicks verschwindet das 
 ```
 
 Auch Kauf und Bezahlung bleiben kartig.
+
+Jede Geldkarte zählt einzeln. Teurere Shop-Karten können deshalb auch teilweise bezahlt werden: Kostet ein Slot 2 Geld und der Spieler legt 1 Geld darauf, sinkt der aktuelle Restpreis auf 1. Sobald der Restpreis bezahlt ist, entsteht das Ergebnis und der Preis resetet für den nächsten Kauf. Enthält ein abgelegter Geldstapel den Preis mehrfach, werden mehrere Käufe in einem Schritt ausgeführt. Mehrere gekaufte Ergebnisse derselben Art, z. B. Boosterpacks, stapeln sich automatisch.
 
 ---
 
@@ -1341,6 +1345,7 @@ Schnelle Lösung, die später Arbeit verursacht.
 - Ergebnis- und Spawn-Karten erscheinen an einer freien Position nahe der verarbeiteten Karten. Sie sollen nichts verdecken und nicht unter einer bestehenden Karte spawnen.
 - Boosterpacks nutzen beim Oeffnen eine feste freie Slot-Suche um das Pack herum: zuerst 12 Uhr, danach im Uhrzeigersinn ueber obere rechte, rechte, untere rechte, untere, untere linke, linke und obere linke Position. Belegte Plaetze werden uebersprungen; danach wird der naechste Ring gesucht.
 - Bestimmte Karten dürfen beim Spawn automatisch auf einen nahen reinen Stapel derselben Karte gelegt werden, wenn die CardDefinition das erlaubt. Geld nutzt dieses Verhalten; Mitarbeiterkarten wie Entwickler, Externer Dev, Product Owner und Tester spawnen nicht automatisch aufeinander.
+- Normale Simulation-Spawns prüfen zusätzlich einen kleineren Recipe-Auto-Stack-Radius: Wenn die neu erzeugte Karte direkt neben einem Stack entsteht, mit dem sie ein Recipe bildet, wird sie sofort darauf gelegt. Beispiel: Erzeugt ein Entwickler eine Funktion und direkt daneben liegt ein Tester, stackt die Funktion auf den Tester und die Prüfung kann direkt weiterlaufen. Boosterpack-Oeffnungen nutzen diese Recipe-Auto-Stack-Regel nicht, damit Pack-Inhalte nicht ungewollt Arbeitsstacks starten.
 - **Kamera-Steuerung:**
   - Maus-**Edge-Pan** (RTS-Stil): Maus an den Bildschirmrand bewegt die Kamera.
   - **Scrollrad** zoomt rein und raus.

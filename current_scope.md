@@ -24,11 +24,13 @@ Der Run startet als Pre-Launch-MVP. Auf dem Board liegt im aktuellen Startsetup 
 
 - `Dein Startup` mit Sternsymbol und 8 Oeffnungen.
 - Beim Oeffnen erscheinen in fixer Reihenfolge: Software mit MVP-Fortschritt `0 / 5 Features`, Entwickler, Idee, Kaffee, vier einzelne Geldkarten.
-- Shop-/Booster-Zugaenge fuer Gruenderpanik, Wohlbefinden, Talent-Pool, externen Bugfix, Freelance-Auftrag und Resteverwertung bleiben als Dock-Interaktionen live. Kundenchaos wird nach Launch als zusaetzlicher Dock-Zugang aktiviert.
+- Shop-/Booster-Zugaenge fuer Gruenderpanik, Wohlbefinden, Talent-Pool, externen Bugfix, Freelance-Auftrag, Resteverwertung und spaetere Slots liegen von Beginn an als feste Shop-Karten auf dem Board. Noch nicht freigeschaltete Slots wie Kundenchaos sind maskiert: Titel `??????`, Fragezeichen-Icon und kein Preis; nach Launch wird der bestehende Slot freigeschaltet statt neu gespawnt.
 
 Geld ist wie im GDD vorgesehen keine Zahl im UI. Eine Geldkarte entspricht immer genau 1 Geld.
 
 Der Spieler kann Karten per Drag-and-Drop bewegen, stapeln und wieder auseinanderziehen. Passende Stacks starten automatisch Processing mit Aktionstext und Fortschritt. Nicht passende Zusatzkarten machen idle Stacks neutral; der Stack bleibt trotzdem bewegbar und organisierbar. Auf laufenden Stacks brechen neutrale Zusatzkarten den Fortschritt nicht mehr ab, solange die aktiven Input-Karten im Stapel bleiben. Wenn mehrere passende Aufgaben auf einem aktiven Mitarbeiter- oder Zielstack liegen, wird die unterste Aufgabe zuerst bearbeitet. Oberhalb gestapelte weitere Aufgaben bleiben in der Warteschlange und brechen die laufende Bearbeitung nicht ab.
+
+Erzeugte Karten koennen sich direkt auf einen nahen Stack legen, wenn sie dort sofort ein Recipe bilden. Der Radius ist kleiner als das bestehende Same-Card-Autostacking fuer Karten wie Geld. Dadurch kann z. B. eine erzeugte Funktion direkt auf einen nahen Tester stacken und dort die Pruefung starten.
 
 ## Aktueller Run-Bogen
 
@@ -232,9 +234,11 @@ Aktuelle Shop-/Booster-Richtungen:
 - Sidehustle: kostet 1 Geld, erzeugt eine sprintgebundene Auftragskarte; in der Bezahlphase gilt der Auftrag fuer den naechsten Sprint.
 - Inspiration: kostet 1 Geld, zieht 2 Karten aus Ideen und Kaffee, kein Geld.
 - Mitarbeiter Goodies: kostet 1 Geld, zieht Kaffee, Kaffeemaschine, Pizza Party oder Stressbewaeltigungskurs.
-- Kundenchaos: existiert als Content und kann nach Launch durch Launch-/Shop-Setup relevant werden.
+- Kundenchaos: liegt von Beginn an maskiert im Shop und wird nach Launch sichtbar.
 - Externe Hilfe: kostet 1 Geld, erzeugt einen gezielten Bugfix-Patch.
 - Neue Mitarbeiter: kostet 2 Geld, zieht Bewerber oder Werkstudenten.
+
+Teure Shop-Slots akzeptieren Teilzahlungen: 1 Geld auf Neue Mitarbeiter senkt den Restpreis von 2 auf 1; die naechste 1-Geld-Karte loest den Kauf aus und resetet den Preis fuer den naechsten Kauf. Geldstapel kaufen mehrfach, wenn sie den Preis mehrfach bezahlen koennen. Die gekauften Karten, z. B. mehrere Boosterpacks, stapeln sich automatisch.
 
 Booster-Ziehungen laufen ueber deterministischen Run-RNG und sind dadurch test- und save-kompatibel.
 

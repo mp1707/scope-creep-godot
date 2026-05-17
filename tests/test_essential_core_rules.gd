@@ -15,6 +15,8 @@ func _init() -> void:
 	_test_booster_draws_are_deterministic()
 	_test_founder_panic_booster_pool_contains_only_ideas_and_coffee()
 	_test_talent_pool_costs_two_money_and_draws_no_regular_employee()
+	_test_expensive_shop_slots_accept_partial_payments()
+	_test_money_stacks_can_buy_multiple_shop_results()
 	_test_shop_slots_use_playtest_order()
 	_test_recycling_bin_requires_three_recyclable_cards()
 	_test_recycling_bin_consumes_top_three_and_drops_leftovers()
@@ -41,6 +43,7 @@ func _init() -> void:
 	_test_work_student_is_temporary_unsalaried_work_capacity()
 	_test_recruiter_fallback_work_is_slow_but_available()
 	_test_poc4_save_load_preserves_hiring_cards_and_rng_state()
+	_test_spawned_cards_auto_stack_on_nearby_recipe_targets()
 
 	if _failed:
 		quit(1)
@@ -239,10 +242,11 @@ func _test_talent_pool_costs_two_money_and_draws_no_regular_employee() -> void:
 
 	controller.move_card_to_stack(first_money.instance_id, talent_pool_slot.stack_id)
 
-	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_count_before - 2, "Talent-Pool should consume exactly 2 money cards.")
-	_assert_equal(_count_money_cards_in_stack(state, talent_pool_slot.stack_id), 0, "Talent-Pool should drop unspent money back onto the board.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_count_before - 4, "Talent-Pool should apply every money card in the dropped stack.")
+	_assert_equal(_count_money_cards_in_stack(state, talent_pool_slot.stack_id), 0, "Talent-Pool should not keep spent money on the shop slot.")
 	var booster_pack: CardInstance = _find_card_by_definition(state, "card.resource.booster_pack")
 	_assert_equal(booster_pack.values.get(RunController.BOOSTER_DEFINITION_ID_VALUE, ""), "booster.talent_pool", "Talent-Pool buy should create a Talent-Pool booster pack.")
+	_assert_equal(state.get_stack(booster_pack.stack_id).card_ids.size(), 2, "Four money on a two-money Talent-Pool should buy two stacked booster packs.")
 
 	while state.get_card(booster_pack.instance_id) != null:
 		_assert_true(controller.open_booster_pack_step(booster_pack.instance_id), "Talent-Pool pack should open one card per step.")
@@ -264,6 +268,39 @@ func _test_talent_pool_costs_two_money_and_draws_no_regular_employee() -> void:
 		_assert_true(seeded_controller.open_booster_pack_step(seeded_pack.instance_id), "Seeded Talent-Pool pack should open one card per step.")
 	_assert_true(_count_cards_by_definition(seeded_state, "card.candidate.recruiter") >= 1, "Default playtest seed should expose a recruiter candidate in the first Talent-Pool pack.")
 
+func _test_expensive_shop_slots_accept_partial_payments() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = _start_run_with_opened_startup(controller, 1045)
+	var talent_pool_slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.talent_pool")
+	var first_money: CardInstance = _spawn_card(controller, "card.resource.money", Vector2(5600.0, 5000.0))
+	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
+
+	controller.move_card_to_stack(first_money.instance_id, talent_pool_slot.stack_id)
+
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before - 1, "A one-money partial payment should be consumed.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 0, "A partial payment should not create the Talent-Pool pack yet.")
+	_assert_equal(int(talent_pool_slot.values.get("shop_remaining_price_money_cards", 0)), 1, "Talent-Pool price should drop by one after a partial payment.")
+
+	var second_money: CardInstance = _spawn_card(controller, "card.resource.money", Vector2(5800.0, 5000.0))
+	controller.move_card_to_stack(second_money.instance_id, talent_pool_slot.stack_id)
+
+	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 1, "The second one-money payment should complete the Talent-Pool purchase.")
+	_assert_true(not talent_pool_slot.values.has("shop_remaining_price_money_cards"), "Completed Talent-Pool purchases should reset the next price.")
+
+func _test_money_stacks_can_buy_multiple_shop_results() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = _start_run_with_opened_startup(controller, 1046)
+	var founder_slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot")
+	var first_money: CardInstance = _spawn_card(controller, "card.resource.money", Vector2(6000.0, 5000.0))
+	_spawn_card(controller, "card.resource.money", Vector2(6010.0, 5000.0))
+	_spawn_card(controller, "card.resource.money", Vector2(6020.0, 5000.0))
+
+	controller.move_card_to_stack(first_money.instance_id, founder_slot.stack_id)
+
+	var booster_pack: CardInstance = _find_card_by_definition(state, "card.resource.booster_pack")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.booster_pack"), 3, "A three-money stack on a one-money shop should buy three booster packs.")
+	_assert_equal(state.get_stack(booster_pack.stack_id).card_ids.size(), 3, "Multiple bought booster packs should stack automatically.")
+
 func _test_shop_slots_use_playtest_order() -> void:
 	var controller: RunController = _create_controller(60.0)
 	var state: RunState = _start_run_with_opened_startup(controller, 1017)
@@ -272,11 +309,14 @@ func _test_shop_slots_use_playtest_order() -> void:
 		"card.shop.freelance_order",
 		"card.shop.booster_slot",
 		"card.shop.booster_slot.office_invest",
+		"card.shop.booster_slot.customer_chaos",
 		"card.shop.bugfix_patch_slot",
 		"card.shop.booster_slot.talent_pool",
 	]
 	var actual_start_order: Array[String] = _get_shop_definition_ids_by_x_position(state, controller.content)
-	_assert_equal(actual_start_order, expected_start_order, "Start shop cards should use the playtest order.")
+	_assert_equal(actual_start_order, expected_start_order, "Start shop cards should use the playtest order including hidden future slots.")
+	var customer_chaos_slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.customer_chaos")
+	_assert_true(not bool(customer_chaos_slot.values.get(RunController.SHOP_REVEALED_VALUE, true)), "Customer chaos should start hidden but present on the board.")
 
 	var expected_dock_order: Array[String] = [
 		"card.shop.recycling_bin",
@@ -496,6 +536,9 @@ func _test_mvp_launch_threshold_and_customer_scaling() -> void:
 		controller.move_card_to_stack(developer.instance_id, software.stack_id)
 		controller.advance_time(4.0)
 		_assert_equal(_count_cards_by_definition(state, "card.value_source.customer"), floori(float(feature_count) / 5.0), "Launch should spawn one customer per five launch features.")
+		_assert_equal(_count_cards_by_definition(state, "card.shop.booster_slot.customer_chaos"), 1, "Launch should reveal the existing Kundenchaos shop slot instead of spawning a duplicate.")
+		var customer_chaos_slot: CardInstance = _find_card_by_definition(state, "card.shop.booster_slot.customer_chaos")
+		_assert_true(bool(customer_chaos_slot.values.get(RunController.SHOP_REVEALED_VALUE, false)), "Launch should reveal Kundenchaos for purchases.")
 
 func _test_live_feature_threshold_spawns_next_customer_immediately() -> void:
 	var controller: RunController = _create_controller(60.0)
@@ -795,6 +838,15 @@ func _test_poc4_save_load_preserves_hiring_cards_and_rng_state() -> void:
 	_assert_true(_find_attachment(loaded_state, loaded_recruiter.instance_id, "onboarding") != null, "Save/load should preserve onboarding attachment.")
 	_assert_equal(loaded_state.rng_state, 123456789, "Save/load should preserve RNG state.")
 
+func _test_spawned_cards_auto_stack_on_nearby_recipe_targets() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = _start_run_with_opened_startup(controller, 1047)
+	var tester: CardInstance = _spawn_card(controller, "card.employee.tester", Vector2(1400.0, 1400.0))
+	var feature: CardInstance = controller.call("_spawn_card_as_new_stack", "card.output.feature", tester.position + Vector2(120.0, 0.0), true) as CardInstance
+
+	_assert_equal(feature.stack_id, tester.stack_id, "A spawned feature should auto-stack onto a nearby tester because that stack forms a recipe.")
+	_assert_equal(state.get_stack(tester.stack_id).processing_state.active_recipe_id, "recipe.checked_feature_from_feature.tester", "Recipe auto-stack should immediately start the matching process.")
+
 func _open_spawned_booster_and_get_result(run_seed: int) -> Dictionary:
 	var controller: RunController = _create_controller(60.0)
 	var state: RunState = _start_run_with_opened_startup(controller, run_seed)
@@ -861,7 +913,7 @@ func _open_booster_pack_and_collect_definitions(controller: RunController, state
 	return opened_definitions
 
 func _spawn_card(controller: RunController, definition_id: String, position: Vector2) -> CardInstance:
-	return controller.call("_spawn_card_as_new_stack", definition_id, position) as CardInstance
+	return controller.call("_spawn_card_as_new_stack", definition_id, position, false) as CardInstance
 
 func _make_software_live(state: RunState) -> void:
 	var software: CardInstance = _find_card_by_definition(state, "card.product.software")

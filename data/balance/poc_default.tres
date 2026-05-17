@@ -32,3 +32,4 @@ poc4_work_student_completed_task_lifetime = 1
 board_snap_distance = 50.0
 stack_offset = Vector2(0, 26)
 auto_stack_spawn_radius = 800.0
+recipe_auto_stack_spawn_radius = 220.0

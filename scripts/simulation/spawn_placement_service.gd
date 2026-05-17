@@ -9,10 +9,12 @@ const INVALID_POSITION: Vector2 = Vector2(100000000.0, 100000000.0)
 
 var state: RunState = null
 var content: ContentCatalog = null
+var recipe_engine: RecipeEngine = null
 
-func setup(run_state: RunState, content_catalog: ContentCatalog) -> void:
+func setup(run_state: RunState, content_catalog: ContentCatalog, recipe_matcher: RecipeEngine = null) -> void:
 	state = run_state
 	content = content_catalog
+	recipe_engine = recipe_matcher
 
 func get_spawn_position_near_stack(source_stack_id: String, spawn_index: int = 0) -> Vector2:
 	prune_stale_spawn_history()
@@ -105,8 +107,20 @@ func get_spawn_position_near_position(source_position: Vector2, spawn_index: int
 		return _clamp_spawn_position_to_board(fallback_source + Vector2(step_x * float(spawn_index + 1), CARD_SIZE.y + GAP))
 	return position
 
-func find_auto_stack_spawn_target(definition: CardDefinition, position: Vector2) -> StackState:
-	if definition == null or not definition.auto_stack_on_spawn:
+func find_auto_stack_spawn_target(
+	definition: CardDefinition,
+	position: Vector2,
+	allow_recipe_auto_stack: bool = true
+) -> StackState:
+	if definition == null:
+		return null
+
+	if allow_recipe_auto_stack:
+		var recipe_stack: StackState = _find_recipe_auto_stack_spawn_target(definition, position)
+		if recipe_stack != null:
+			return recipe_stack
+
+	if not definition.auto_stack_on_spawn:
 		return null
 
 	var radius: float = _get_auto_stack_spawn_radius()
@@ -119,6 +133,28 @@ func find_auto_stack_spawn_target(definition: CardDefinition, position: Vector2)
 		if is_shop_stack(stack):
 			continue
 		if not _is_pure_stack_for_definition(stack, definition.id):
+			continue
+		var distance: float = stack.base_position.distance_to(position)
+		if distance <= best_distance:
+			best_distance = distance
+			best_stack = stack
+	return best_stack
+
+func find_compatible_purchase_stack_target(
+	card_definition_id: String,
+	position: Vector2,
+	required_values: Dictionary
+) -> StackState:
+	var radius: float = _get_auto_stack_spawn_radius()
+	if radius <= 0.0:
+		return null
+
+	var best_stack: StackState = null
+	var best_distance: float = radius
+	for stack: StackState in state.stacks.values():
+		if is_shop_stack(stack):
+			continue
+		if not _is_pure_purchase_stack_for_definition(stack, card_definition_id, required_values):
 			continue
 		var distance: float = stack.base_position.distance_to(position)
 		if distance <= best_distance:
@@ -243,7 +279,83 @@ func _is_pure_stack_for_definition(stack: StackState, card_definition_id: String
 			return false
 	return true
 
+func _find_recipe_auto_stack_spawn_target(definition: CardDefinition, position: Vector2) -> StackState:
+	if recipe_engine == null:
+		return null
+
+	var radius: float = _get_recipe_auto_stack_spawn_radius()
+	if radius <= 0.0:
+		return null
+
+	var best_stack: StackState = null
+	var best_distance: float = radius
+	for stack: StackState in state.stacks.values():
+		if is_shop_stack(stack):
+			continue
+		if not _can_spawned_card_form_recipe_with_stack(definition, stack):
+			continue
+		var distance: float = stack.base_position.distance_to(position)
+		if distance <= best_distance:
+			best_distance = distance
+			best_stack = stack
+	return best_stack
+
+func _can_spawned_card_form_recipe_with_stack(definition: CardDefinition, stack: StackState) -> bool:
+	if stack == null or stack.card_ids.is_empty():
+		return false
+
+	var temporary_card_id: String = "__spawn_preview_%s" % definition.id
+	while state.cards.has(temporary_card_id):
+		temporary_card_id = "%s_" % temporary_card_id
+
+	var temporary_card: CardInstance = CardInstance.new()
+	temporary_card.instance_id = temporary_card_id
+	temporary_card.definition_id = definition.id
+	temporary_card.stack_id = stack.stack_id
+	temporary_card.position = stack.base_position
+	temporary_card.values = definition.base_values.duplicate(true)
+	state.cards[temporary_card_id] = temporary_card
+
+	var temporary_stack: StackState = StackState.new()
+	temporary_stack.stack_id = stack.stack_id
+	temporary_stack.base_position = stack.base_position
+	temporary_stack.card_ids = stack.card_ids.duplicate()
+	temporary_stack.card_ids.append(temporary_card_id)
+	temporary_stack.processing_state = stack.processing_state
+
+	var match_result: RecipeMatchResult = recipe_engine.find_best_match(temporary_stack, state, content)
+	state.cards.erase(temporary_card_id)
+	return match_result.has_match()
+
+func _is_pure_purchase_stack_for_definition(
+	stack: StackState,
+	card_definition_id: String,
+	required_values: Dictionary
+) -> bool:
+	if stack == null or stack.card_ids.is_empty():
+		return false
+
+	for card_id: String in stack.card_ids:
+		var card: CardInstance = state.get_card(card_id)
+		if card == null:
+			return false
+		if card.definition_id != card_definition_id:
+			return false
+		if not card.parent_card_id.is_empty():
+			return false
+		if card.values.has("booster_remaining_card_ids"):
+			return false
+		for key: Variant in required_values.keys():
+			if card.values.get(key, null) != required_values[key]:
+				return false
+	return true
+
 func _get_auto_stack_spawn_radius() -> float:
 	if content.balance == null:
 		return 180.0
 	return content.balance.auto_stack_spawn_radius
+
+func _get_recipe_auto_stack_spawn_radius() -> float:
+	if content.balance == null:
+		return 120.0
+	return content.balance.recipe_auto_stack_spawn_radius

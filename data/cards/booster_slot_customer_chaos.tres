@@ -25,5 +25,6 @@ tooltip_text = "Kauft fuer 1 Geld ein Kundenchaos-Pack."
 visual = SubResource("Resource_visual")
 base_values = {
 "booster_definition_id": "booster.customer_chaos",
+"shop_revealed": false,
 "shop_dock_order": 50
 }

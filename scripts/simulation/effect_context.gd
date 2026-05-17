@@ -10,3 +10,4 @@ var rng: RandomNumberGenerator = null
 var spawn_card: Callable = Callable()
 var remove_card: Callable = Callable()
 var get_spawn_position: Callable = Callable()
+var reveal_shop_slot: Callable = Callable()

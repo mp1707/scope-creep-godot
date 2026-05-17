@@ -134,7 +134,13 @@ func _launch_software(effect: EffectDefinition, context: EffectContext) -> void:
 
 	var shop_slot_card_definition_id: String = effect.parameters.get("shop_slot_card_definition_id", "") as String
 	if not shop_slot_card_definition_id.is_empty():
-		context.spawn_card.call(shop_slot_card_definition_id, _get_spawn_position(context, customer_count + 1))
+		var revealed_existing_slot: bool = false
+		if context.reveal_shop_slot.is_valid():
+			revealed_existing_slot = context.reveal_shop_slot.call(shop_slot_card_definition_id) as bool
+		if not revealed_existing_slot:
+			var shop_slot: CardInstance = context.spawn_card.call(shop_slot_card_definition_id, _get_spawn_position(context, customer_count + 1)) as CardInstance
+			if shop_slot != null:
+				shop_slot.values["shop_revealed"] = true
 
 func _spawn_customers_for_live_feature_thresholds(effect: EffectDefinition, context: EffectContext, software: CardInstance) -> int:
 	var lifecycle: ProductLifecycleService = ProductLifecycleService.new()
