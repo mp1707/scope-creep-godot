@@ -98,6 +98,7 @@ Zustaendig fuer:
 - `HiringLifecycleService`: Angebot bezahlen, Ziel-Mitarbeiter bestimmen, Onboarding-Attachment und erste Gehaltsfaelligkeit anwenden.
 - `SprintStartPipelineService`: GDD-kritische Sprintstart-Reihenfolge zentral ausfuehren.
 - `SpawnPlacementService`: freie Spawn-Positionen und `auto_stack_on_spawn` deterministisch berechnen.
+- `DropInteractionPreviewService`: gueltige Drop-Ziele fuer Drag-Highlights enumerieren. Der Service trifft keine eigenen Fachentscheidungen, sondern nutzt die zentrale Drop-Regelquery des `RunController`, damit Preview und tatsaechlicher Drop nicht auseinanderlaufen.
 
 ## 3. Zielstruktur
 

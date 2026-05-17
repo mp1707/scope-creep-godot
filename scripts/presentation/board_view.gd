@@ -24,11 +24,7 @@ const PROGRESS_BACKGROUND_COLOR: Color = Color(0.76, 0.76, 0.72, 1.0)
 const CLICK_DRAG_THRESHOLD: float = 8.0
 const VISUAL_EVENT_STEP_SECONDS: float = 0.12
 const INTERACTION_PREVIEW_REFRESH_SECONDS: float = 0.18
-const INTERACTION_HIGHLIGHT_Z_OFFSET: int = 6
-const INTERACTION_HIGHLIGHT_VIEW_SCENE: PackedScene = preload("res://scenes/presentation/InteractionHighlightView.tscn")
-const STACK_DROP_HIGHLIGHT_MARGIN: float = 26.0
-const STACK_DROP_HIGHLIGHT_Z_OFFSET: int = 7
-const STACK_DROP_HIGHLIGHT_VIEW_SCENE: PackedScene = preload("res://scenes/presentation/StackDropHighlightView.tscn")
+const BoardDropFeedbackPresenterScript: Script = preload("res://scripts/presentation/board_drop_feedback_presenter.gd")
 
 signal move_stack_requested(stack_id: String, position: Vector2)
 signal move_card_to_stack_requested(card_id: String, target_stack_id: String)
@@ -52,7 +48,7 @@ var screen_drag_layer: Control = null
 
 var _card_views: Dictionary = {}
 var _stack_progress_views: Dictionary = {}
-var _interaction_highlight_views: Dictionary = {}
+var _drop_feedback: RefCounted = BoardDropFeedbackPresenterScript.new()
 var _stack_layers: Dictionary = {}
 var _next_stack_layer: int = 1
 var _drag_preview_card_ids: PackedStringArray = PackedStringArray()
@@ -174,6 +170,7 @@ func bind_run(run_state: RunState, content_catalog: ContentCatalog) -> void:
 		snap_distance = content.balance.board_snap_distance
 	_layout.card_size = card_size
 	_layout.stack_offset = stack_offset
+	_drop_feedback.setup(self, state, content, visual_theme, card_size, stack_offset)
 	_rebuild()
 	queue_redraw()
 
@@ -212,14 +209,14 @@ func apply_events(events: Array[SimulationEvent]) -> void:
 	if not _dragging_card_id.is_empty():
 		_refresh_interaction_preview()
 	else:
-		_update_interaction_highlight_layouts()
+		_drop_feedback.update_interaction_highlight_layouts()
 
 func refresh() -> void:
 	if state == null:
 		return
 	for stack_id: String in state.stacks.keys():
 		_update_stack(stack_id)
-	_update_interaction_highlight_layouts()
+	_drop_feedback.update_interaction_highlight_layouts()
 
 func get_card_view(card_id: String) -> CardView:
 	return _card_views.get(card_id, null) as CardView
@@ -246,44 +243,6 @@ func find_snap_stack(card_id: String, board_position: Vector2) -> StackState:
 
 	return best_stack
 
-func _play_stack_drop_highlight(card_id: String) -> void:
-	if card_id.is_empty():
-		return
-	var view: CardView = get_card_view(card_id)
-	if view == null:
-		return
-	var highlight: Control = STACK_DROP_HIGHLIGHT_VIEW_SCENE.instantiate() as Control
-	highlight.name = "StackDropHighlight"
-	highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(highlight)
-	highlight.call("randomize_orientation")
-	_configure_stack_drop_highlight(card_id, view, highlight)
-	highlight.call("play_snap_feedback")
-
-func _configure_stack_drop_highlight(card_id: String, view: CardView, highlight: Control) -> void:
-	if view == null or highlight == null:
-		return
-	var target_position: Vector2 = _get_card_layout_position(card_id, view.position)
-	highlight.position = target_position - Vector2(STACK_DROP_HIGHLIGHT_MARGIN, STACK_DROP_HIGHLIGHT_MARGIN)
-	highlight.z_index = view.z_index + STACK_DROP_HIGHLIGHT_Z_OFFSET
-	highlight.call(
-		"configure",
-		card_size + Vector2(STACK_DROP_HIGHLIGHT_MARGIN * 2.0, STACK_DROP_HIGHLIGHT_MARGIN * 2.0),
-		visual_theme,
-		_get_card_visual(card_id)
-	)
-
-func _get_card_layout_position(card_id: String, fallback_position: Vector2) -> Vector2:
-	if state == null:
-		return fallback_position
-	var card: CardInstance = state.get_card(card_id)
-	if card == null:
-		return fallback_position
-	var stack: StackState = state.get_stack(card.stack_id)
-	if stack == null:
-		return fallback_position
-	return _layout.get_card_position(stack, card_id)
-
 func _refresh_interaction_preview() -> void:
 	_interaction_preview_refresh_seconds = 0.0
 	if _dragging_card_id.is_empty() or not drop_interaction_preview_resolver.is_valid():
@@ -292,102 +251,14 @@ func _refresh_interaction_preview() -> void:
 		return
 	var preview_stack_ids: PackedStringArray = drop_interaction_preview_resolver.call(_dragging_card_id) as PackedStringArray
 	interaction_preview_changed.emit(preview_stack_ids, _dragging_card_id)
-	var board_stack_ids: PackedStringArray = PackedStringArray()
-	for stack_id: String in preview_stack_ids:
-		if not _should_show_board_interaction_highlight(stack_id):
-			continue
-		board_stack_ids.append(stack_id)
-	_set_interaction_preview_stack_ids(board_stack_ids)
+	_set_interaction_preview_stack_ids(preview_stack_ids)
 
 func _set_interaction_preview_stack_ids(stack_ids: PackedStringArray) -> void:
-	var old_stack_ids: Array = _interaction_highlight_views.keys()
-	for old_stack_id: String in old_stack_ids:
-		if stack_ids.has(old_stack_id):
-			continue
-		_remove_interaction_highlight(old_stack_id)
-
-	for stack_id: String in stack_ids:
-		var highlight: Control = _ensure_interaction_highlight(stack_id)
-		_update_interaction_highlight(stack_id, highlight)
+	_drop_feedback.sync_interaction_preview_stack_ids(stack_ids)
 
 func _clear_interaction_preview() -> void:
-	var stack_ids: Array = _interaction_highlight_views.keys()
-	for stack_id: String in stack_ids:
-		_remove_interaction_highlight(stack_id)
+	_drop_feedback.clear_interaction_preview()
 	interaction_preview_changed.emit(PackedStringArray(), "")
-
-func _should_show_board_interaction_highlight(stack_id: String) -> bool:
-	if state == null or not state.stacks.has(stack_id):
-		return false
-	var stack: StackState = state.get_stack(stack_id)
-	if _is_shop_stack(stack):
-		return false
-	if _drag_preview_card_ids.is_empty():
-		return true
-	for card_id: String in _drag_preview_card_ids:
-		if stack.card_ids.has(card_id):
-			return false
-	return true
-
-func _ensure_interaction_highlight(stack_id: String) -> Control:
-	if _interaction_highlight_views.has(stack_id):
-		return _interaction_highlight_views[stack_id] as Control
-	var highlight: Control = INTERACTION_HIGHLIGHT_VIEW_SCENE.instantiate() as Control
-	highlight.name = "InteractionHighlight_%s" % stack_id
-	highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(highlight)
-	_interaction_highlight_views[stack_id] = highlight
-	highlight.call("play_show")
-	return highlight
-
-func _remove_interaction_highlight(stack_id: String) -> void:
-	var highlight: Control = _interaction_highlight_views.get(stack_id, null) as Control
-	if highlight != null:
-		highlight.queue_free()
-	_interaction_highlight_views.erase(stack_id)
-
-func _update_interaction_highlight_layouts() -> void:
-	var stack_ids: Array = _interaction_highlight_views.keys()
-	for stack_id: String in stack_ids:
-		if not _should_show_board_interaction_highlight(stack_id):
-			_remove_interaction_highlight(stack_id)
-			continue
-		_update_interaction_highlight(stack_id, _interaction_highlight_views[stack_id] as Control)
-
-func _update_interaction_highlight(stack_id: String, highlight: Control) -> void:
-	if state == null or highlight == null or not state.stacks.has(stack_id):
-		return
-	var card_id: String = _get_stack_top_rendered_card_id(stack_id)
-	var view: CardView = get_card_view(card_id)
-	if view == null:
-		return
-	highlight.position = view.position
-	highlight.z_index = view.z_index + INTERACTION_HIGHLIGHT_Z_OFFSET
-	highlight.call(
-		"configure",
-		card_size,
-		visual_theme,
-		_get_card_visual(card_id)
-	)
-
-func _get_card_visual(card_id: String) -> CardVisualDefinition:
-	if state == null or content == null:
-		return null
-	var card: CardInstance = state.get_card(card_id)
-	if card == null:
-		return null
-	var definition: CardDefinition = content.get_card_definition(card.definition_id)
-	return definition.visual if definition != null else null
-
-func _get_stack_top_rendered_card_id(stack_id: String) -> String:
-	if state == null or not state.stacks.has(stack_id):
-		return ""
-	var stack: StackState = state.get_stack(stack_id)
-	for index: int in range(stack.card_ids.size() - 1, -1, -1):
-		var card_id: String = stack.card_ids[index]
-		if _should_render_card_on_board(card_id):
-			return card_id
-	return ""
 
 func _update_stack_hover_from_pointer() -> void:
 	if state == null or not _can_interact_with_board() or _is_board_panning or not _pending_click_card_id.is_empty():
@@ -460,7 +331,7 @@ func _rebuild() -> void:
 		child.queue_free()
 	_card_views.clear()
 	_stack_progress_views.clear()
-	_interaction_highlight_views.clear()
+	_drop_feedback.clear_all()
 	_stack_layers.clear()
 	_next_stack_layer = 1
 
@@ -588,6 +459,7 @@ func _begin_drag(card_id: String, board_position: Vector2, viewport_position: Ve
 	_drag_start_card_index = start_card_index
 	_drag_pointer_offset = board_position - view.position
 	_drag_preview_card_ids = preview_card_ids
+	_drop_feedback.set_drag_preview_card_ids(_drag_preview_card_ids)
 	_interaction_preview_refresh_seconds = INTERACTION_PREVIEW_REFRESH_SECONDS
 	_move_drag_views_to_layer()
 	_bring_stack_to_front(card.stack_id)
@@ -698,9 +570,10 @@ func _finish_drag(board_position: Vector2, viewport_position: Vector2) -> void:
 	_drag_start_stack_id = ""
 	_drag_start_card_index = -1
 	_drag_preview_card_ids = PackedStringArray()
+	_drop_feedback.set_drag_preview_card_ids(_drag_preview_card_ids)
 	refresh()
 	if dropped_on_stack and snap_on_board:
-		_play_stack_drop_highlight(dropped_card_id)
+		_drop_feedback.play_stack_drop_highlight(dropped_card_id)
 	if snap_on_board:
 		_snapping_card_ids = PackedStringArray()
 	_notify_screen_drag_finished(screen_target_stack_id if dropped_on_stack else "")
@@ -716,6 +589,7 @@ func _cancel_stale_drag_preview() -> void:
 	_drag_start_stack_id = ""
 	_drag_start_card_index = -1
 	_drag_preview_card_ids = PackedStringArray()
+	_drop_feedback.set_drag_preview_card_ids(_drag_preview_card_ids)
 	_snapping_card_ids = PackedStringArray()
 	_notify_screen_drag_finished("")
 	refresh()

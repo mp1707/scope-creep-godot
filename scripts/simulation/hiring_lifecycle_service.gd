@@ -64,6 +64,21 @@ func try_hire_offer_with_money_stack(
 	refresh_payment_states.call()
 	return true
 
+func can_hire_offer_with_money_stack(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState, hire_cost: int) -> bool:
+	if not _can_interact_with_board():
+		return false
+	if not is_money_card(card):
+		return false
+	if not are_all_money_cards(moving_card_ids):
+		return false
+
+	var offer: CardInstance = find_offer_in_stack(target_stack)
+	if offer == null:
+		return false
+	if get_offer_target_employee_definition_id(offer).is_empty():
+		return false
+	return moving_card_ids.size() >= hire_cost
+
 func find_offer_in_stack(stack: StackState) -> CardInstance:
 	if stack == null or state == null:
 		return null

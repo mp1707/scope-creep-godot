@@ -85,7 +85,7 @@ func start_new_run(run_seed: int = 1) -> RunState:
 	_shop_interactions.setup(state, content)
 	_hiring_lifecycle.setup(state, content)
 	_spawn_placement.setup(state, content)
-	_drop_interaction_preview.call("setup", state, content)
+	_drop_interaction_preview.call("setup", state, Callable(self, "can_move_card_to_stack"))
 
 	var startup_pack: CardInstance = _spawn_card_as_new_stack(STARTUP_BOOSTER_PACK_DEFINITION_ID, STARTUP_BOOSTER_POSITION)
 	if startup_pack != null:
@@ -148,7 +148,7 @@ func load_run(loaded_state: RunState) -> void:
 	_shop_interactions.setup(state, content)
 	_hiring_lifecycle.setup(state, content)
 	_spawn_placement.setup(state, content)
-	_drop_interaction_preview.call("setup", state, content)
+	_drop_interaction_preview.call("setup", state, Callable(self, "can_move_card_to_stack"))
 	_rng.seed = state.rng_seed
 	_rng.state = state.rng_state
 	_sync_next_runtime_ids()
@@ -230,6 +230,8 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 		push_error("Card '%s' is not in its source stack." % card_id)
 		return
 	var moving_card_ids: PackedStringArray = source_stack.card_ids.slice(start_index)
+	if not _can_interact_with_board():
+		return
 	if _try_buy_shop_with_money_stack(card, moving_card_ids, target_stack):
 		return
 	if _try_recycle_card_stack(moving_card_ids, target_stack):
@@ -241,8 +243,6 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 	if _try_pay_employee_with_money(card, moving_card_ids, target_stack):
 		return
 	if _try_pay_business_goal_with_money(card, moving_card_ids, target_stack):
-		return
-	if not _can_interact_with_board():
 		return
 	if _is_shop_stack(target_stack):
 		return
@@ -262,6 +262,51 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 	_delete_stack_if_empty(source_stack)
 	_refresh_stack_recipe_if_present(source_stack.stack_id)
 	_refresh_stack_recipe_if_present(target_stack.stack_id)
+
+func _can_drop_on_shop(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
+	var shop_card: CardInstance = _shop_interactions.find_shop_card_in_stack(target_stack)
+	if shop_card == null:
+		return false
+	return _shop_interactions.can_drop_card_on_shop(card.instance_id, moving_card_ids.size(), shop_card)
+
+func _can_hire_offer_with_money_stack(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
+	return _hiring_lifecycle.can_hire_offer_with_money_stack(
+		card,
+		moving_card_ids,
+		target_stack,
+		_get_offer_hire_cost_money_cards()
+	)
+
+func _can_pay_employee_with_money(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
+	if state.phase != ScopeEnums.RunPhase.PAYMENT:
+		return false
+	if moving_card_ids.size() != 1 or not _is_money_card(card):
+		return false
+	return not _find_unpaid_employee_in_stack(target_stack).is_empty()
+
+func _can_pay_business_goal_with_money(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
+	if not _is_money_card(card):
+		return false
+	for moving_card_id: String in moving_card_ids:
+		var moving_card: CardInstance = state.get_card(moving_card_id)
+		if moving_card == null or not _is_money_card(moving_card):
+			return false
+
+	var goal: CardInstance = _find_business_goal_in_stack(target_stack)
+	if goal == null:
+		return false
+	return _get_business_goal_paid_money(goal) < _get_business_goal_required_money(goal)
+
+func _can_form_recipe_stack(moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
+	var temporary_stack: StackState = StackState.new()
+	temporary_stack.stack_id = target_stack.stack_id
+	temporary_stack.base_position = target_stack.base_position
+	temporary_stack.card_ids = target_stack.card_ids.duplicate()
+	for moving_card_id: String in moving_card_ids:
+		temporary_stack.card_ids.append(moving_card_id)
+
+	var match_result: RecipeMatchResult = _recipe_engine.find_best_match(temporary_stack, state, content)
+	return match_result.has_match()
 
 func _try_apply_processing_interaction(moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
 	var result: ActiveProcessingInteractionResult = _processing_interactions.calculate(moving_card_ids, target_stack, state, content)
@@ -448,6 +493,39 @@ func can_auto_pay() -> bool:
 		return false
 	return _get_money_card_ids().size() >= unpaid_employee_ids.size()
 
+func can_move_card_to_stack(card_id: String, target_stack_id: String) -> bool:
+	_require_state()
+	var card: CardInstance = state.get_card(card_id)
+	if card == null or not card.parent_card_id.is_empty():
+		return false
+	var source_stack: StackState = state.get_stack(card.stack_id)
+	var target_stack: StackState = state.get_stack(target_stack_id)
+	if source_stack == null or target_stack == null or source_stack.stack_id == target_stack.stack_id:
+		return false
+
+	var start_index: int = source_stack.card_ids.find(card_id)
+	if start_index < 0:
+		return false
+	var moving_card_ids: PackedStringArray = source_stack.card_ids.slice(start_index)
+	if moving_card_ids.is_empty():
+		return false
+	if not _can_interact_with_board():
+		return false
+
+	if _can_drop_on_shop(card, moving_card_ids, target_stack):
+		return true
+	if _can_hire_offer_with_money_stack(card, moving_card_ids, target_stack):
+		return true
+	if _can_pay_employee_with_money(card, moving_card_ids, target_stack):
+		return true
+	if _can_pay_business_goal_with_money(card, moving_card_ids, target_stack):
+		return true
+	if _is_shop_stack(target_stack):
+		return false
+	if _processing_interactions.calculate(moving_card_ids, target_stack, state, content).applied:
+		return true
+	return _can_form_recipe_stack(moving_card_ids, target_stack)
+
 func get_drop_interaction_preview_stack_ids(card_id: String) -> PackedStringArray:
 	_require_state()
 	return _drop_interaction_preview.call("get_preview_stack_ids", card_id) as PackedStringArray
@@ -529,17 +607,10 @@ func _enter_victory() -> void:
 	_emit_all_stacks_changed()
 
 func _try_pay_employee_with_money(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
-	if state.phase != ScopeEnums.RunPhase.PAYMENT:
-		return false
-	if moving_card_ids.size() != 1:
-		return false
-	if not _is_money_card(card):
+	if not _can_pay_employee_with_money(card, moving_card_ids, target_stack):
 		return false
 
 	var employee_id: String = _find_unpaid_employee_in_stack(target_stack)
-	if employee_id.is_empty():
-		return false
-
 	if not _consume_money_card(card.instance_id):
 		return false
 	_mark_employee_paid(employee_id)
@@ -564,17 +635,12 @@ func _try_hire_offer_with_money_stack(card: CardInstance, moving_card_ids: Packe
 	)
 
 func _try_pay_business_goal_with_money(card: CardInstance, moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
-	if not _is_money_card(card):
+	if not _can_interact_with_board():
 		return false
-	for moving_card_id: String in moving_card_ids:
-		var moving_card: CardInstance = state.get_card(moving_card_id)
-		if moving_card == null or not _is_money_card(moving_card):
-			return false
+	if not _can_pay_business_goal_with_money(card, moving_card_ids, target_stack):
+		return false
 
 	var goal: CardInstance = _find_business_goal_in_stack(target_stack)
-	if goal == null:
-		return false
-
 	var required_money: int = _get_business_goal_required_money(goal)
 	var paid_money: int = _get_business_goal_paid_money(goal)
 	if paid_money >= required_money:
@@ -607,6 +673,8 @@ func _can_interact_with_board() -> bool:
 	return state.phase == ScopeEnums.RunPhase.SPRINT or state.phase == ScopeEnums.RunPhase.PAYMENT
 
 func _find_unpaid_employee_in_stack(stack: StackState) -> String:
+	if stack == null:
+		return ""
 	for card_id: String in stack.card_ids:
 		var card: CardInstance = state.get_card(card_id)
 		if card != null and _requires_salary(card) and not state.paid_employee_ids.has(card.instance_id):

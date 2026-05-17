@@ -9,6 +9,7 @@ func _init() -> void:
 	_test_feature_preview_marks_software_and_freelance()
 	_test_recycling_preview_requires_three_recyclable_cards()
 	_test_insufficient_money_does_not_mark_expensive_shop_slot()
+	_test_preview_matches_controller_drop_query_for_all_stacks()
 
 	if _failed:
 		quit(1)
@@ -113,6 +114,18 @@ func _test_insufficient_money_does_not_mark_expensive_shop_slot() -> void:
 	var preview: PackedStringArray = controller.get_drop_interaction_preview_stack_ids(money.instance_id)
 	_assert_true(not preview.has(talent_pool.stack_id), "One money card should not preview the two-money Talent-Pool slot.")
 
+func _test_preview_matches_controller_drop_query_for_all_stacks() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = _start_run_with_opened_startup(controller, 2008)
+	var feature: CardInstance = _spawn_card(controller, "card.output.feature", Vector2(5300.0, 5000.0))
+	var preview: PackedStringArray = controller.get_drop_interaction_preview_stack_ids(feature.instance_id)
+
+	for stack: StackState in state.stacks.values():
+		if stack.card_ids.has(feature.instance_id):
+			continue
+		var can_drop: bool = controller.can_move_card_to_stack(feature.instance_id, stack.stack_id)
+		_assert_equal(preview.has(stack.stack_id), can_drop, "Preview should mirror the controller drop query for stack '%s'." % stack.stack_id)
+
 func _create_controller(sprint_duration: float) -> RunController:
 	var catalog: ContentCatalog = ContentCatalog.new()
 	_assert_true(catalog.load_default_content(), "Default content should load.")
@@ -152,3 +165,9 @@ func _assert_true(value: bool, message: String) -> void:
 		return
 	_failed = true
 	push_error(message)
+
+func _assert_equal(actual: Variant, expected: Variant, message: String) -> void:
+	if actual == expected:
+		return
+	_failed = true
+	push_error("%s Expected '%s', got '%s'." % [message, str(expected), str(actual)])
