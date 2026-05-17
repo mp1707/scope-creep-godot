@@ -1108,6 +1108,13 @@ func _refresh_stack_recipe(stack: StackState) -> void:
 			if _refresh_reversible_processing_modifiers(stack):
 				_emit(SimulationEvent.stack_changed(stack.stack_id))
 			return
+		if _active_processing_inputs_still_present(stack):
+			if _should_replace_active_processing(current_recipe_id, match_result):
+				_replace_active_processing(stack, match_result)
+			else:
+				if _refresh_reversible_processing_modifiers(stack):
+					_emit(SimulationEvent.stack_changed(stack.stack_id))
+			return
 		_cancel_processing(stack)
 
 	if match_result.recipe != null:
@@ -1124,6 +1131,30 @@ func _start_processing(stack: StackState, match_result: RecipeMatchResult) -> vo
 	_refresh_reversible_processing_modifiers(stack)
 	_emit(SimulationEvent.recipe_started(stack.stack_id))
 	_emit(SimulationEvent.stack_changed(stack.stack_id))
+
+func _replace_active_processing(stack: StackState, match_result: RecipeMatchResult) -> void:
+	var recipe: RecipeDefinition = match_result.recipe
+	if recipe == null:
+		return
+	var elapsed: float = stack.processing_state.elapsed
+	stack.processing_state.active_recipe_id = recipe.id
+	stack.processing_state.active_input_card_ids = match_result.active_input_card_ids
+	stack.processing_state.duration = _tech_debt_modifiers.get_duration_seconds(recipe, state, content, stack, match_result.active_input_card_ids)
+	stack.processing_state.elapsed = minf(elapsed, stack.processing_state.duration)
+	stack.processing_state.active_modifier_keys = PackedStringArray()
+	_refresh_reversible_processing_modifiers(stack)
+	_emit(SimulationEvent.recipe_started(stack.stack_id))
+	_emit(SimulationEvent.stack_changed(stack.stack_id))
+
+func _should_replace_active_processing(current_recipe_id: String, match_result: RecipeMatchResult) -> bool:
+	if match_result.recipe == null or match_result.recipe.id == current_recipe_id:
+		return false
+	var current_recipe: RecipeDefinition = content.get_recipe_definition(current_recipe_id)
+	if current_recipe == null:
+		return true
+	if _recipe_uses_burnout(match_result.recipe) or _recipe_uses_employee_blocker(match_result.recipe):
+		return true
+	return _recipe_uses_burnout(current_recipe) or _recipe_uses_employee_blocker(current_recipe)
 
 func _cancel_processing(stack: StackState) -> void:
 	_clear_processing(stack)

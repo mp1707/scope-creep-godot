@@ -229,8 +229,11 @@ Mindestfelder:
 - `effects_on_complete: Array[EffectDefinition]`
 - `effects_on_cancel: Array[EffectDefinition]`
 - `allowed_extra_inputs: Array[RecipeInputMatcher]`
+- `ignore_unmatched_extra_inputs: bool`
 
-Recipes matchen auf reine Rezeptstapel. Karten, die weder Input noch explizit erlaubter Zusatzinput sind, machen den Stapel neutral. Fuer die Input-Reihenfolge eines einzelnen Recipes ist die visuelle Reihenfolge egal; bei mehreren queuebaren Aufgaben in einem Stack nutzt die Simulation die visuelle Stack-Reihenfolge als Arbeitswarteschlange. Die unterste Aufgabe wird zuerst bearbeitet, weitere passende Aufgaben oberhalb bleiben queuebare Zusatzkarten und duerfen laufendes Processing nicht abbrechen.
+Recipes matchen bei idle Stacks auf reine Rezeptstapel. Karten, die weder Input noch explizit erlaubter Zusatzinput sind, machen den idle Stapel neutral. Fuer die Input-Reihenfolge eines einzelnen Recipes ist die visuelle Reihenfolge egal; bei mehreren queuebaren Aufgaben in einem Stack nutzt die Simulation die visuelle Stack-Reihenfolge als Arbeitswarteschlange. Die unterste Aufgabe wird zuerst bearbeitet, weitere passende Aufgaben oberhalb bleiben queuebare Zusatzkarten und duerfen laufendes Processing nicht abbrechen.
+
+Laufendes Processing bleibt aktiv, solange die gespeicherten `active_input_card_ids` noch im Stack liegen. Neutrale Zusatzkarten brechen den Fortschritt nicht ab und werden erst nach Abschluss erneut gematcht. Wird eine aktive Input-Karte entfernt, wird das Processing abgebrochen. Kritische Recipes wie Burnout-Erholung duerfen ueber `ignore_unmatched_extra_inputs` fremde Stack-Karten ignorieren, damit angeheftete Blocker auch in gemischten Arbeitsstacks Vorrang haben und Wohlbefindenkarten weiterhin angenommen werden.
 
 Wenn mehrere Recipes matchen, gilt:
 

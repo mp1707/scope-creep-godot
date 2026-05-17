@@ -7,7 +7,7 @@ var _failed: bool = false
 func _init() -> void:
 	_test_start_run_uses_startup_booster_pack()
 	_test_money_exists_as_single_cards()
-	_test_neutral_extra_card_cancels_processing()
+	_test_neutral_extra_card_preserves_active_processing()
 	_test_queued_tasks_preserve_active_bottom_work()
 	_test_coffee_accelerates_employee_work_only()
 	_test_bug_formation_happens_before_duplication()
@@ -27,6 +27,7 @@ func _init() -> void:
 	_test_live_feature_threshold_spawns_next_customer_immediately()
 	_test_customer_spawn_creates_initial_money_and_request_without_passive_tick_income()
 	_test_customer_demo_and_feedback_are_repeatable_active_work()
+	_test_burnout_interrupts_customer_feedback_and_accepts_wellbeing_cards()
 	_test_old_customer_requests_make_only_one_customer_unhappy_per_sprint()
 	_test_business_goal_costs_scale_linearly_from_one()
 	_test_interview_recipes_are_deterministic_and_recruiter_specific()
@@ -82,7 +83,7 @@ func _test_money_exists_as_single_cards() -> void:
 
 	_assert_equal(money_cards.size(), controller.content.balance.poc3_start_money_cards, "Start money should be represented as one card per money.")
 
-func _test_neutral_extra_card_cancels_processing() -> void:
+func _test_neutral_extra_card_preserves_active_processing() -> void:
 	var controller: RunController = _create_controller(60.0)
 	var state: RunState = _start_run_with_opened_startup(controller, 1002)
 	var developer: CardInstance = _find_card_by_definition(state, "card.employee.developer")
@@ -94,9 +95,12 @@ func _test_neutral_extra_card_cancels_processing() -> void:
 	controller.move_card_to_stack(money.instance_id, developer.stack_id)
 
 	var stack: StackState = state.get_stack(developer.stack_id)
-	_assert_equal(stack.processing_state.active_recipe_id, "", "Neutral extra cards should cancel active processing.")
-	_assert_equal(stack.processing_state.status, ScopeEnums.ProcessingStatus.IDLE, "Cancelled processing should return to idle.")
-	_assert_equal(stack.processing_state.elapsed, 0.0, "Cancelled processing should reset elapsed time.")
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feature_from_idea.developer", "Neutral extra cards should not cancel active processing.")
+	_assert_equal(stack.processing_state.status, ScopeEnums.ProcessingStatus.ACTIVE, "Active processing should keep running with neutral extras above it.")
+	_assert_equal(stack.processing_state.elapsed, 2.0, "Neutral extras should not reset elapsed time.")
+	controller.advance_time(6.0)
+	_assert_equal(_count_cards_by_definition(state, "card.input.idea"), 0, "The original active recipe should still complete.")
+	_assert_equal(stack.processing_state.active_recipe_id, "", "The remaining neutral stack should not start unrelated work after the active recipe completes.")
 
 func _test_queued_tasks_preserve_active_bottom_work() -> void:
 	var controller: RunController = _create_controller(60.0)
@@ -153,7 +157,8 @@ func _test_coffee_accelerates_employee_work_only() -> void:
 
 	var object_stack: StackState = object_state.get_stack(software.stack_id)
 	_assert_equal(object_coffee.stack_id, software.stack_id, "Coffee should move normally onto object work.")
-	_assert_equal(object_stack.processing_state.active_recipe_id, "", "Coffee should not accelerate object processing or act as a recipe input.")
+	_assert_equal(object_stack.processing_state.active_recipe_id, "recipe.money_from_feature.software", "Coffee should not accelerate object processing or act as a recipe input.")
+	_assert_equal(object_stack.processing_state.elapsed, 1.0, "Coffee should not reset object processing progress.")
 
 func _test_bug_formation_happens_before_duplication() -> void:
 	var controller: RunController = _create_controller(1.0)
@@ -517,6 +522,31 @@ func _test_customer_demo_and_feedback_are_repeatable_active_work() -> void:
 	feedback_controller.advance_time(30.0)
 	_assert_equal(_count_cards_by_definition(feedback_state, "card.task.user_story"), stories_before_feedback + 1, "Completed customer feedback should create one normal User Story.")
 	_assert_equal(feedback_stack.processing_state.active_recipe_id, "recipe.feedback_from_customer.product_owner", "Feedback work should restart while Product Owner and customer remain stacked.")
+
+func _test_burnout_interrupts_customer_feedback_and_accepts_wellbeing_cards() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = _start_run_with_opened_startup(controller, 1029)
+	_make_software_live(state)
+	var product_owner: CardInstance = _spawn_card(controller, "card.employee.product_owner", Vector2(1000.0, 300.0))
+	var customer: CardInstance = _spawn_card(controller, "card.value_source.customer", Vector2(1200.0, 300.0))
+	var pizza: CardInstance = _spawn_card(controller, "card.consumable.pizza_party", Vector2(1400.0, 300.0))
+
+	controller.move_card_to_stack(product_owner.instance_id, customer.stack_id)
+	var stack: StackState = state.get_stack(customer.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feedback_from_customer.product_owner", "Product Owner plus customer should start feedback work before burnout.")
+
+	controller.call("_spawn_attached_card", product_owner.instance_id, "card.problem.burnout", "burnout")
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.burnout_recovery.employee", "Burnout should interrupt customer feedback even while the customer remains in the same stack.")
+	controller.advance_time(1.0)
+	_assert_equal(stack.processing_state.elapsed, 1.0, "Burnout recovery should progress despite unrelated customer cards in the stack.")
+
+	controller.move_card_to_stack(pizza.instance_id, customer.stack_id)
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.burnout_recovery.pizza", "Pizza Party should upgrade active burnout recovery inside the mixed customer stack.")
+	_assert_equal(stack.processing_state.duration, 5.0, "Pizza Party recovery should use the short burnout duration.")
+	controller.advance_time(4.0)
+	_assert_equal(_count_cards_by_definition(state, "card.problem.burnout"), 0, "Pizza recovery should remove the burnout attachment.")
+	_assert_equal(_count_cards_by_definition(state, "card.consumable.pizza_party"), 0, "Pizza Party should be consumed by the burnout recovery.")
+	_assert_equal(stack.processing_state.active_recipe_id, "recipe.feedback_from_customer.product_owner", "Customer feedback should resume after burnout is healed.")
 
 func _test_old_customer_requests_make_only_one_customer_unhappy_per_sprint() -> void:
 	var controller: RunController = _create_controller(1.0)

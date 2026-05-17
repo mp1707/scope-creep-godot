@@ -58,6 +58,8 @@ func _get_recipe_match_data(recipe: RecipeDefinition, stack: StackState, state: 
 		if used_card_ids.has(card_id):
 			continue
 		if not _matches_any_extra_input(card_id, recipe.allowed_extra_inputs, state, content):
+			if recipe.ignore_unmatched_extra_inputs:
+				continue
 			if anchor_card_id.is_empty() or not _is_queue_extra_card(card_id, anchor_card_id, state, content):
 				return {}
 

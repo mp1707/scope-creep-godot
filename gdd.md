@@ -279,7 +279,9 @@ Fuer ein einzelnes Recipe ist die Reihenfolge der benoetigten Karten egal: `Bug 
 
 Wenn ein Stack mehrere Aufgaben fuer denselben Bearbeiter oder dasselbe Ziel enthaelt, gilt aber eine Queue-Regel: **die unterste Aufgabe wird zuerst bearbeitet**. Weitere passende Aufgaben oberhalb des aktiven Recipe-Sets bleiben als Warteschlange im Stack. Beispiel: `Entwickler + Idee + Bug` bearbeitet zuerst die Idee; der Bug startet erst danach.
 
-Recipes matchen grundsätzlich auf **reine Rezeptstapel**: Ein Stapel löst nur dann eine Aktion aus, wenn die enthaltenen Karten zu einem Recipe passen. Zusätzliche Karten, die nicht Teil dieses Recipes sind, machen den Stapel neutral. Beispiel: Zwei Mitarbeiter plus eine normale Aufgabe lösen kein Einzelmitarbeiter-Recipe aus — der Spieler muss den passenden Rezeptstapel bewusst bauen.
+Recipes matchen grundsätzlich auf **reine Rezeptstapel**: Ein idle Stapel löst nur dann eine neue Aktion aus, wenn die enthaltenen Karten zu einem Recipe passen. Zusätzliche Karten, die nicht Teil dieses Recipes sind, machen einen idle Stapel neutral. Beispiel: Zwei Mitarbeiter plus eine normale Aufgabe lösen kein Einzelmitarbeiter-Recipe aus — der Spieler muss den passenden Rezeptstapel bewusst bauen.
+
+Eine bereits laufende Bearbeitung ist toleranter: Wird eine unpassende Zusatzkarte auf einen arbeitenden Stack gelegt, läuft das aktive Recipe weiter, solange alle aktiven Input-Karten noch im Stapel liegen. Die Zusatzkarte bleibt neutral und wird nach Abschluss erneut bewertet. Wenn danach nur noch eine unpassende Restkombination übrig ist, startet einfach kein neues Recipe. Dadurch verliert der Spieler keinen Fortschritt durch einen versehentlichen Drop.
 
 Wenn mehrere Recipes passen könnten, gewinnt das **spezifischere und vorteilhaftere** Recipe. Beispiel:
 
@@ -290,7 +292,7 @@ Mitarbeiter + Burnout + Pizza Party → 5s „Erholung…"
 
 Hier zieht das schnellere Pizza-Party-Recipe, weil es spezifischer ist. Bei echtem Gleichstand muss ein Recipe später explizit priorisiert werden.
 
-Eine laufende Bearbeitung bricht sofort ab, wenn der Stapel verändert wird und das aktive Recipe dadurch nicht mehr gültig ist. Das gilt insbesondere, wenn eine benoetigte Karte aus einem laufenden Stack herausgezogen wird oder eine nicht queuebare/neutrale Zusatzkarte den aktiven Stack ungültig macht. Queuebare Aufgaben oberhalb des aktiven Recipe-Sets brechen die laufende Bearbeitung nicht ab; sie werden nach Abschluss der unteren Aufgabe automatisch erneut gematcht. Beim Abbruch verschwindet der Arbeitsbalken; der Mitarbeiter ist wieder idle, und es entsteht kein separates Cancelled-Objekt.
+Eine laufende Bearbeitung bricht sofort ab, wenn eine benoetigte aktive Input-Karte aus dem Stack entfernt wird. Queuebare Aufgaben und neutrale Zusatzkarten oberhalb des aktiven Recipe-Sets brechen die laufende Bearbeitung nicht ab; sie werden nach Abschluss automatisch erneut gematcht. Beim Abbruch verschwindet der Arbeitsbalken; der Mitarbeiter ist wieder idle, und es entsteht kein separates Cancelled-Objekt.
 
 ---
 
@@ -604,6 +606,8 @@ Burnout ist eine **eigene Karte**, die auf einem Mitarbeiter liegt. Der Mitarbei
 
 - Sobald die Burnout-Karte entsteht, läuft ein **45-Sekunden-Fortschrittsbalken** auf dem Stapel `Mitarbeiter + Burnout`.
 - Während dieser Zeit ist der Mitarbeiter **vollständig blockiert** für andere Tätigkeiten — der Burnout ist seine aktuelle „Aufgabe".
+- Burnout hat Vorrang vor normaler Arbeit: entsteht Burnout auf einem Mitarbeiter in einem gemischten Stack, unterbricht die Erholung die aktuelle Mitarbeiterarbeit auch dann, wenn weitere nicht passende Karten wie ein Kunde im Stack liegen.
+- Burnout-Erholung darf nicht passende Zusatzkarten ignorieren und akzeptiert Wohlbefindenkarten weiterhin: `Pizza Party` und `Stressbewältigungskurs` wirken auch in solchen gemischten Stacks.
 - Wie jede Bearbeitung pausiert der Burnout-Timer am Sprintende und läuft im nächsten Sprint weiter.
 - Nach 45 Sekunden ist die Burnout-Karte verbraucht und der Mitarbeiter wieder einsatzbereit.
 - **Pizza Party** stapelt unter `Mitarbeiter + Burnout` und verkürzt die Bearbeitung auf **5s** (siehe Kap. 8.6).

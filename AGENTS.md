@@ -142,9 +142,9 @@ Wichtige GDD-Regeln, die nicht verletzt werden duerfen:
 - Sprintstart-Ticks passieren erst beim Start des naechsten Sprints.
 - Bug-Formation passiert vor Bug-Verdopplung.
 - Save ist nur im pausierten/frozen Zustand erlaubt.
-- Reine Rezeptstapel: nicht erlaubte Zusatzkarten machen den Stack neutral.
+- Reine Rezeptstapel: nicht erlaubte Zusatzkarten machen idle Stacks neutral.
 - Spezifischere/vorteilhaftere Recipes gewinnen; Gleichstand braucht explizite Priority.
-- Jede Stack-Aenderung, die ein aktives Recipe invalidiert, bricht Processing sofort ab.
+- Laufendes Processing bricht nur ab, wenn aktive Input-Karten entfernt werden; neutrale Zusatzkarten duerfen Fortschritt nicht loeschen.
 
 ## Zusammenarbeit bei Godot-Editor-Aufgaben
 

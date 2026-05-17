@@ -58,3 +58,4 @@ duration = SubResource("Duration_recovery")
 priority = 40
 specificity_score = 3
 effects_on_complete = Array[ExtResource("4_effect")]([SubResource("Effect_remove_burnout"), SubResource("Effect_consume_stress_course")])
+ignore_unmatched_extra_inputs = true
