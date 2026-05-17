@@ -67,14 +67,14 @@ Zustaendig fuer:
 - Board-Kamera, Edge-Pan und Zoom
 - Tooltips, Marker, Fortschrittsbalken
 - visuelle Sperrung in der Bezahlphase
-- Anwendung des geladenen Visual-Themes auf Board, Karten, HUD und Shop-Dock
+- Anwendung des geladenen Visual-Themes auf Board, Karten, HUD und Shop-Karten
 - Animationen und Sounds
 
 Presentation sendet Spielerabsichten als Commands an Application/Simulation, z. B. `move_card_to_stack`, `split_stack`, `start_next_sprint`, `pay_employee`.
 
 Wiederverwendbare Presentation-Bausteine sollen als echte Scenes gepflegt werden. Scripts binden Simulation-State, Content-Definitionen, Theme-Werte und Input/Animation, erzeugen aber normale sichtbare UI-Bestandteile nicht still zur Laufzeit nach. `CardView.tscn` ist die Layout-Wahrheit fuer Karten; `CardTooltipView.tscn` ist die Layout-Wahrheit fuer Karten-Tooltips. Dadurch bleiben Layout, Abstaende und Node-Komposition im Godot Editor feinjustierbar, ohne die datengetriebene Simulation aufzugeben.
 
-Permanente Shop-Karten werden nicht auf dem Board gerendert, sondern im `UiLayer/ShopDock`. Editor-seitig platzierte `ShopDockSlot`-Marker bestimmen die sichtbare Dock-Position; falls kein Marker existiert, darf `ShopDockView` auf ein automatisches Layout zurueckfallen. Die Simulation bleibt dafuer unveraendert datengetrieben: Shop-Slots sind weiterhin normale CardInstances mit `shop`-Tag und eigenem Stack.
+Permanente Shop-Karten werden als feste Karten auf dem Whiteboard gerendert. Editor-seitig platzierte `ShopBoardSlot`-Marker unter `BoardView/ShopSlots` bestimmen ihre Board-Position; falls kein Marker existiert, bleibt die datengetriebene Startposition aus der Simulation erhalten. Shop-Karten sind normale CardInstances mit `shop`-Tag und eigenem Stack, duerfen aber nicht vom Spieler verschoben oder gesplittet werden. Kauf- und Recycling-Drops laufen weiterhin ueber Simulation-Commands.
 
 ### Application
 
@@ -311,7 +311,7 @@ Pool-Eintraege referenzieren `CardDefinition`-IDs und Gewichte. Booster-Ziehunge
 
 ### Shop-Slots
 
-Der aktuelle Shop ist ueber permanente Shop-Slot-Karten modelliert, nicht ueber separate `ShopDefinition`-Resources. Ein Shop-Slot ist eine normale `CardDefinition` mit `shop`-Tag und optionalen `base_values` wie `booster_definition_id` oder `shop_dock_order`.
+Der aktuelle Shop ist ueber permanente Shop-Slot-Karten modelliert, nicht ueber separate `ShopDefinition`-Resources. Ein Shop-Slot ist eine normale `CardDefinition` mit `shop`-Tag und optionalen `base_values` wie `booster_definition_id`, `shop_dock_order` oder `shop_price_money_cards`.
 
 Fachliche Regeln:
 

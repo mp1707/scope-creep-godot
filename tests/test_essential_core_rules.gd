@@ -270,13 +270,10 @@ func _test_recycling_bin_is_rightmost_shop_slot() -> void:
 	var recycling_bin: CardInstance = _find_card_by_definition(state, "card.shop.recycling_bin")
 	_assert_true(recycling_bin != null, "Start run should include the recycling bin shop slot.")
 
-	var shop_dock: ShopDockView = ShopDockView.new()
-	shop_dock.state = state
-	shop_dock.content = controller.content
-	var shop_card_ids: PackedStringArray = shop_dock.call("_get_shop_card_ids") as PackedStringArray
-	_assert_true(not shop_card_ids.is_empty(), "Shop dock should find shop cards.")
-	var rightmost_card: CardInstance = state.get_card(shop_card_ids[shop_card_ids.size() - 1])
-	_assert_equal(rightmost_card.definition_id, "card.shop.recycling_bin", "Recycling bin should be the rightmost shop slot.")
+	for card: CardInstance in state.cards.values():
+		var definition: CardDefinition = controller.content.get_card_definition(card.definition_id)
+		if definition != null and definition.tags.has("shop") and card.instance_id != recycling_bin.instance_id:
+			_assert_true(recycling_bin.position.x > card.position.x, "Recycling bin should be the rightmost shop slot.")
 
 func _test_recycling_bin_requires_three_recyclable_cards() -> void:
 	var controller: RunController = _create_controller(60.0)

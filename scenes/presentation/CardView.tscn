@@ -21,6 +21,9 @@ icon_scribble_texture_rect_path = NodePath("VisualRoot/IconScribbleTextureRect")
 icon_texture_rect_path = NodePath("VisualRoot/IconTextureRect")
 short_text_label_path = NodePath("VisualRoot/ShortTextLabel")
 marker_label_path = NodePath("VisualRoot/MarkerLabel")
+shop_price_root_path = NodePath("VisualRoot/ShopPriceRoot")
+shop_price_label_path = NodePath("VisualRoot/ShopPriceRoot/PriceLabel")
+shop_price_icon_path = NodePath("VisualRoot/ShopPriceRoot/PriceIcon")
 drop_target_feedback_path = NodePath("VisualRoot/DropTargetFeedback")
 juice_controller_path = NodePath("CardJuiceController")
 metadata/_custom_type_script = "uid://btde6a6hcp0h4"
@@ -112,6 +115,34 @@ offset_top = 24.0
 offset_right = 144.0
 offset_bottom = 25.0
 mouse_filter = 2
+
+[node name="ShopPriceRoot" type="Control" parent="VisualRoot"]
+visible = false
+layout_mode = 0
+offset_left = 106.0
+offset_top = 154.0
+offset_right = 138.0
+offset_bottom = 176.0
+mouse_filter = 2
+
+[node name="PriceLabel" type="Label" parent="VisualRoot/ShopPriceRoot"]
+layout_mode = 0
+offset_right = 14.0
+offset_bottom = 22.0
+mouse_filter = 2
+clip_text = true
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="PriceIcon" type="TextureRect" parent="VisualRoot/ShopPriceRoot"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 2.0
+offset_right = 32.0
+offset_bottom = 20.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
 
 [node name="DropTargetFeedback" type="Panel" parent="VisualRoot"]
 visible = false

@@ -20,6 +20,7 @@ const STATUS_BADGE_PAID_COLOR: Color = Color(0.64, 0.86, 0.64, 0.96)
 const CARD_FONT_PATH: String = "res://assets/fonts/PatrickHand-Regular.ttf"
 const CARD_PAPER_TEXTURE_PATH: String = "res://assets/card/paperTexture.png"
 const ICON_SCRIBBLE_TEXTURE_PATH: String = "res://assets/icons/handdrawn/ui/scribbleCricle.png"
+const SHOP_PRICE_ICON_TEXTURE_PATH: String = "res://assets/icons/handdrawn/smallIcons/moneySmall.png"
 const TITLE_MAX_FONT_SIZE: int = 18
 const TITLE_MIN_FONT_SIZE: int = 8
 const DEFAULT_ICON_CENTER: Vector2 = Vector2(72.0, 100.0)
@@ -36,6 +37,8 @@ static var _shared_paper_texture: Texture2D = null
 static var _paper_texture_load_attempted: bool = false
 static var _shared_icon_scribble_texture: Texture2D = null
 static var _icon_scribble_texture_load_attempted: bool = false
+static var _shared_shop_price_icon_texture: Texture2D = null
+static var _shop_price_icon_texture_load_attempted: bool = false
 
 @export var visual_root_path: NodePath = NodePath("VisualRoot")
 @export var shadow_path: NodePath = NodePath("VisualRoot/CardShadow")
@@ -47,6 +50,9 @@ static var _icon_scribble_texture_load_attempted: bool = false
 @export var icon_texture_rect_path: NodePath
 @export var short_text_label_path: NodePath
 @export var marker_label_path: NodePath
+@export var shop_price_root_path: NodePath = NodePath("VisualRoot/ShopPriceRoot")
+@export var shop_price_label_path: NodePath = NodePath("VisualRoot/ShopPriceRoot/PriceLabel")
+@export var shop_price_icon_path: NodePath = NodePath("VisualRoot/ShopPriceRoot/PriceIcon")
 @export var drop_target_feedback_path: NodePath = NodePath("VisualRoot/DropTargetFeedback")
 @export var juice_controller_path: NodePath = NodePath("CardJuiceController")
 
@@ -64,12 +70,16 @@ var _icon_scribble_texture_rect: TextureRect = null
 var _icon_texture_rect: TextureRect = null
 var _short_text_label: Label = null
 var _marker_label: Label = null
+var _shop_price_root: Control = null
+var _shop_price_label: Label = null
+var _shop_price_icon: TextureRect = null
 var _drop_target_feedback: Panel = null
 var _juice = null
 var _default_marker_text: String = ""
 var _card_font: FontFile = null
 var _scribble_mask_material: ShaderMaterial = null
 var _icon_mask_material: ShaderMaterial = null
+var _shop_price_icon_mask_material: ShaderMaterial = null
 var _product_lifecycle: RefCounted = ProductLifecycleServiceScript.new()
 var _custom_tooltip_text: String = ""
 var _processing_tooltip_title: String = ""
@@ -127,6 +137,10 @@ func set_visual_theme(new_visual_theme: Resource) -> void:
 		_apply_header_hairline_style()
 	if _drop_target_feedback != null:
 		_apply_drop_target_feedback_style()
+	if _shop_price_label != null:
+		_shop_price_label.add_theme_color_override("font_color", _get_shop_price_text_color())
+	if _shop_price_icon != null and _shop_price_icon_mask_material != null:
+		_shop_price_icon_mask_material.set_shader_parameter("icon_color", _get_shop_price_icon_color())
 	if _active_tooltip_owner == self and _shared_tooltip_view != null and is_instance_valid(_shared_tooltip_view):
 		_shared_tooltip_view.call("set_visual_theme", visual_theme)
 
@@ -162,6 +176,7 @@ func update_runtime(card: CardInstance, _stack: StackState, definition: CardDefi
 	stack_id = card.stack_id
 	_update_runtime_marker(card, definition)
 	_update_runtime_short_text(card, definition)
+	_update_shop_price(card, definition)
 	_update_runtime_tint(card)
 	if definition != null:
 		_update_tooltip(card, definition)
@@ -273,6 +288,12 @@ func _resolve_or_create_nodes() -> void:
 		_short_text_label = _resolve_control(short_text_label_path, "ShortTextLabel") as Label
 	if _marker_label == null:
 		_marker_label = _resolve_control(marker_label_path, "MarkerLabel") as Label
+	if _shop_price_root == null:
+		_shop_price_root = _resolve_control(shop_price_root_path, "ShopPriceRoot")
+	if _shop_price_label == null:
+		_shop_price_label = _resolve_control(shop_price_label_path, "PriceLabel") as Label
+	if _shop_price_icon == null:
+		_shop_price_icon = _resolve_control(shop_price_icon_path, "PriceIcon") as TextureRect
 	if _drop_target_feedback == null:
 		_drop_target_feedback = _resolve_control(drop_target_feedback_path, "DropTargetFeedback") as Panel
 	_report_missing_required_nodes()
@@ -310,6 +331,9 @@ func _report_missing_required_nodes() -> void:
 		"IconTextureRect": _icon_texture_rect,
 		"ShortTextLabel": _short_text_label,
 		"MarkerLabel": _marker_label,
+		"ShopPriceRoot": _shop_price_root,
+		"PriceLabel": _shop_price_label,
+		"PriceIcon": _shop_price_icon,
 		"DropTargetFeedback": _drop_target_feedback,
 	}
 	for node_name: String in required_nodes.keys():
@@ -351,6 +375,21 @@ func _apply_scene_node_defaults() -> void:
 		if _card_font != null:
 			_short_text_label.add_theme_font_override("font", _card_font)
 		_short_text_label.add_theme_font_size_override("font_size", 18)
+	if _shop_price_root != null:
+		_shop_price_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_shop_price_root.visible = false
+	if _shop_price_label != null:
+		_shop_price_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if _card_font != null:
+			_shop_price_label.add_theme_font_override("font", _card_font)
+		_shop_price_label.add_theme_font_size_override("font_size", 18)
+		_shop_price_label.add_theme_color_override("font_color", _get_shop_price_text_color())
+	if _shop_price_icon != null:
+		_shop_price_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_shop_price_icon.texture = _get_shop_price_icon_texture()
+		_shop_price_icon.material = _get_shop_price_icon_mask_material()
+		_shop_price_icon.self_modulate = Color.WHITE
+		_shop_price_icon_mask_material.set_shader_parameter("icon_color", _get_shop_price_icon_color())
 	if _drop_target_feedback != null:
 		_drop_target_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_apply_drop_target_feedback_style()
@@ -389,7 +428,6 @@ func _apply_definition(definition: CardDefinition) -> void:
 	_short_text_label.visible = false
 	for label: Label in [_title_label, _short_text_label, _marker_label]:
 		label.add_theme_color_override("font_color", _get_card_text_color(visual))
-	_title_label.add_theme_color_override("font_color", _get_card_header_text_color())
 	_marker_label.add_theme_color_override("font_color", _get_status_badge_text_color())
 
 	_apply_card_surface_style(_background, _get_card_background_color(visual))
@@ -467,6 +505,11 @@ func _get_scribble_mask_material() -> ShaderMaterial:
 		_scribble_mask_material = _create_alpha_mask_material()
 	return _scribble_mask_material
 
+func _get_shop_price_icon_mask_material() -> ShaderMaterial:
+	if _shop_price_icon_mask_material == null:
+		_shop_price_icon_mask_material = _create_alpha_mask_material()
+	return _shop_price_icon_mask_material
+
 func _create_alpha_mask_material() -> ShaderMaterial:
 	var shader: Shader = Shader.new()
 	shader.code = ICON_MASK_SHADER_CODE
@@ -477,7 +520,7 @@ func _create_alpha_mask_material() -> ShaderMaterial:
 func _apply_header_style(visual: CardVisualDefinition) -> void:
 	if _header_band == null:
 		return
-	_apply_card_surface_style(_header_band, _get_card_accent_color(visual).lightened(0.35))
+	_apply_card_surface_style(_header_band, _get_card_header_color(visual))
 
 func _apply_card_surface_style(control: Control, tint_color: Color) -> void:
 	if control == null:
@@ -519,6 +562,15 @@ func _get_icon_scribble_texture() -> Texture2D:
 	_icon_scribble_texture_load_attempted = true
 	_shared_icon_scribble_texture = ResourceLoader.load(ICON_SCRIBBLE_TEXTURE_PATH) as Texture2D
 	return _shared_icon_scribble_texture
+
+func _get_shop_price_icon_texture() -> Texture2D:
+	if _shared_shop_price_icon_texture != null:
+		return _shared_shop_price_icon_texture
+	if _shop_price_icon_texture_load_attempted:
+		return null
+	_shop_price_icon_texture_load_attempted = true
+	_shared_shop_price_icon_texture = ResourceLoader.load(SHOP_PRICE_ICON_TEXTURE_PATH) as Texture2D
+	return _shared_shop_price_icon_texture
 
 func _apply_header_hairline_style() -> void:
 	if _header_hairline == null:
@@ -586,6 +638,23 @@ func _update_runtime_short_text(card: CardInstance, definition: CardDefinition) 
 	if status_text.is_empty():
 		return
 	_set_runtime_short_text(status_text, 18)
+
+func _update_shop_price(card: CardInstance, definition: CardDefinition) -> void:
+	if _shop_price_root == null or _shop_price_label == null or _shop_price_icon == null:
+		return
+	_shop_price_root.visible = false
+	if definition == null or not definition.tags.has("shop"):
+		return
+	var price: int = int(card.values.get("shop_price_money_cards", definition.base_values.get("shop_price_money_cards", 0)))
+	if price <= 0:
+		return
+	_shop_price_label.text = str(price)
+	_shop_price_label.add_theme_color_override("font_color", _get_shop_price_text_color())
+	_shop_price_icon.texture = _get_shop_price_icon_texture()
+	_shop_price_icon.visible = _shop_price_icon.texture != null
+	_shop_price_icon.material = _get_shop_price_icon_mask_material()
+	_shop_price_icon_mask_material.set_shader_parameter("icon_color", _get_shop_price_icon_color())
+	_shop_price_root.visible = true
 
 func _set_runtime_short_text(text: String, font_size: int) -> void:
 	_short_text_label.text = text
@@ -763,6 +832,11 @@ func _get_card_accent_color(visual: CardVisualDefinition) -> Color:
 		return visual_theme.call("get_card_accent_color", visual) as Color
 	return visual.accent_color if visual != null else Color(0.42, 0.72, 0.95, 1.0)
 
+func _get_card_header_color(visual: CardVisualDefinition) -> Color:
+	if visual_theme != null and visual_theme.has_method("get_card_header_color"):
+		return visual_theme.call("get_card_header_color", visual) as Color
+	return _get_card_accent_color(visual).lightened(0.35)
+
 func _get_card_text_color(visual: CardVisualDefinition) -> Color:
 	if visual_theme != null:
 		return visual_theme.call("get_card_text_color", visual) as Color
@@ -820,6 +894,12 @@ func _get_card_paid_modulate() -> Color:
 
 func _get_card_payment_target_modulate() -> Color:
 	return _get_theme_color("card_payment_target_modulate", Color(1.0, 0.96, 0.72, 1.0))
+
+func _get_shop_price_text_color() -> Color:
+	return _get_theme_color("shop_price_text_color", Color(0.98, 0.96, 0.90, 1.0))
+
+func _get_shop_price_icon_color() -> Color:
+	return _get_theme_color("shop_price_icon_color", Color(0.98, 0.96, 0.90, 1.0))
 
 func _get_theme_color(property_name: String, fallback: Color) -> Color:
 	if visual_theme == null:

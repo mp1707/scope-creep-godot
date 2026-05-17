@@ -221,20 +221,20 @@ Die Zielwerte starten bei 1 Geld und steigen pro erledigtem Goal um 1: 1, 2, 3, 
 
 ### Booster und Shop nutzen
 
-Der Shop ist live im Run nutzbar. Geldkarten werden auf Shop-/Booster-Slots gelegt; Boosterpacks werden danach per Klick schrittweise geoeffnet.
+Der Shop ist live im Run nutzbar. Die Shop-Slots sind feste, fast schwarze Karten am oberen Rand des Whiteboards. Geldkarten werden auf Shop-/Booster-Slots gelegt; Boosterpacks werden danach per Klick schrittweise geoeffnet.
 Karten aus Boosterpacks suchen freie Plaetze um das Pack herum: Start bei 12 Uhr, dann im Uhrzeigersinn, belegte Plaetze werden uebersprungen.
 
-Die Shop-Slots werden in der Presentation ueber `UiLayer/ShopDock` als editor-positionierbare Slot-Marker platziert. Die Simulation behandelt sie weiterhin als normale Shop-CardInstances; ihre Board-Positionen sind fuer das sichtbare Dock nicht massgeblich.
+Die Shop-Slots werden in der Presentation ueber `BoardView/ShopSlots` als editor-positionierbare `ShopBoardSlot`-Marker platziert. Die Simulation behandelt sie weiterhin als normale Shop-CardInstances; Spieler koennen diese Shop-Stacks aber nicht bewegen oder splitten.
 
 Aktuelle Shop-/Booster-Richtungen:
 
-- Gruenderpanik: fruehe Hilfe fuer Startdruck; zieht 2 Karten aus Ideen und Kaffee, kein Geld.
-- Wohlbefinden: Kaffee, Kaffeemaschine, Pizza Party, Stressbewaeltigungskurs.
-- Talent-Pool: kostet 2 Geld, zieht Bewerber oder Werkstudenten.
-- Externer Bugfix: gezielter Bugfix-Patch.
-- Freelance-Auftrag: kostet 1 Geld, erzeugt eine sprintgebundene Auftragskarte.
+- Inspiration: kostet 1 Geld, zieht 2 Karten aus Ideen und Kaffee, kein Geld.
+- Mitarbeiter Goodies: kostet 1 Geld, zieht Kaffee, Kaffeemaschine, Pizza Party oder Stressbewaeltigungskurs.
+- Neue Mitarbeiter: kostet 2 Geld, zieht Bewerber oder Werkstudenten.
+- Externe Hilfe: kostet 1 Geld, erzeugt einen gezielten Bugfix-Patch.
+- Sidehustle: kostet 1 Geld, erzeugt eine sprintgebundene Auftragskarte.
 - Kundenchaos: existiert als Content und kann nach Launch durch Launch-/Shop-Setup relevant werden.
-- Resteverwertung: ganz rechter Shop-Slot; 3 verwertbare Restkarten werden sofort zu 1 Geld, ueberschuessige Karten fallen zurueck aufs Board.
+- Verkaufen: ganz rechter Shop-Slot; 3 verwertbare Restkarten werden sofort zu 1 Geld, ueberschuessige Karten fallen zurueck aufs Board.
 
 Booster-Ziehungen laufen ueber deterministischen Run-RNG und sind dadurch test- und save-kompatibel.
 

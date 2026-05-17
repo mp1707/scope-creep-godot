@@ -2,22 +2,26 @@
 
 [ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_card"]
 [ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/money.png" id="3_icon"]
 
 [sub_resource type="Resource" id="Resource_visual"]
 script = ExtResource("2_visual")
-background_color = Color(0.78, 0.96, 0.46, 1)
-accent_color = Color(0.42, 0.76, 0.16, 1)
-text_color = Color(0.075, 0.095, 0.12, 1)
-marker_text = "R"
+visual_role_id = "visual_role.shop"
+use_visual_role = true
+override_background_color = false
+override_accent_color = false
+override_text_color = false
+icon_texture = ExtResource("3_icon")
+icon_size = Vector2(86, 86)
 
 [resource]
 script = ExtResource("1_card")
 id = "card.shop.recycling_bin"
-display_name = "Resteverwertung"
+display_name = "Verkaufen"
 type = 6
 tags = PackedStringArray("shop", "recycling_bin")
-short_text = "3 Reste -> 1 Geld"
-tooltip_text = "Verwandelt 3 verwertbare Karten in 1 Geld."
+short_text = "Was weg ist, ist weg"
+tooltip_text = "Was weg ist, ist weg"
 visual = SubResource("Resource_visual")
 base_values = {
 "shop_dock_order": 1000

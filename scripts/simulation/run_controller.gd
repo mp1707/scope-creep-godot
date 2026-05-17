@@ -2,8 +2,8 @@ class_name RunController
 extends RefCounted
 
 const SPRINT_TIMER_ID: String = "sprint_remaining_seconds"
-const START_LAYOUT_ORIGIN: Vector2 = Vector2(420.0, 322.0)
-const START_LAYOUT_COLUMNS: int = 6
+const START_LAYOUT_ORIGIN: Vector2 = Vector2(140.0, 24.0)
+const START_LAYOUT_COLUMNS: int = 7
 const START_LAYOUT_STEP: Vector2 = Vector2(192.0, 240.0)
 const STARTUP_BOOSTER_PACK_DEFINITION_ID: String = "card.resource.startup_booster_pack"
 const STARTUP_BOOSTER_POSITION: Vector2 = Vector2(888.0, 442.0)
@@ -35,11 +35,11 @@ const SprintStartPipelineServiceScript: Script = preload("res://scripts/simulati
 const SpawnPlacementServiceScript: Script = preload("res://scripts/simulation/spawn_placement_service.gd")
 const DropInteractionPreviewServiceScript: Script = preload("res://scripts/simulation/drop_interaction_preview_service.gd")
 const START_SHOP_CARD_IDS: Array[String] = [
-	"card.shop.freelance_order",
 	"card.shop.booster_slot",
 	"card.shop.booster_slot.office_invest",
 	"card.shop.bugfix_patch_slot",
 	"card.shop.booster_slot.talent_pool",
+	"card.shop.freelance_order",
 	"card.shop.recycling_bin",
 ]
 
@@ -209,6 +209,8 @@ func move_stack(stack_id: String, position: Vector2) -> void:
 	var stack: StackState = _get_existing_stack(stack_id)
 	if not _can_interact_with_board():
 		return
+	if _is_shop_stack(stack):
+		return
 	stack.base_position = position
 	for card_id: String in stack.card_ids:
 		var card: CardInstance = _get_existing_card(card_id)
@@ -223,6 +225,8 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 	var source_stack: StackState = _get_existing_stack(card.stack_id)
 	var target_stack: StackState = _get_existing_stack(target_stack_id)
 	if source_stack.stack_id == target_stack.stack_id:
+		return
+	if _is_shop_stack(source_stack):
 		return
 
 	var start_index: int = source_stack.card_ids.find(card_id)
@@ -400,6 +404,8 @@ func split_stack_from_card(card_id: String, new_position: Vector2) -> StackState
 	if start_index < 0:
 		push_error("Card '%s' is not in its source stack." % card_id)
 		return null
+	if _is_shop_stack(source_stack):
+		return null
 
 	var new_stack: StackState = _create_stack(new_position)
 	var moving_card_ids: PackedStringArray = source_stack.card_ids.slice(start_index)
@@ -486,6 +492,8 @@ func can_move_card_to_stack(card_id: String, target_stack_id: String) -> bool:
 	var source_stack: StackState = state.get_stack(card.stack_id)
 	var target_stack: StackState = state.get_stack(target_stack_id)
 	if source_stack == null or target_stack == null or source_stack.stack_id == target_stack.stack_id:
+		return false
+	if _is_shop_stack(source_stack):
 		return false
 
 	var start_index: int = source_stack.card_ids.find(card_id)

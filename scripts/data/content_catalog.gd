@@ -56,6 +56,7 @@ func apply_balance_overrides() -> void:
 	_set_recipe_duration("recipe.interview_candidate.recruiter", balance.poc4_recruiter_interview_duration_seconds)
 	_set_recipe_duration("recipe.onboarding.employee", balance.poc4_onboarding_duration_seconds)
 	_set_work_student_balance_values()
+	_set_shop_price_values()
 
 func _set_recipe_duration(recipe_id: String, duration_seconds: float) -> void:
 	var recipe: RecipeDefinition = get_recipe_definition(recipe_id)
@@ -69,6 +70,24 @@ func _set_work_student_balance_values() -> void:
 		return
 	work_student.base_values["duration_multiplier"] = maxf(1.0, balance.poc4_work_student_duration_multiplier)
 	work_student.base_values["completed_task_lifetime"] = maxi(1, balance.poc4_work_student_completed_task_lifetime)
+
+func _set_shop_price_values() -> void:
+	for card: CardDefinition in cards.values():
+		if card == null or not card.tags.has("shop"):
+			continue
+		if card.id == "card.shop.recycling_bin":
+			card.base_values.erase("shop_price_money_cards")
+			continue
+		if card.id == "card.shop.freelance_order":
+			card.base_values["shop_price_money_cards"] = maxi(1, balance.freelance_order_cost_money_cards)
+			continue
+		if card.tags.has("bugfix_patch_slot"):
+			card.base_values["shop_price_money_cards"] = 1
+			continue
+		var booster_id: String = card.base_values.get("booster_definition_id", "") as String
+		var booster: BoosterDefinition = get_booster_definition(booster_id)
+		if booster != null:
+			card.base_values["shop_price_money_cards"] = maxi(1, booster.cost_money_cards)
 
 func _load_cards(directory_path: String) -> void:
 	var directory: DirAccess = DirAccess.open(directory_path)

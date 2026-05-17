@@ -2,14 +2,13 @@ class_name MainApplication
 extends Node
 
 const CARD_VIEW_SCENE_PATH: String = "res://scenes/presentation/CardView.tscn"
-const SHOP_DOCK_SCRIPT_PATH: String = "res://scripts/presentation/shop_dock_view.gd"
 const DEV_SAVE_PATH: String = "user://scope_creep_poc_slot_1.json"
 const DRAG_OVERLAY_LAYER: int = 20
 
 @export var board_view_path: NodePath = NodePath("BoardView")
 @export var board_camera_path: NodePath = NodePath("Camera2D")
 @export var hud_path: NodePath = NodePath("UiLayer/Hud")
-@export var shop_dock_path: NodePath = NodePath("UiLayer/ShopDock")
+@export var shop_board_slots_path: NodePath = NodePath("BoardView/ShopSlots")
 @export var drag_overlay_path: NodePath = NodePath("DragOverlayLayer/ScreenDragLayer")
 @export var show_hud: bool = true
 
@@ -20,7 +19,6 @@ var run_state: RunState = null
 var _board_view: BoardView = null
 var _board_camera: BoardCamera = null
 var _hud: Control = null
-var _shop_dock: Control = null
 var _screen_drag_layer: Control = null
 
 func _ready() -> void:
@@ -45,17 +43,15 @@ func _ready() -> void:
 	_apply_visual_theme()
 	controller = RunController.new(content)
 	run_state = controller.start_new_run(1)
+	_apply_shop_board_slot_positions()
 
 	_apply_board_defaults()
-	_ensure_shop_dock()
 	_ensure_screen_drag_layer()
 	_bind_board_camera()
 	_connect_board_signals()
 	if show_hud:
 		_connect_hud_signals()
 	_board_view.bind_run(run_state, content)
-	if _shop_dock != null:
-		_shop_dock.call("bind_run", run_state, content)
 	_apply_pending_events()
 	_update_hud()
 
@@ -139,10 +135,9 @@ func request_load_saved_run() -> bool:
 			push_warning(error)
 		return false
 	run_state = controller.state
+	_apply_shop_board_slot_positions()
 	_bind_board_camera()
 	_board_view.bind_run(run_state, content)
-	if _shop_dock != null:
-		_shop_dock.call("bind_run", run_state, content)
 	_apply_pending_events()
 	_update_hud()
 	return true
@@ -161,22 +156,42 @@ func _apply_visual_theme() -> void:
 	if _hud != null and _hud.has_method("set_visual_theme"):
 		_hud.call("set_visual_theme", content.visual_theme)
 
-func _ensure_shop_dock() -> void:
-	_shop_dock = get_node_or_null(shop_dock_path) as Control
-	if _shop_dock == null:
-		var ui_layer: CanvasLayer = get_node_or_null("UiLayer") as CanvasLayer
-		if ui_layer == null:
-			ui_layer = CanvasLayer.new()
-			ui_layer.name = "UiLayer"
-			ui_layer.layer = 10
-			add_child(ui_layer)
-		var shop_dock_script: Script = ResourceLoader.load(SHOP_DOCK_SCRIPT_PATH) as Script
-		_shop_dock = shop_dock_script.new() as Control
-		_shop_dock.name = "ShopDock"
-		ui_layer.add_child(_shop_dock)
+func _apply_shop_board_slot_positions() -> void:
+	if run_state == null:
+		return
+	var slot_root: Node = get_node_or_null(shop_board_slots_path)
+	if slot_root == null:
+		return
+	var slots: Array[ShopBoardSlot] = []
+	_collect_shop_board_slots(slot_root, slots)
+	for slot: ShopBoardSlot in slots:
+		if slot.card_definition_id.strip_edges().is_empty():
+			continue
+		var shop_card: CardInstance = _find_card_by_definition_id(slot.card_definition_id)
+		if shop_card == null:
+			continue
+		var stack: StackState = run_state.get_stack(shop_card.stack_id)
+		if stack == null:
+			continue
+		stack.base_position = _board_view.to_local(slot.global_position)
+		for card_id: String in stack.card_ids:
+			var card: CardInstance = run_state.get_card(card_id)
+			if card != null:
+				card.position = stack.base_position
 
-	if _shop_dock.get("card_view_scene") == null:
-		_shop_dock.set("card_view_scene", ResourceLoader.load(CARD_VIEW_SCENE_PATH) as PackedScene)
+func _collect_shop_board_slots(node: Node, slots: Array[ShopBoardSlot]) -> void:
+	for child: Node in node.get_children():
+		if child is ShopBoardSlot:
+			slots.append(child as ShopBoardSlot)
+		_collect_shop_board_slots(child, slots)
+
+func _find_card_by_definition_id(card_definition_id: String) -> CardInstance:
+	if run_state == null:
+		return null
+	for card: CardInstance in run_state.cards.values():
+		if card.definition_id == card_definition_id:
+			return card
+	return null
 
 func _ensure_screen_drag_layer() -> void:
 	_screen_drag_layer = get_node_or_null(drag_overlay_path) as Control
@@ -204,8 +219,8 @@ func _bind_board_camera() -> void:
 	_board_camera.bind_board(run_state.board)
 
 func _connect_board_signals() -> void:
-	_board_view.screen_drop_target_resolver = Callable(self, "_resolve_screen_drop_target_stack")
-	_board_view.screen_drag_finished_callback = Callable(self, "_clear_screen_drop_hover")
+	_board_view.screen_drop_target_resolver = Callable()
+	_board_view.screen_drag_finished_callback = Callable()
 	_board_view.drop_interaction_preview_resolver = Callable(self, "_resolve_drop_interaction_preview_stacks")
 	if not _board_view.move_stack_requested.is_connected(request_move_stack):
 		_board_view.move_stack_requested.connect(request_move_stack)
@@ -215,8 +230,6 @@ func _connect_board_signals() -> void:
 		_board_view.split_stack_requested.connect(request_split_stack)
 	if not _board_view.card_clicked.is_connected(request_card_clicked):
 		_board_view.card_clicked.connect(request_card_clicked)
-	if not _board_view.interaction_preview_changed.is_connected(_set_shop_interaction_preview):
-		_board_view.interaction_preview_changed.connect(_set_shop_interaction_preview)
 	if _board_camera != null and not _board_view.board_pan_requested.is_connected(_board_camera.pan_by_viewport_delta):
 		_board_view.board_pan_requested.connect(_board_camera.pan_by_viewport_delta)
 
@@ -244,29 +257,13 @@ func _apply_pending_events() -> void:
 		return
 	var events: Array[SimulationEvent] = controller.drain_events()
 	if not events.is_empty():
+		_apply_shop_board_slot_positions()
 		_board_view.apply_events(events)
-		if _shop_dock != null:
-			_shop_dock.call("apply_events", events)
-
-func _resolve_screen_drop_target_stack(card_id: String, viewport_position: Vector2, moving_card_count: int) -> String:
-	if _shop_dock == null:
-		return ""
-	return _shop_dock.call("find_drop_stack_id", card_id, viewport_position, moving_card_count) as String
 
 func _resolve_drop_interaction_preview_stacks(card_id: String) -> PackedStringArray:
 	if controller == null:
 		return PackedStringArray()
 	return controller.get_drop_interaction_preview_stack_ids(card_id)
-
-func _set_shop_interaction_preview(stack_ids: PackedStringArray, dragged_card_id: String) -> void:
-	if _shop_dock != null and _shop_dock.has_method("set_interaction_preview_stack_ids"):
-		_shop_dock.call("set_interaction_preview_stack_ids", stack_ids, dragged_card_id)
-
-func _clear_screen_drop_hover(dropped_stack_id: String = "") -> void:
-	if _shop_dock != null:
-		if not dropped_stack_id.is_empty():
-			_shop_dock.call("play_drop_pulse", dropped_stack_id)
-		_shop_dock.call("set_hovered_stack_id", "")
 
 func _update_hud() -> void:
 	if not show_hud or _hud == null or run_state == null or controller == null:

@@ -44,6 +44,8 @@ extends Resource
 @export var shop_preview_hover_color: Color = Color(0.28, 0.56, 0.78, 0.18)
 @export var shop_drop_feedback_fill_color: Color = Color(0.055, 0.052, 0.047, 0.08)
 @export var shop_preview_text_color: Color = Color(0.055, 0.052, 0.047, 0.78)
+@export var shop_price_text_color: Color = Color(0.98, 0.96, 0.90, 1.0)
+@export var shop_price_icon_color: Color = Color(0.98, 0.96, 0.90, 1.0)
 
 @export var card_roles: Array[Resource] = []
 
@@ -51,7 +53,7 @@ func get_card_role(role_id: String) -> Resource:
 	if role_id.strip_edges().is_empty():
 		return null
 	for role: Resource in card_roles:
-		if role != null and role.get("id") as String == role_id:
+		if role != null and str(role.get("id")) == role_id:
 			return role
 	return null
 
@@ -71,6 +73,12 @@ func get_card_accent_color(visual: CardVisualDefinition) -> Color:
 		return visual.accent_color
 	return Color(0.42, 0.72, 0.95, 1.0)
 
+func get_card_header_color(visual: CardVisualDefinition) -> Color:
+	var role: Resource = _get_visual_role(visual)
+	if role != null and bool(role.get("use_custom_header_color")):
+		return role.get("header_color") as Color
+	return get_card_accent_color(visual).lightened(0.35)
+
 func get_card_text_color(visual: CardVisualDefinition) -> Color:
 	var role: Resource = _get_visual_role(visual)
 	if role != null and not visual.override_text_color:
@@ -82,12 +90,15 @@ func get_card_text_color(visual: CardVisualDefinition) -> Color:
 func get_card_icon_color(visual: CardVisualDefinition) -> Color:
 	var role: Resource = _get_visual_role(visual)
 	if role != null and not visual.override_icon_color:
-		return _derive_card_icon_color(role.get("background_color") as Color, role.get("accent_color") as Color)
+		return role.get("icon_color") as Color
 	if visual != null and visual.override_icon_color:
 		return visual.icon_color
 	return _derive_card_icon_color(get_card_background_color(visual), get_card_accent_color(visual))
 
 func get_card_scribble_color(visual: CardVisualDefinition) -> Color:
+	var role: Resource = _get_visual_role(visual)
+	if role != null and bool(role.get("use_custom_scribble_color")):
+		return role.get("scribble_color") as Color
 	return _derive_card_scribble_color(get_card_background_color(visual), get_card_accent_color(visual))
 
 func get_interaction_preview_color(visual: CardVisualDefinition) -> Color:

@@ -230,10 +230,11 @@ func find_snap_stack(card_id: String, board_position: Vector2) -> StackState:
 
 	var best_stack: StackState = null
 	var best_distance: float = snap_distance
+	var valid_drop_stack_ids: PackedStringArray = _get_valid_drop_stack_ids(card_id)
 	for stack: StackState in state.stacks.values():
 		if stack.card_ids.has(card_id):
 			continue
-		if _is_shop_stack(stack):
+		if _is_shop_stack(stack) and not valid_drop_stack_ids.has(stack.stack_id):
 			continue
 		var rect: Rect2 = _layout.get_stack_rect(stack)
 		var distance: float = _distance_to_rect(board_position, rect)
@@ -371,12 +372,6 @@ func _update_stack(stack_id: String) -> void:
 		return
 
 	var stack: StackState = state.get_stack(stack_id)
-	if _is_shop_stack(stack):
-		for card_id: String in stack.card_ids:
-			_remove_card_view(card_id)
-		_remove_stack_progress_view(stack.stack_id)
-		return
-
 	_ensure_stack_layer(stack.stack_id)
 	for index: int in stack.card_ids.size():
 		var card_id: String = stack.card_ids[index]
@@ -445,6 +440,8 @@ func _update_active_processing_stacks() -> void:
 func _begin_drag(card_id: String, board_position: Vector2, viewport_position: Vector2) -> void:
 	var card: CardInstance = state.get_card(card_id)
 	if card == null:
+		return
+	if _is_shop_card(card):
 		return
 	var view: CardView = get_card_view(card_id)
 	if view == null:
@@ -813,8 +810,6 @@ func _find_card_at_board_position_for_stack_hover(board_position: Vector2) -> St
 	if state == null:
 		return ""
 	for stack: StackState in state.stacks.values():
-		if _is_shop_stack(stack):
-			continue
 		var stack_base_z: int = _get_stack_base_z(stack.stack_id)
 		for index: int in stack.card_ids.size():
 			var card_id: String = stack.card_ids[index]
@@ -1051,11 +1046,19 @@ func _should_render_card_on_board(card_id: String) -> bool:
 	var card: CardInstance = state.get_card(card_id)
 	if card == null:
 		return false
-	var stack: StackState = state.get_stack(card.stack_id)
-	if stack != null and _is_shop_stack(stack):
+	var definition: CardDefinition = content.get_card_definition(card.definition_id)
+	return definition != null
+
+func _get_valid_drop_stack_ids(card_id: String) -> PackedStringArray:
+	if card_id.is_empty() or not drop_interaction_preview_resolver.is_valid():
+		return PackedStringArray()
+	return drop_interaction_preview_resolver.call(card_id) as PackedStringArray
+
+func _is_shop_card(card: CardInstance) -> bool:
+	if card == null or content == null:
 		return false
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
-	return definition != null and not definition.tags.has("shop")
+	return definition != null and definition.tags.has("shop")
 
 func _is_shop_stack(stack: StackState) -> bool:
 	if stack == null or state == null or content == null:

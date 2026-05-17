@@ -2,27 +2,28 @@
 
 [ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_vy2m0"]
 [ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_t9l0h"]
-[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/money.png" id="3_37ofg"]
+[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/bulb.png" id="3_37ofg"]
 
 [sub_resource type="Resource" id="Resource_7u6xq"]
 script = ExtResource("2_t9l0h")
-background_color = Color(0.54, 0.90, 1.00, 1)
-accent_color = Color(0.18, 0.66, 0.90, 1)
-text_color = Color(0.075, 0.095, 0.12, 1)
+visual_role_id = "visual_role.shop"
+use_visual_role = true
+override_background_color = false
+override_accent_color = false
+override_text_color = false
 icon_texture = ExtResource("3_37ofg")
-icon_size = Vector2(78, 78)
+icon_size = Vector2(86, 86)
 icon_offset = Vector2(0, 0)
 icon_recolor_alpha_mask = true
-marker_text = "$"
 
 [resource]
 script = ExtResource("1_vy2m0")
 id = "card.shop.booster_slot"
-display_name = "Gründerpanik"
+display_name = "Inspiration"
 type = 6
 tags = PackedStringArray("shop", "booster_slot")
-short_text = "Fruehes Notfall-Pack"
-tooltip_text = "Kauft fuer 1 Geld ein Gruenderpanik-Pack."
+short_text = "Alles was ein Startup braucht: Ideen & Kaffee"
+tooltip_text = "Alles was ein Startup braucht: Ideen & Kaffee"
 visual = SubResource("Resource_7u6xq")
 base_values = {
 "booster_definition_id": "booster.founder.test_pack",

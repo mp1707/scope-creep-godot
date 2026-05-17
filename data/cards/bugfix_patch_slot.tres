@@ -2,13 +2,17 @@
 
 [ext_resource type="Script" path="res://scripts/data/card_definition.gd" id="1_card"]
 [ext_resource type="Script" path="res://scripts/data/card_visual_definition.gd" id="2_visual"]
+[ext_resource type="Texture2D" path="res://assets/icons/handdrawn/cardIcons/exclamationmark.png" id="3_icon"]
 
 [sub_resource type="Resource" id="Resource_visual"]
 script = ExtResource("2_visual")
-background_color = Color(1.00, 0.62, 0.54, 1)
-accent_color = Color(0.92, 0.28, 0.22, 1)
-text_color = Color(0.075, 0.095, 0.12, 1)
-marker_text = "FIX"
+visual_role_id = "visual_role.shop"
+use_visual_role = true
+override_background_color = false
+override_accent_color = false
+override_text_color = false
+icon_texture = ExtResource("3_icon")
+icon_size = Vector2(86, 86)
 
 [resource]
 script = ExtResource("1_card")
@@ -16,8 +20,8 @@ id = "card.shop.bugfix_patch_slot"
 display_name = "Externe Hilfe"
 type = 6
 tags = PackedStringArray("shop", "bugfix_patch_slot")
-short_text = "Kauft Bugfix"
-tooltip_text = "Kauft fuer 1 Geld einen externen Bugfix."
+short_text = "Wenn es brennt und Bugs schnell gefixt werden müssen"
+tooltip_text = "Wenn es brennt und Bugs schnell gefixt werden müssen"
 visual = SubResource("Resource_visual")
 base_values = {
 "shop_dock_order": 30

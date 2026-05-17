@@ -151,8 +151,6 @@ func is_shop_stack(stack: StackState) -> bool:
 func _is_spawn_history_position_occupied(position: Vector2) -> bool:
 	var history_rect: Rect2 = Rect2(position, CARD_SIZE)
 	for stack: StackState in state.stacks.values():
-		if is_shop_stack(stack):
-			continue
 		if history_rect.intersects(_get_stack_rect(stack)):
 			return true
 	return false
@@ -168,8 +166,6 @@ func _does_spawn_overlap(position: Vector2) -> bool:
 		if spawn_rect.intersects(Rect2(previous_position, CARD_SIZE)):
 			return true
 	for stack: StackState in state.stacks.values():
-		if is_shop_stack(stack):
-			continue
 		if spawn_rect.intersects(_get_stack_rect(stack)):
 			return true
 	return false
@@ -179,20 +175,7 @@ func _get_spawn_source_position(source_stack_id: String) -> Vector2:
 		return Vector2.ZERO
 
 	var source_stack: StackState = state.get_stack(source_stack_id)
-	if is_shop_stack(source_stack):
-		return _get_shop_spawn_source_position()
 	return source_stack.base_position
-
-func _get_shop_spawn_source_position() -> Vector2:
-	var safe_zoom: float = 1.0
-	if state.board.camera_zoom.x > 0.0:
-		safe_zoom = state.board.camera_zoom.x
-	var visible_size: Vector2 = BoardState.INITIAL_VIEWPORT_SIZE / safe_zoom
-	var source_position: Vector2 = state.board.camera_position + Vector2(
-		0.0,
-		visible_size.y * 0.5 - CARD_SIZE.y - 160.0
-	)
-	return _clamp_spawn_position_to_board(source_position)
 
 func _get_spawn_bounds() -> Rect2:
 	var board_size: Vector2 = state.board.size

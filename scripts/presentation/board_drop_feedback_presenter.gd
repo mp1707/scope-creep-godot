@@ -114,8 +114,6 @@ func _should_show_board_interaction_highlight(stack_id: String) -> bool:
 	if state == null or not state.stacks.has(stack_id):
 		return false
 	var stack: StackState = state.get_stack(stack_id)
-	if _is_shop_stack(stack):
-		return false
 	if _drag_preview_card_ids.is_empty():
 		return true
 	for card_id: String in _drag_preview_card_ids:
@@ -186,11 +184,8 @@ func _should_render_card_on_board(card_id: String) -> bool:
 	var card: CardInstance = state.get_card(card_id)
 	if card == null:
 		return false
-	var stack: StackState = state.get_stack(card.stack_id)
-	if stack != null and _is_shop_stack(stack):
-		return false
 	var definition: CardDefinition = content.get_card_definition(card.definition_id)
-	return definition != null and not definition.tags.has("shop")
+	return definition != null
 
 func _is_shop_stack(stack: StackState) -> bool:
 	if stack == null or state == null or content == null:
