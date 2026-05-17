@@ -21,8 +21,8 @@ id = "card.output.feature"
 display_name = "Funktion"
 type = 3
 tags = PackedStringArray("feature", "output")
-short_text = "MVP-Fortschritt oder Freelance"
-tooltip_text = "Kann integriert oder fuer 3 Geld verkauft werden. Kann Bugs erzeugen."
+short_text = "MVP oder Auftrag"
+tooltip_text = "Kann integriert oder auf einen Auftrag geliefert werden. Kann Bugs erzeugen."
 visual = SubResource("Resource_cfqru")
 base_values = {
 "feature_value": 1,

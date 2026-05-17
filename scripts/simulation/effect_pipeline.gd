@@ -232,6 +232,8 @@ func _get_spawn_count(effect: EffectDefinition, context: EffectContext) -> int:
 		match count_key:
 			"order_bonus_money_cards":
 				return maxi(0, context.content.balance.order_bonus_money_cards)
+			"freelance_order_payout_money_cards":
+				return maxi(0, context.content.balance.freelance_order_payout_money_cards)
 
 	return maxi(0, effect.parameters.get("count", 1) as int)
 

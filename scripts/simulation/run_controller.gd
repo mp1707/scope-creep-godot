@@ -236,8 +236,6 @@ func move_card_to_stack(card_id: String, target_stack_id: String) -> void:
 		return
 	if _try_recycle_card_stack(moving_card_ids, target_stack):
 		return
-	if _try_dump_freelance_feature_stack(moving_card_ids, target_stack):
-		return
 	if _try_hire_offer_with_money_stack(card, moving_card_ids, target_stack):
 		return
 	if _try_pay_employee_with_money(card, moving_card_ids, target_stack):
@@ -388,19 +386,6 @@ func _try_recycle_card_stack(moving_card_ids: PackedStringArray, target_stack: S
 		Callable(self, "_remove_card_instance"),
 		Callable(self, "_spawn_card_as_new_stack"),
 		Callable(self, "_move_existing_cards_to_new_stack"),
-		Callable(self, "_get_spawn_position_near_stack"),
-		Callable(self, "_emit_stack_changed")
-	)
-
-func _try_dump_freelance_feature_stack(moving_card_ids: PackedStringArray, target_stack: StackState) -> bool:
-	return _shop_interactions.try_dump_freelance_feature_stack(
-		moving_card_ids,
-		target_stack,
-		_rng,
-		_get_freelance_money_card_count(),
-		_get_bug_chance(),
-		Callable(self, "_remove_card_instance"),
-		Callable(self, "_spawn_card_as_new_stack"),
 		Callable(self, "_get_spawn_position_near_stack"),
 		Callable(self, "_emit_stack_changed")
 	)
@@ -921,16 +906,6 @@ func _get_initial_customer_request_card_count() -> int:
 	if content.balance == null:
 		return 1
 	return maxi(0, content.balance.poc5_initial_customer_request_cards)
-
-func _get_freelance_money_card_count() -> int:
-	if content.balance == null:
-		return 3
-	return maxi(0, content.balance.poc3_freelance_dump_money_cards)
-
-func _get_bug_chance() -> float:
-	if content.balance == null:
-		return 0.5
-	return clampf(content.balance.bug_chance, 0.0, 1.0)
 
 func _get_business_goal_required_money_values() -> Array[int]:
 	if content.balance == null or content.balance.poc3_business_goal_required_money.is_empty():

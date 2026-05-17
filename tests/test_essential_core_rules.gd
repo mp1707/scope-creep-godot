@@ -21,8 +21,12 @@ func _init() -> void:
 	_test_recycling_bin_rejects_money_and_mixed_stacks()
 	_test_recyclable_cards_do_not_drop_on_booster_slots()
 	_test_freelance_order_is_permanent_shop_slot()
-	_test_freelance_slot_pays_three_and_rolls_bug_for_unchecked_feature()
-	_test_freelance_slot_pays_checked_feature_without_bug()
+	_test_freelance_slot_sells_order_card_for_money()
+	_test_freelance_slot_rejects_order_purchase_in_payment_phase()
+	_test_freelance_slot_rejects_direct_feature_dump()
+	_test_freelance_order_pays_three_and_rolls_bug_for_unchecked_feature()
+	_test_freelance_order_pays_checked_feature_without_bug()
+	_test_open_freelance_orders_expire_at_sprint_start()
 	_test_mvp_launch_threshold_and_customer_scaling()
 	_test_live_feature_threshold_spawns_next_customer_immediately()
 	_test_customer_spawn_creates_initial_money_and_request_without_passive_tick_income()
@@ -216,7 +220,7 @@ func _test_founder_panic_booster_pool_contains_only_ideas_and_coffee() -> void:
 	_assert_true(catalog.load_default_content(), "Default content should load.")
 	var booster: BoosterDefinition = catalog.get_booster_definition("booster.founder.test_pack")
 	_assert_true(booster != null, "Founder panic booster should exist.")
-	_assert_equal(booster.draw_count, 3, "Founder panic booster should still draw three cards.")
+	_assert_equal(booster.draw_count, 2, "Founder panic booster should draw two cards after the economy rebalance.")
 	for entry: BoosterPoolEntry in booster.pool_entries:
 		_assert_true(
 			entry.card_definition_id == "card.input.idea" or entry.card_definition_id == "card.consumable.coffee",
@@ -363,42 +367,100 @@ func _test_freelance_order_is_permanent_shop_slot() -> void:
 	var state: RunState = _start_run_with_opened_startup(controller, 1031)
 	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
 	_assert_true(freelance_slot != null, "Start run should include the permanent Freelance shop slot.")
-	_assert_equal(_count_cards_by_definition(state, "card.value_source.freelance_order"), 0, "Freelance should no longer spawn as a pre-launch value-source card.")
+	_assert_equal(_count_cards_by_definition(state, "card.value_source.order"), 0, "Freelance should not start with open order cards.")
 
 	_pay_and_start_next_sprint(controller, state)
 
 	_assert_equal(_count_cards_by_definition(state, "card.shop.freelance_order"), 1, "Freelance shop slot should persist across sprint starts.")
-	_assert_equal(_count_cards_by_definition(state, "card.value_source.freelance_order"), 0, "Sprint start should not spawn legacy Freelance order cards.")
+	_assert_equal(_count_cards_by_definition(state, "card.value_source.order"), 0, "Sprint start should not passively spawn Freelance order cards.")
 
-func _test_freelance_slot_pays_three_and_rolls_bug_for_unchecked_feature() -> void:
+func _test_freelance_slot_sells_order_card_for_money() -> void:
 	var controller: RunController = _create_controller(60.0)
-	controller.content.balance.bug_chance = 1.0
 	var state: RunState = _start_run_with_opened_startup(controller, 1032)
 	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
-	var feature: CardInstance = _spawn_card(controller, "card.output.feature", Vector2(5000.0, 1500.0))
+	var money: CardInstance = _find_top_card_by_definition(state, "card.resource.money")
 	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
-	var bugs_before: int = _count_cards_by_definition(state, "card.problem.bug")
+
+	controller.move_card_to_stack(money.instance_id, freelance_slot.stack_id)
+
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before - 1, "Buying a Freelance order should consume one money card.")
+	_assert_equal(_count_cards_by_definition(state, "card.value_source.order"), 1, "Buying from the Freelance slot should spawn one visible order card.")
+
+func _test_freelance_slot_rejects_order_purchase_in_payment_phase() -> void:
+	var controller: RunController = _create_controller(1.0)
+	var state: RunState = _start_run_with_opened_startup(controller, 1037)
+	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
+	var money: CardInstance = _find_top_card_by_definition(state, "card.resource.money")
+	var original_stack_id: String = money.stack_id
+	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
+
+	controller.advance_time(1.0)
+	_assert_equal(state.phase, ScopeEnums.RunPhase.PAYMENT, "Short sprint should enter payment before Freelance purchase rejection.")
+	controller.move_card_to_stack(money.instance_id, freelance_slot.stack_id)
+
+	_assert_equal(money.stack_id, original_stack_id, "Freelance order purchases should be rejected in payment phase.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before, "Rejected payment-phase Freelance purchase should not consume money.")
+	_assert_equal(_count_cards_by_definition(state, "card.value_source.order"), 0, "Rejected payment-phase Freelance purchase should not spawn an order.")
+
+func _test_freelance_slot_rejects_direct_feature_dump() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = _start_run_with_opened_startup(controller, 1033)
+	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
+	var feature: CardInstance = _spawn_card(controller, "card.output.feature", Vector2(5000.0, 1500.0))
+	var original_stack_id: String = feature.stack_id
+	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
 
 	controller.move_card_to_stack(feature.instance_id, freelance_slot.stack_id)
 
-	_assert_true(state.get_card(feature.instance_id) == null, "Freelance slot should consume the dumped unchecked feature.")
-	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before + 3, "Unchecked feature Freelance dump should create 3 money cards.")
-	_assert_equal(_count_cards_by_definition(state, "card.problem.bug"), bugs_before + 1, "Unchecked feature Freelance dump should use the release bug chance.")
+	_assert_true(state.get_card(feature.instance_id) != null, "Direct Feature -> Freelance slot should no longer consume the feature.")
+	_assert_equal(feature.stack_id, original_stack_id, "Direct Feature -> Freelance slot should be rejected by the shop stack.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before, "Direct Feature -> Freelance slot should not create money.")
 
-func _test_freelance_slot_pays_checked_feature_without_bug() -> void:
+func _test_freelance_order_pays_three_and_rolls_bug_for_unchecked_feature() -> void:
 	var controller: RunController = _create_controller(60.0)
 	controller.content.balance.bug_chance = 1.0
-	var state: RunState = _start_run_with_opened_startup(controller, 1033)
-	var freelance_slot: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
-	var checked_feature: CardInstance = _spawn_card(controller, "card.output.checked_feature", Vector2(5000.0, 1700.0))
+	var state: RunState = _start_run_with_opened_startup(controller, 1034)
+	var order: CardInstance = _spawn_card(controller, "card.value_source.order", Vector2(5000.0, 1700.0))
+	var feature: CardInstance = _spawn_card(controller, "card.output.feature", Vector2(5100.0, 1700.0))
 	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
 	var bugs_before: int = _count_cards_by_definition(state, "card.problem.bug")
 
-	controller.move_card_to_stack(checked_feature.instance_id, freelance_slot.stack_id)
+	controller.move_card_to_stack(feature.instance_id, order.stack_id)
+	_assert_equal(state.get_stack(order.stack_id).processing_state.active_recipe_id, "recipe.money_from_order.feature", "Unchecked feature plus order should start the Freelance delivery recipe.")
+	controller.advance_time(1.0)
 
-	_assert_true(state.get_card(checked_feature.instance_id) == null, "Freelance slot should consume the dumped checked feature.")
-	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before + 3, "Checked feature Freelance dump should create 3 money cards.")
-	_assert_equal(_count_cards_by_definition(state, "card.problem.bug"), bugs_before, "Checked feature Freelance dump should not create release bugs.")
+	_assert_true(state.get_card(order.instance_id) == null, "Freelance delivery should consume the order.")
+	_assert_true(state.get_card(feature.instance_id) == null, "Freelance delivery should consume the unchecked feature.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before + 3, "Unchecked Freelance delivery should create 3 money cards.")
+	_assert_equal(_count_cards_by_definition(state, "card.problem.bug"), bugs_before + 1, "Unchecked Freelance delivery should use the release bug chance.")
+
+func _test_freelance_order_pays_checked_feature_without_bug() -> void:
+	var controller: RunController = _create_controller(60.0)
+	controller.content.balance.bug_chance = 1.0
+	var state: RunState = _start_run_with_opened_startup(controller, 1035)
+	var order: CardInstance = _spawn_card(controller, "card.value_source.order", Vector2(5000.0, 1900.0))
+	var checked_feature: CardInstance = _spawn_card(controller, "card.output.checked_feature", Vector2(5100.0, 1900.0))
+	var money_before: int = _count_cards_by_definition(state, "card.resource.money")
+	var bugs_before: int = _count_cards_by_definition(state, "card.problem.bug")
+
+	controller.move_card_to_stack(checked_feature.instance_id, order.stack_id)
+	_assert_equal(state.get_stack(order.stack_id).processing_state.active_recipe_id, "recipe.money_from_order.checked_feature", "Checked feature plus order should use the bug-free Freelance delivery recipe.")
+	controller.advance_time(1.0)
+
+	_assert_true(state.get_card(order.instance_id) == null, "Checked Freelance delivery should consume the order.")
+	_assert_true(state.get_card(checked_feature.instance_id) == null, "Checked Freelance delivery should consume the checked feature.")
+	_assert_equal(_count_cards_by_definition(state, "card.resource.money"), money_before + 3, "Checked Freelance delivery should create 3 money cards.")
+	_assert_equal(_count_cards_by_definition(state, "card.problem.bug"), bugs_before, "Checked Freelance delivery should not create release bugs.")
+
+func _test_open_freelance_orders_expire_at_sprint_start() -> void:
+	var controller: RunController = _create_controller(1.0)
+	var state: RunState = _start_run_with_opened_startup(controller, 1036)
+	_spawn_card(controller, "card.value_source.order", Vector2(5000.0, 2100.0))
+	_assert_equal(_count_cards_by_definition(state, "card.value_source.order"), 1, "Open order should exist before sprintstart expiration.")
+
+	_pay_and_start_next_sprint(controller, state)
+
+	_assert_equal(_count_cards_by_definition(state, "card.value_source.order"), 0, "Open orders should expire at the next sprint start.")
 
 func _test_mvp_launch_threshold_and_customer_scaling() -> void:
 	var threshold_controller: RunController = _create_controller(60.0)
@@ -794,6 +856,15 @@ func _find_card_by_definition(state: RunState, definition_id: String) -> CardIns
 		if card.definition_id == definition_id:
 			return card
 	_assert_true(false, "Missing card with definition '%s'." % definition_id)
+	return null
+
+func _find_top_card_by_definition(state: RunState, definition_id: String) -> CardInstance:
+	for stack: StackState in state.stacks.values():
+		for index: int in range(stack.card_ids.size() - 1, -1, -1):
+			var card: CardInstance = state.get_card(stack.card_ids[index])
+			if card != null and card.definition_id == definition_id:
+				return card
+	_assert_true(false, "Missing top card with definition '%s'." % definition_id)
 	return null
 
 func _find_cards_by_definition(state: RunState, definition_id: String) -> Array[CardInstance]:

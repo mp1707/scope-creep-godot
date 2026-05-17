@@ -6,6 +6,8 @@
 script = ExtResource("1_0xr8k")
 id = "balance.poc.default"
 release_duration_seconds = 6.0
+freelance_order_cost_money_cards = 1
+freelance_order_payout_money_cards = 3
 poc3_mvp_required_features = 5
 poc3_start_money_cards = 4
 poc3_freelance_dump_money_cards = 3

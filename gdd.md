@@ -514,15 +514,16 @@ Problemkarten sind zentrale negative Objekte. Sie bleiben liegen, bis sie behand
 
 Ein Softwarefehler. Bugs haben **keine Level**.
 
-**Entstehung beim Release:**
+**Entstehung bei ungepruefter Lieferung:**
 
 ```text
 Ungeprüfte Funktion + Software → 2s „Feature deployen…" → Geld + 50% Chance auf Bug
+Auftrag + ungeprüfte Funktion → 1s „Auftrag liefern" → 3 Geld + 50% Chance auf Bug
 ```
 
-Ein Bug kann nur aus einem **ungeprüften Feature-Release** entstehen: Eine Funktion, die direkt vom Entwickler kommt und ohne QS/Testlauf auf die Software gezogen wird, würfelt nach dem 2s-Release-Fortschrittsbalken mit **50% Chance** einen Bug aus. Der Bug fällt sichtbar neben dem Geld aus dem Release.
+Ein Bug kann nur aus einer **ungeprüften Feature-Lieferung** entstehen: Eine Funktion, die direkt vom Entwickler kommt und ohne QS/Testlauf auf die Software oder einen Auftrag gezogen wird, würfelt nach dem Liefer-Fortschrittsbalken mit **50% Chance** einen Bug aus. Der Bug fällt sichtbar neben dem Ergebnis aus der Lieferung.
 
-Geprüfte Funktionen erzeugen in v1 beim Release **keinen Bug**.
+Geprüfte Funktionen erzeugen in v1 beim Release oder bei Auftragslieferung **keinen Bug**.
 
 **Eskalation am Sprintstart:**
 
@@ -876,19 +877,20 @@ Unzufriedenen Kunden kann keine Demo gezeigt werden und kein Feedback entlockt w
 
 ### Freelance-Auftrag
 
-Permanenter Shop-Slot. Der Slot ist eine kontrollierbare Geldquelle, in die fertige Funktionen gedumped werden koennen.
+Permanenter Shop-Slot. Der Slot verkauft sichtbare Auftragskarten und ist dadurch eine kontrollierbare, aber sprintgebundene Geldquelle.
 
 **Lifecycle:** permanent.
 
-- Der Freelance-Auftrag spawnt nicht mehr als sprintgebundene Karte.
+- Geld auf den Freelance-Slot erzeugt 1 Auftragskarte.
 - Der Slot liegt dauerhaft im Shop-Dock.
-- Funktion und gepruefte Funktion erzeugen jeweils 3 einzelne Geldkarten.
-- Eine ungepruefte Funktion nutzt dieselbe Bug-Chance wie ein ungepruefter Release.
-- Eine gepruefte Funktion erzeugt keinen Bug-Roll.
+- Offene Auftragskarten verfallen beim Start des naechsten Sprints.
+- Auftrag + Funktion erzeugt 3 einzelne Geldkarten und nutzt dieselbe Bug-Chance wie ein ungepruefter Release.
+- Auftrag + gepruefte Funktion erzeugt 3 einzelne Geldkarten ohne Bug-Roll.
 
 ```text
-Funktion auf Freelance-Slot → 3 Geld + Bug-Chance wie beim Release
-Gepruefte Funktion auf Freelance-Slot → 3 Geld
+Geld auf Freelance-Slot → Auftrag
+Auftrag + Funktion → 3 Geld + Bug-Chance wie beim Release
+Auftrag + Gepruefte Funktion → 3 Geld
 ```
 
 ### Spawning-Regeln (Übersicht)
@@ -902,8 +904,9 @@ Damit das System klar ist, hier die zentralen Quellen für neue Karten:
 | **User Story**      | Product Owner + Kundenwunsch, Product Owner + Kunde          | nach Bearbeitungsabschluss                                |
 | **Kaffee**          | Kaffeemaschine                                               | 1× pro Sprintstart                                        |
 | **Idee (Workshop)** | Brainstorming-Workshop                                       | beim Workshop-Abschluss, 1 pro anwesendem Mitarbeiter     |
-| **Booster-Inhalt**  | Boosterpack                                                  | beim Kauf, 3 Karten aus dem Pack-Pool                     |
-| **Freelance-Geld**  | Freelance-Shop-Slot                                          | beim Dumpen von Funktion oder gepruefter Funktion         |
+| **Booster-Inhalt**  | Boosterpack                                                  | beim Kauf, Karten aus dem Pack-Pool                       |
+| **Freelance-Auftrag** | Freelance-Shop-Slot                                        | beim Kauf fuer 1 Geld                                     |
+| **Freelance-Geld**  | Auftrag + Funktion / Gepruefte Funktion                      | beim Liefern einer Auftragskarte                          |
 
 Sprintstart-Spawns passieren erst nach Klick auf **„Sprint N+1 starten"**, nicht bereits beim Übergang in die Bezahlphase.
 
@@ -1476,7 +1479,9 @@ Kaffeemaschine → 1× Kaffee pro Sprintstart
 Kunde erscheint → 1 Geld + 1 Kundenwunsch
 Entwickler + Kunde → 10s „Demo zeigen..." → 1 Geld + 1 Kundenwunsch
 Product Owner + Kunde → 30s „Feedback sammeln..." → 1 User Story
-Auftrag + passende Funktion → großer Geldbonus, Auftrag verbraucht
+Geld + Freelance-Slot → Auftrag
+Auftrag + Funktion → 3 Geld + 50% Bug-Chance, Auftrag und Funktion verbraucht
+Auftrag + Geprüfte Funktion → 3 Geld, Auftrag und Geprüfte Funktion verbraucht
 Geld + Booster-Slot → Boosterpack erscheint
 Klick auf Boosterpack → 1 Karte aus Pack-Pool; nach 3 Klicks verschwindet das Pack
 Geld + Mitarbeiter (Bezahlphase) → bezahlt

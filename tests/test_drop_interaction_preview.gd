@@ -6,7 +6,8 @@ func _init() -> void:
 	_test_recipe_preview_marks_real_target()
 	_test_payment_preview_respects_phase()
 	_test_coffee_preview_marks_only_employee_processing()
-	_test_feature_preview_marks_software_and_freelance()
+	_test_feature_preview_marks_software_and_order_not_freelance()
+	_test_money_preview_marks_freelance_order_shop()
 	_test_recycling_preview_requires_three_recyclable_cards()
 	_test_insufficient_money_does_not_mark_expensive_shop_slot()
 	_test_preview_matches_controller_drop_query_for_all_stacks()
@@ -78,16 +79,27 @@ func _test_coffee_preview_marks_only_employee_processing() -> void:
 	var object_coffee_preview: PackedStringArray = object_controller.get_drop_interaction_preview_stack_ids(object_coffee.instance_id)
 	_assert_true(not object_coffee_preview.has(software.stack_id), "Coffee should not preview active object processing.")
 
-func _test_feature_preview_marks_software_and_freelance() -> void:
+func _test_feature_preview_marks_software_and_order_not_freelance() -> void:
 	var controller: RunController = _create_controller(60.0)
 	var state: RunState = _start_run_with_opened_startup(controller, 2005)
 	var feature: CardInstance = _spawn_card(controller, "card.output.feature", Vector2(1400.0, 320.0))
+	var order: CardInstance = _spawn_card(controller, "card.value_source.order", Vector2(1450.0, 320.0))
 	var software: CardInstance = _find_card_by_definition(state, "card.product.software")
 	var freelance: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
 
 	var preview: PackedStringArray = controller.get_drop_interaction_preview_stack_ids(feature.instance_id)
 	_assert_true(preview.has(software.stack_id), "Feature should preview software integration.")
-	_assert_true(preview.has(freelance.stack_id), "Feature should preview the freelance dump slot.")
+	_assert_true(preview.has(order.stack_id), "Feature should preview visible order cards.")
+	_assert_true(not preview.has(freelance.stack_id), "Feature should not preview the Freelance shop slot directly.")
+
+func _test_money_preview_marks_freelance_order_shop() -> void:
+	var controller: RunController = _create_controller(60.0)
+	var state: RunState = _start_run_with_opened_startup(controller, 2010)
+	var money: CardInstance = _find_top_card_by_definition(state, "card.resource.money")
+	var freelance: CardInstance = _find_card_by_definition(state, "card.shop.freelance_order")
+
+	var preview: PackedStringArray = controller.get_drop_interaction_preview_stack_ids(money.instance_id)
+	_assert_true(preview.has(freelance.stack_id), "Money should preview the Freelance slot because it buys an order card.")
 
 func _test_recycling_preview_requires_three_recyclable_cards() -> void:
 	var controller: RunController = _create_controller(60.0)

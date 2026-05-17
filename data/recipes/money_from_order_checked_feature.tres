@@ -12,7 +12,7 @@ affected_by_global_modifiers = false
 
 [sub_resource type="Resource" id="Effect_spawn_bonus_money"]
 script = ExtResource("3_effect")
-id = "effect.spawn_money.freelance_order"
+id = "effect.spawn_money.freelance_order.checked"
 effect_type = "spawn_money"
 parameters = {
 "count_key": "freelance_order_payout_money_cards"
@@ -20,44 +20,34 @@ parameters = {
 
 [sub_resource type="Resource" id="Effect_consume_order"]
 script = ExtResource("3_effect")
-id = "effect.consume_input.order"
+id = "effect.consume_input.order.checked"
 effect_type = "consume_input"
 parameters = {
 "card_definition_id": "card.value_source.order"
 }
 
-[sub_resource type="Resource" id="Effect_consume_feature"]
+[sub_resource type="Resource" id="Effect_consume_checked_feature"]
 script = ExtResource("3_effect")
-id = "effect.consume_input.feature.freelance_order"
+id = "effect.consume_input.checked_feature.freelance_order"
 effect_type = "consume_input"
 parameters = {
-"card_definition_id": "card.output.feature"
-}
-
-[sub_resource type="Resource" id="Effect_roll_bug"]
-script = ExtResource("3_effect")
-id = "effect.roll_bug_chance.freelance_order"
-effect_type = "roll_chance"
-parameters = {
-"card_definition_id": "card.problem.bug",
-"chance_key": "bug_chance",
-"spawn_index": 3
+"card_definition_id": "card.output.checked_feature"
 }
 
 [sub_resource type="Resource" id="Input_order"]
 script = ExtResource("1_matcher")
 card_definition_id = "card.value_source.order"
 
-[sub_resource type="Resource" id="Input_feature"]
+[sub_resource type="Resource" id="Input_checked_feature"]
 script = ExtResource("1_matcher")
-card_definition_id = "card.output.feature"
+card_definition_id = "card.output.checked_feature"
 
 [resource]
 script = ExtResource("4_recipe")
-id = "recipe.money_from_order.feature"
-display_text = "Auftrag liefern"
-inputs = Array[ExtResource("1_matcher")]([SubResource("Input_order"), SubResource("Input_feature")])
+id = "recipe.money_from_order.checked_feature"
+display_text = "Geprueften Auftrag liefern"
+inputs = Array[ExtResource("1_matcher")]([SubResource("Input_order"), SubResource("Input_checked_feature")])
 duration = SubResource("Duration_order")
-priority = 25
+priority = 30
 specificity_score = 2
-effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_spawn_bonus_money"), SubResource("Effect_roll_bug"), SubResource("Effect_consume_order"), SubResource("Effect_consume_feature")])
+effects_on_complete = Array[ExtResource("3_effect")]([SubResource("Effect_spawn_bonus_money"), SubResource("Effect_consume_order"), SubResource("Effect_consume_checked_feature")])

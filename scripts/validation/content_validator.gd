@@ -46,7 +46,8 @@ const POC2_REQUIRED_RECIPE_INPUTS: Dictionary = {
 	"recipe.burnout_recovery.employee": ["card.problem.burnout", "tag:employee"],
 	"recipe.burnout_recovery.pizza": ["card.problem.burnout", "card.consumable.pizza_party"],
 	"recipe.burnout_recovery.stress_course": ["card.problem.burnout", "card.consumable.stress_course"],
-	"recipe.money_from_order.feature": ["card.value_source.order", "tag:feature"],
+	"recipe.money_from_order.feature": ["card.value_source.order", "card.output.feature"],
+	"recipe.money_from_order.checked_feature": ["card.value_source.order", "card.output.checked_feature"],
 }
 const POC3_REQUIRED_CARD_IDS: Array[String] = [
 	"card.product.software",
@@ -769,6 +770,10 @@ func _validate_balance(balance: BalanceDefinition) -> void:
 		_errors.append("%s: Balance '%s' needs tech_debt_chance between 0 and 1." % [path, balance.id])
 	if balance.order_bonus_money_cards < 0:
 		_errors.append("%s: Balance '%s' needs non-negative order_bonus_money_cards." % [path, balance.id])
+	if balance.freelance_order_cost_money_cards <= 0:
+		_errors.append("%s: Balance '%s' needs positive freelance_order_cost_money_cards." % [path, balance.id])
+	if balance.freelance_order_payout_money_cards < 0:
+		_errors.append("%s: Balance '%s' needs non-negative freelance_order_payout_money_cards." % [path, balance.id])
 	if balance.poc3_mvp_required_features <= 0:
 		_errors.append("%s: Balance '%s' needs positive poc3_mvp_required_features." % [path, balance.id])
 	if balance.poc3_start_money_cards < 0:

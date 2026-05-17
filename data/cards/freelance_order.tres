@@ -16,8 +16,8 @@ id = "card.shop.freelance_order"
 display_name = "Freelance-Auftrag"
 type = 6
 tags = PackedStringArray("shop", "freelance_order")
-short_text = "Feature -> 3 Geld"
-tooltip_text = "Verkauft Features fuer 3 Geld."
+short_text = "1 Geld -> Auftrag"
+tooltip_text = "Kauft eine Auftragskarte. Auftrag + Feature liefert Geld."
 visual = SubResource("Resource_visual")
 base_values = {
 "shop_dock_order": 60

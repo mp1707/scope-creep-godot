@@ -8,7 +8,7 @@ Dieses Dokument beschreibt den aktuellen Spielumfang aus Spielersicht. Es ist ke
 
 Der aktuelle Stand ist ein kleiner, aber geschlossener Management-Run auf Kartenbasis.
 
-Man startet mit einer MVP-Software, baut Features, finanziert sich dauerhaft ueber den Freelance-Shop-Slot, entscheidet den Launch manuell, bedient danach Kunden, bezahlt Business Goals, verwaltet Bugs, Tech Debt, Prod-Crashes und Burnout und kann das Team ueber eine langsame Hiring-Pipeline aus Bewerbern, Angeboten und Onboarding vergroessern.
+Man startet mit einer MVP-Software, baut Features, finanziert sich frueh ueber sichtbare Freelance-Auftragskarten, entscheidet den Launch manuell, bedient danach Kunden, bezahlt Business Goals, verwaltet Bugs, Tech Debt, Prod-Crashes und Burnout und kann das Team ueber eine langsame Hiring-Pipeline aus Bewerbern, Angeboten und Onboarding vergroessern.
 
 Das Spiel ist damit mehr als ein reiner Recipe-Test. Es hat inzwischen einen Anfang, einen Launch-Wendepunkt, Post-Launch-Druck, Sieg- und Niederlagebedingungen sowie kontrolliertes Teamwachstum. Balance, Lesbarkeit, UI-Polish, Content-Breite, Konflikte, Workshops, finale Card-Art, Tutorial und Meta-Progression fehlen aber noch oder sind bewusst nicht final.
 
@@ -40,7 +40,7 @@ Der Grundkonflikt ist:
 
 ```text
 Funktion ins Produkt integrieren -> MVP-Fortschritt
-Funktion in den Freelance-Slot dumpen -> sofort Geld
+Geld in den Freelance-Slot investieren -> Auftrag kaufen -> Feature liefern -> Geld
 ```
 
 Der Spieler braucht genug Features fuer den Launch, muss aber gleichzeitig Gehaelter, Booster, Bugfixes und spaeter Hiring bezahlen.
@@ -98,18 +98,19 @@ Funktion + Tester -> Gepruefte Funktion
 Gepruefte Funktion + Software -> Feature integrieren ohne Bug-Risiko
 ```
 
-Gepruefte Funktionen sind ausserdem beim Freelance-Slot sicherer, weil sie im Gegensatz zu ungeprueften Funktionen keinen Bug-Roll ausloesen.
+Gepruefte Funktionen sind ausserdem bei Auftragslieferungen sicherer, weil sie im Gegensatz zu ungeprueften Funktionen keinen Bug-Roll ausloesen.
 
-### Freelance als dauerhafte Finanzierung nutzen
+### Freelance als sichtbare Auftragsfinanzierung nutzen
 
-Der Freelance-Auftrag ist ein permanenter Shop-Slot. Funktionen und gepruefte Funktionen koennen dort jederzeit gedumped werden.
+Der Freelance-Auftrag ist ein permanenter Shop-Slot. Geldkarten kaufen dort sichtbare Auftragskarten. Eine Auftragskarte muss im selben Sprint mit einer Funktion oder geprueften Funktion geliefert werden, sonst verfällt sie beim Start des naechsten Sprints.
 
 ```text
-Funktion auf Freelance-Slot -> 3 Geld + Bug-Chance wie beim Release
-Gepruefte Funktion auf Freelance-Slot -> 3 Geld
+Geld auf Freelance-Slot -> Auftrag
+Auftrag + Funktion -> 3 Geld + Bug-Chance wie beim Release
+Auftrag + Gepruefte Funktion -> 3 Geld
 ```
 
-Es spawnen keine sprintgebundenen Freelance-Auftragskarten mehr. Der Slot bleibt auch nach Launch als kontrollierbare Geldquelle erhalten.
+Der Slot bleibt auch nach Launch als kontrollierbare Bruecken-Geldquelle erhalten, ist aber nicht mehr als endloser Feature-Dump nutzbar.
 
 ### Kunden bedienen
 
@@ -227,10 +228,11 @@ Die Shop-Slots werden in der Presentation ueber `UiLayer/ShopDock` als editor-po
 
 Aktuelle Shop-/Booster-Richtungen:
 
-- Gruenderpanik: fruehe Hilfe fuer Startdruck; zieht nur Ideen und Kaffee, kein Geld.
+- Gruenderpanik: fruehe Hilfe fuer Startdruck; zieht 2 Karten aus Ideen und Kaffee, kein Geld.
 - Wohlbefinden: Kaffee, Kaffeemaschine, Pizza Party, Stressbewaeltigungskurs.
 - Talent-Pool: kostet 2 Geld, zieht Bewerber oder Werkstudenten.
 - Externer Bugfix: gezielter Bugfix-Patch.
+- Freelance-Auftrag: kostet 1 Geld, erzeugt eine sprintgebundene Auftragskarte.
 - Kundenchaos: existiert als Content und kann nach Launch durch Launch-/Shop-Setup relevant werden.
 - Resteverwertung: ganz rechter Shop-Slot; 3 verwertbare Restkarten werden sofort zu 1 Geld, ueberschuessige Karten fallen zurueck aufs Board.
 
@@ -370,7 +372,7 @@ Vorhanden sind:
 - Board-Loop mit Drag-and-Drop, Stacks, neutralen Stacks und Processing
 - Sprint, Pause, Bezahlphase, manuelle Bezahlung und Auto-Pay
 - MVP-Featurezaehler und manueller Launch
-- dauerhafte Finanzierung ueber den Freelance-Shop-Slot
+- sichtbare Freelance-Auftragsfinanzierung ueber Shop-Kauf, Auftragskarte und Feature-Lieferung
 - Post-Launch-Kundenwirtschaft mit Geld, Kundenwuenschen und Unzufriedenheit
 - Business Goals mit Sieg- und Niederlagebedingungen
 - direkter Feature-Loop und saubere Product-Owner-/Tester-Pipeline
@@ -414,7 +416,7 @@ Cleanup-Stand:
 ## Aktuelle Playtest-Fragen
 
 - Versteht der Spieler den Weg von MVP zu Launch ohne Erklaertext?
-- Ist die Entscheidung `Feature integrieren` vs. `Freelance dumpen` spuerbar?
+- Ist die Entscheidung `Feature integrieren` vs. `Freelance-Auftrag liefern` spuerbar?
 - Fuehlen sich Kunden nach Launch gleichzeitig wertvoll und anstrengend an?
 - Konkurrieren Gehaelter, Business Goals, Booster, Bugfixes und Hiring sinnvoll um Geld?
 - Ist der Talent-Pool mit 2 Geld fair bepreist?
@@ -425,4 +427,4 @@ Cleanup-Stand:
 
 ## Aktuelle Spielerfahrung in einem Satz
 
-Man baut eine Softwarefirma als Karten-Run: erst MVP-Features und Freelance-Geld, dann Launch, Kunden, Business Goals und Wachstumsdruck, waehrend Bugs, Tech Debt, Burnout, Prod-Crashes, Unzufriedenheit und eine langsame Hiring-Pipeline staendig um Board-Platz, Zeit und einzelne Geldkarten konkurrieren.
+Man baut eine Softwarefirma als Karten-Run: erst MVP-Features und sichtbare Freelance-Auftraege, dann Launch, Kunden, Business Goals und Wachstumsdruck, waehrend Bugs, Tech Debt, Burnout, Prod-Crashes, Unzufriedenheit und eine langsame Hiring-Pipeline staendig um Board-Platz, Zeit und einzelne Geldkarten konkurrieren.

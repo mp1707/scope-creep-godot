@@ -18,5 +18,5 @@ script = ExtResource("3_38o7e")
 id = "booster.founder.test_pack"
 display_name = "Gründerpanik"
 cost_money_cards = 1
-draw_count = 3
+draw_count = 2
 pool_entries = Array[ExtResource("2_c064f")]([SubResource("Resource_40nqi"), SubResource("Resource_kye47")])

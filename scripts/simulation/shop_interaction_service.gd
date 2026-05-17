@@ -7,9 +7,7 @@ const BUGFIX_PATCH_DEFINITION_ID: String = "card.consumable.bugfix_patch"
 const RECYCLING_BIN_DEFINITION_ID: String = "card.shop.recycling_bin"
 const FREELANCE_SLOT_DEFINITION_ID: String = "card.shop.freelance_order"
 const MONEY_DEFINITION_ID: String = "card.resource.money"
-const FEATURE_DEFINITION_ID: String = "card.output.feature"
-const CHECKED_FEATURE_DEFINITION_ID: String = "card.output.checked_feature"
-const BUG_DEFINITION_ID: String = "card.problem.bug"
+const ORDER_DEFINITION_ID: String = "card.value_source.order"
 const RECYCLABLE_TAG: String = "recyclable"
 const RECYCLING_CARD_COUNT: int = 3
 
@@ -112,45 +110,6 @@ func try_recycle_card_stack(
 	emit_stack_changed.call(target_stack.stack_id)
 	return true
 
-func try_dump_freelance_feature_stack(
-	moving_card_ids: PackedStringArray,
-	target_stack: StackState,
-	rng: RandomNumberGenerator,
-	money_card_count: int,
-	bug_chance: float,
-	remove_card: Callable,
-	spawn_card: Callable,
-	get_spawn_position: Callable,
-	emit_stack_changed: Callable
-) -> bool:
-	if not _can_interact_with_board():
-		return false
-
-	var target_shop_card: CardInstance = find_shop_card_in_stack(target_stack)
-	if target_shop_card == null or target_shop_card.definition_id != FREELANCE_SLOT_DEFINITION_ID:
-		return false
-	if not are_all_freelance_feature_cards(moving_card_ids):
-		return false
-
-	var spawn_index: int = 0
-	rng.state = state.rng_state
-	for moving_card_id: String in moving_card_ids:
-		var moving_card: CardInstance = state.get_card(moving_card_id)
-		if moving_card == null:
-			continue
-		var is_unchecked_feature: bool = moving_card.definition_id == FEATURE_DEFINITION_ID
-		remove_card.call(moving_card_id)
-		for money_index: int in money_card_count:
-			spawn_card.call(MONEY_DEFINITION_ID, get_spawn_position.call(target_stack.stack_id, spawn_index))
-			spawn_index += 1
-		if is_unchecked_feature and rng.randf() <= bug_chance:
-			spawn_card.call(BUG_DEFINITION_ID, get_spawn_position.call(target_stack.stack_id, spawn_index))
-			spawn_index += 1
-	state.rng_state = rng.state
-
-	emit_stack_changed.call(target_stack.stack_id)
-	return true
-
 func can_drop_card_on_shop(card_id: String, moving_card_count: int, shop_card: CardInstance) -> bool:
 	if state == null or content == null:
 		return false
@@ -168,8 +127,6 @@ func can_drop_card_on_shop(card_id: String, moving_card_count: int, shop_card: C
 		return false
 	if is_recycling_bin_card(shop_card):
 		return moving_card_ids.size() >= RECYCLING_CARD_COUNT and are_all_recyclable_cards(moving_card_ids)
-	if is_freelance_slot_card(shop_card):
-		return are_all_freelance_feature_cards(moving_card_ids)
 
 	return are_all_cards_tagged(moving_card_ids, "money") and moving_card_ids.size() >= get_shop_purchase_cost(shop_card)
 
@@ -234,21 +191,19 @@ func are_all_recyclable_cards(card_ids: PackedStringArray) -> bool:
 			return false
 	return true
 
-func are_all_freelance_feature_cards(card_ids: PackedStringArray) -> bool:
-	if card_ids.is_empty():
-		return false
-	for card_id: String in card_ids:
-		var card: CardInstance = state.get_card(card_id)
-		if card == null or not card.parent_card_id.is_empty():
-			return false
-		if card.definition_id != FEATURE_DEFINITION_ID and card.definition_id != CHECKED_FEATURE_DEFINITION_ID:
-			return false
-	return true
-
 func get_shop_purchase(shop_card: CardInstance) -> Dictionary:
 	var definition: CardDefinition = _get_definition(shop_card)
 	if definition == null:
 		return {}
+
+	if is_freelance_slot_card(shop_card):
+		if state == null or state.phase != ScopeEnums.RunPhase.SPRINT:
+			return {}
+		return {
+			"cost_money_cards": _get_freelance_order_cost_money_cards(),
+			"spawned_card_definition_id": ORDER_DEFINITION_ID,
+			"values": {},
+		}
 
 	var booster_id: String = shop_card.values.get(BOOSTER_DEFINITION_ID_VALUE, "") as String
 	if booster_id.is_empty():
@@ -280,6 +235,11 @@ func get_shop_purchase_cost(shop_card: CardInstance) -> int:
 
 func _can_interact_with_board() -> bool:
 	return state != null and (state.phase == ScopeEnums.RunPhase.SPRINT or state.phase == ScopeEnums.RunPhase.PAYMENT)
+
+func _get_freelance_order_cost_money_cards() -> int:
+	if content == null or content.balance == null:
+		return 1
+	return maxi(1, content.balance.freelance_order_cost_money_cards)
 
 func _get_definition(card: CardInstance) -> CardDefinition:
 	if card == null or content == null:

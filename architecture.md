@@ -94,7 +94,7 @@ Zustaendig fuer:
 
 `RunController` bleibt die Fassade fuer Application-Commands. Fachliche Teilbereiche werden in kleine Services ausgelagert:
 
-- `ShopInteractionService`: Instant-Shop-Kaeufe, Freelance-Dump, Recycling und gemeinsame Drop-Regeln fuer Board und Shop-Dock.
+- `ShopInteractionService`: Instant-Shop-Kaeufe, Freelance-Auftragskauf, Recycling und gemeinsame Drop-Regeln fuer Board und Shop-Dock.
 - `HiringLifecycleService`: Angebot bezahlen, Ziel-Mitarbeiter bestimmen, Onboarding-Attachment und erste Gehaltsfaelligkeit anwenden.
 - `SprintStartPipelineService`: GDD-kritische Sprintstart-Reihenfolge zentral ausfuehren.
 - `SpawnPlacementService`: freie Spawn-Positionen und `auto_stack_on_spawn` deterministisch berechnen.
@@ -317,7 +317,7 @@ Fachliche Regeln:
 
 - Geld auf Booster-Slot erzeugt sofort ein Boosterpack mit der referenzierten BoosterDefinition.
 - Geld auf Patch-Slot erzeugt sofort einen Bugfix-Patch.
-- Feature-Karten auf Freelance-Slot werden sofort in einzelne Geldkarten umgewandelt und nutzen denselben Bug-Roll wie ungepruefte Releases.
+- Geld auf Freelance-Slot erzeugt sofort eine sichtbare Auftragskarte. Die Lieferung laeuft anschliessend als normales Recipe `Auftrag + Feature`, nicht als Shop-Command.
 - Resteverwertung verbraucht die obersten 3 `recyclable`-Karten und erzeugt 1 Geldkarte.
 
 Diese Interaktionen sind Simulation-Commands, keine Processing-Recipes. `ShopInteractionService` kapselt Kauf-, Recycling- und Drop-Regeln; Presentation darf nur fragen, ob ein Drop visuell erlaubt ist.
@@ -341,7 +341,7 @@ Beispiele:
 - Spawn-Placement-Radius
 - Auto-Stack-Radius fuer gespawnte Karten
 - MVP-Feature-Schwelle
-- Freelance-Auszahlung fuer ungepruefte und gepruefte Features
+- Freelance-Auftragskosten und -Auszahlung
 - Business-Goal-Werte
 - initiales Kundengeld und initiale Kundenwuensche beim Kunden-Spawn
 - Demo-Dauer fuer Entwickler + Kunde
